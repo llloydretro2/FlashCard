@@ -10,6 +10,7 @@ from functools import wraps
 
 __all__ = ["Error", "Packer", "Unpacker", "ConversionError"]
 
+
 # exceptions
 class Error(Exception):
     """Exception class for this module. Use:
@@ -21,16 +22,20 @@ class Error(Exception):
         msg -- contains the message
 
     """
+
     def __init__(self, msg):
         self.msg = msg
+
     def __repr__(self):
         return repr(self.msg)
+
     def __str__(self):
         return str(self.msg)
 
 
 class ConversionError(Error):
     pass
+
 
 def raise_conversion_error(function):
     """ Wrap any raised struct.errors in a ConversionError. """
@@ -41,6 +46,7 @@ def raise_conversion_error(function):
             return function(self, value)
         except struct.error as e:
             raise ConversionError(e.args[0]) from None
+
     return result
 
 
@@ -55,6 +61,7 @@ class Packer:
 
     def get_buffer(self):
         return self.__buf.getvalue()
+
     # backwards compatibility
     get_buf = get_buffer
 
@@ -74,7 +81,7 @@ class Packer:
 
     def pack_uhyper(self, x):
         try:
-            self.pack_uint(x>>32 & 0xffffffff)
+            self.pack_uint(x >> 32 & 0xffffffff)
         except (TypeError, struct.error) as e:
             raise ConversionError(e.args[0]) from None
         try:
@@ -96,7 +103,7 @@ class Packer:
         if n < 0:
             raise ValueError('fstring size must be nonnegative')
         data = s[:n]
-        n = ((n+3)//4)*4
+        n = ((n + 3) // 4) * 4
         data = data + (n - len(data)) * b'\0'
         self.__buf.write(data)
 
@@ -128,7 +135,6 @@ class Packer:
         self.pack_farray(n, list, pack_item)
 
 
-
 class Unpacker:
     """Unpacks various data representations from the given buffer."""
 
@@ -154,7 +160,7 @@ class Unpacker:
 
     def unpack_uint(self):
         i = self.__pos
-        self.__pos = j = i+4
+        self.__pos = j = i + 4
         data = self.__buf[i:j]
         if len(data) < 4:
             raise EOFError
@@ -162,7 +168,7 @@ class Unpacker:
 
     def unpack_int(self):
         i = self.__pos
-        self.__pos = j = i+4
+        self.__pos = j = i + 4
         data = self.__buf[i:j]
         if len(data) < 4:
             raise EOFError
@@ -176,7 +182,7 @@ class Unpacker:
     def unpack_uhyper(self):
         hi = self.unpack_uint()
         lo = self.unpack_uint()
-        return int(hi)<<32 | lo
+        return int(hi) << 32 | lo
 
     def unpack_hyper(self):
         x = self.unpack_uhyper()
@@ -186,7 +192,7 @@ class Unpacker:
 
     def unpack_float(self):
         i = self.__pos
-        self.__pos = j = i+4
+        self.__pos = j = i + 4
         data = self.__buf[i:j]
         if len(data) < 4:
             raise EOFError
@@ -194,7 +200,7 @@ class Unpacker:
 
     def unpack_double(self):
         i = self.__pos
-        self.__pos = j = i+8
+        self.__pos = j = i + 8
         data = self.__buf[i:j]
         if len(data) < 8:
             raise EOFError
@@ -204,11 +210,11 @@ class Unpacker:
         if n < 0:
             raise ValueError('fstring size must be nonnegative')
         i = self.__pos
-        j = i + (n+3)//4*4
+        j = i + (n + 3) // 4 * 4
         if j > len(self.__buf):
             raise EOFError
         self.__pos = j
-        return self.__buf[i:i+n]
+        return self.__buf[i:i + n]
 
     unpack_fopaque = unpack_fstring
 
@@ -225,7 +231,7 @@ class Unpacker:
             x = self.unpack_uint()
             if x == 0: break
             if x != 1:
-                raise ConversionError('0 or 1 expected, got %r' % (x,))
+                raise ConversionError('0 or 1 expected, got %r' % (x, ))
             item = unpack_item()
             list.append(item)
         return list

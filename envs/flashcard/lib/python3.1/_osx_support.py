@@ -15,9 +15,9 @@ __all__ = [
 # like "-arch" or "-isdkroot", that may need customization for
 # the user environment
 _UNIVERSAL_CONFIG_VARS = ('CFLAGS', 'LDFLAGS', 'CPPFLAGS', 'BASECFLAGS',
-                            'BLDSHARED', 'LDSHARED', 'CC', 'CXX',
-                            'PY_CFLAGS', 'PY_LDFLAGS', 'PY_CPPFLAGS',
-                            'PY_CORE_CFLAGS', 'PY_CORE_LDFLAGS')
+                          'BLDSHARED', 'LDSHARED', 'CC', 'CXX', 'PY_CFLAGS',
+                          'PY_LDFLAGS', 'PY_CPPFLAGS', 'PY_CORE_CFLAGS',
+                          'PY_CORE_LDFLAGS')
 
 # configuration variables that may contain compiler calls
 _COMPILER_CONFIG_VARS = ('BLDSHARED', 'LDSHARED', 'CC', 'CXX')
@@ -63,25 +63,25 @@ def _read_output(commandstring, capture_stderr=False):
         import tempfile
         fp = tempfile.NamedTemporaryFile()
     except ImportError:
-        fp = open("/tmp/_osx_support.%s"%(
-            os.getpid(),), "w+b")
+        fp = open("/tmp/_osx_support.%s" % (os.getpid(), ), "w+b")
 
     with contextlib.closing(fp) as fp:
         if capture_stderr:
             cmd = "%s >'%s' 2>&1" % (commandstring, fp.name)
         else:
             cmd = "%s 2>/dev/null >'%s'" % (commandstring, fp.name)
-        return fp.read().decode('utf-8').strip() if not os.system(cmd) else None
+        return fp.read().decode(
+            'utf-8').strip() if not os.system(cmd) else None
 
 
 def _find_build_tool(toolname):
     """Find a build tool on current path or using xcrun"""
     return (_find_executable(toolname)
-                or _read_output("/usr/bin/xcrun -find %s" % (toolname,))
-                or ''
-            )
+            or _read_output("/usr/bin/xcrun -find %s" % (toolname, )) or '')
+
 
 _SYSTEM_VERSION = None
+
 
 def _get_system_version():
     """Return the OS X system version as a string"""
@@ -96,15 +96,17 @@ def _get_system_version():
     if _SYSTEM_VERSION is None:
         _SYSTEM_VERSION = ''
         try:
-            f = open('/System/Library/CoreServices/SystemVersion.plist', encoding="utf-8")
+            f = open('/System/Library/CoreServices/SystemVersion.plist',
+                     encoding="utf-8")
         except OSError:
             # We're on a plain darwin box, fall back to the default
             # behaviour.
             pass
         else:
             try:
-                m = re.search(r'<key>ProductUserVisibleVersion</key>\s*'
-                              r'<string>(.*?)</string>', f.read())
+                m = re.search(
+                    r'<key>ProductUserVisibleVersion</key>\s*'
+                    r'<string>(.*?)</string>', f.read())
             finally:
                 f.close()
             if m is not None:
@@ -113,7 +115,10 @@ def _get_system_version():
 
     return _SYSTEM_VERSION
 
+
 _SYSTEM_VERSION_TUPLE = None
+
+
 def _get_system_version_tuple():
     """
     Return the macOS system version as a tuple
@@ -126,7 +131,8 @@ def _get_system_version_tuple():
         osx_version = _get_system_version()
         if osx_version:
             try:
-                _SYSTEM_VERSION_TUPLE = tuple(int(i) for i in osx_version.split('.'))
+                _SYSTEM_VERSION_TUPLE = tuple(
+                    int(i) for i in osx_version.split('.'))
             except ValueError:
                 _SYSTEM_VERSION_TUPLE = ()
 
@@ -140,6 +146,7 @@ def _remove_original_values(_config_vars):
         if k.startswith(_INITPRE):
             del _config_vars[k]
 
+
 def _save_modified_value(_config_vars, cv, newvalue):
     """Save modified and original unmodified value of configuration var"""
 
@@ -150,6 +157,8 @@ def _save_modified_value(_config_vars, cv, newvalue):
 
 
 _cache_default_sysroot = None
+
+
 def _default_sysroot(cc):
     """ Returns the root of the default SDK for this system, or '/' """
     global _cache_default_sysroot
@@ -157,7 +166,7 @@ def _default_sysroot(cc):
     if _cache_default_sysroot is not None:
         return _cache_default_sysroot
 
-    contents = _read_output('%s -c -E -v - </dev/null' % (cc,), True)
+    contents = _read_output('%s -c -E -v - </dev/null' % (cc, ), True)
     in_incdirs = False
     for line in contents.splitlines():
         if line.startswith("#include <...>"):
@@ -175,6 +184,7 @@ def _default_sysroot(cc):
 
     return _cache_default_sysroot
 
+
 def _supports_universal_builds():
     """Returns True if universal builds are supported on this system"""
     # As an approximation, we assume that if we are running on 10.4 or above,
@@ -184,6 +194,7 @@ def _supports_universal_builds():
 
     osx_version = _get_system_version_tuple()
     return bool(osx_version >= (10, 4)) if osx_version else False
+
 
 def _supports_arm64_builds():
     """Returns True if arm64 builds are supported on this system"""
@@ -234,15 +245,13 @@ def _find_appropriate_compiler(_config_vars):
 
     elif os.path.basename(cc).startswith('gcc'):
         # Compiler is GCC, check if it is LLVM-GCC
-        data = _read_output("'%s' --version"
-                             % (cc.replace("'", "'\"'\"'"),))
+        data = _read_output("'%s' --version" % (cc.replace("'", "'\"'\"'"), ))
         if data and 'llvm-gcc' in data:
             # Found LLVM-GCC, fall back to clang
             cc = _find_build_tool('clang')
 
     if not cc:
-        raise SystemError(
-               "Cannot locate working compiler")
+        raise SystemError("Cannot locate working compiler")
 
     if cc != oldcc:
         # Found a replacement compiler.
@@ -291,8 +300,8 @@ def _remove_unsupported_archs(_config_vars):
         # issues when building Python itself
         status = os.system(
             """echo 'int main{};' | """
-            """'%s' -c -arch ppc -x c -o /dev/null /dev/null 2>/dev/null"""
-            %(_config_vars['CC'].replace("'", "'\"'\"'"),))
+            """'%s' -c -arch ppc -x c -o /dev/null /dev/null 2>/dev/null""" %
+            (_config_vars['CC'].replace("'", "'\"'\"'"), ))
         if status:
             # The compile failed for some reason.  Because of differences
             # across Xcode and compiler versions, there is no reliable way
@@ -374,22 +383,23 @@ def compiler_fixup(compiler_so, cc_args):
         stripArch = stripSysroot = True
     else:
         stripArch = '-arch' in cc_args
-        stripSysroot = any(arg for arg in cc_args if arg.startswith('-isysroot'))
+        stripSysroot = any(arg for arg in cc_args
+                           if arg.startswith('-isysroot'))
 
     if stripArch or 'ARCHFLAGS' in os.environ:
         while True:
             try:
                 index = compiler_so.index('-arch')
                 # Strip this argument and the next one:
-                del compiler_so[index:index+2]
+                del compiler_so[index:index + 2]
             except ValueError:
                 break
 
     elif not _supports_arm64_builds():
         # Look for "-arch arm64" and drop that
         for idx in reversed(range(len(compiler_so))):
-            if compiler_so[idx] == '-arch' and compiler_so[idx+1] == "arm64":
-                del compiler_so[idx:idx+2]
+            if compiler_so[idx] == '-arch' and compiler_so[idx + 1] == "arm64":
+                del compiler_so[idx:idx + 2]
 
     if 'ARCHFLAGS' in os.environ and not stripArch:
         # User specified different -arch flags in the environ,
@@ -398,37 +408,43 @@ def compiler_fixup(compiler_so, cc_args):
 
     if stripSysroot:
         while True:
-            indices = [i for i,x in enumerate(compiler_so) if x.startswith('-isysroot')]
+            indices = [
+                i for i, x in enumerate(compiler_so)
+                if x.startswith('-isysroot')
+            ]
             if not indices:
                 break
             index = indices[0]
             if compiler_so[index] == '-isysroot':
                 # Strip this argument and the next one:
-                del compiler_so[index:index+2]
+                del compiler_so[index:index + 2]
             else:
                 # It's '-isysroot/some/path' in one arg
-                del compiler_so[index:index+1]
+                del compiler_so[index:index + 1]
 
     # Check if the SDK that is used during compilation actually exists,
     # the universal build requires the usage of a universal SDK and not all
     # users have that installed by default.
     sysroot = None
     argvar = cc_args
-    indices = [i for i,x in enumerate(cc_args) if x.startswith('-isysroot')]
+    indices = [i for i, x in enumerate(cc_args) if x.startswith('-isysroot')]
     if not indices:
         argvar = compiler_so
-        indices = [i for i,x in enumerate(compiler_so) if x.startswith('-isysroot')]
+        indices = [
+            i for i, x in enumerate(compiler_so) if x.startswith('-isysroot')
+        ]
 
     for idx in indices:
         if argvar[idx] == '-isysroot':
-            sysroot = argvar[idx+1]
+            sysroot = argvar[idx + 1]
             break
         else:
             sysroot = argvar[idx][len('-isysroot'):]
             break
 
     if sysroot and not os.path.isdir(sysroot):
-        sys.stderr.write(f"Compiling with an SDK that doesn't seem to exist: {sysroot}\n")
+        sys.stderr.write(
+            f"Compiling with an SDK that doesn't seem to exist: {sysroot}\n")
         sys.stderr.write("Please check your Xcode installation\n")
         sys.stderr.flush()
 
@@ -518,8 +534,8 @@ def get_platform_osx(_config_vars, osname, release, machine):
         # return the same machine type for the platform string.
         # Otherwise, distutils may consider this a cross-compiling
         # case and disallow installs.
-        cflags = _config_vars.get(_INITPRE+'CFLAGS',
-                                    _config_vars.get('CFLAGS', ''))
+        cflags = _config_vars.get(_INITPRE + 'CFLAGS',
+                                  _config_vars.get('CFLAGS', ''))
         if macrelease:
             try:
                 macrelease = tuple(int(i) for i in macrelease.split('.')[0:2])
@@ -553,8 +569,8 @@ def get_platform_osx(_config_vars, osname, release, machine):
             elif archs == ('i386', 'ppc', 'ppc64', 'x86_64'):
                 machine = 'universal'
             else:
-                raise ValueError(
-                   "Don't know machine value for archs=%r" % (archs,))
+                raise ValueError("Don't know machine value for archs=%r" %
+                                 (archs, ))
 
         elif machine == 'i386':
             # On OSX the machine type returned by uname is always the

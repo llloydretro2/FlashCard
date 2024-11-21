@@ -19,7 +19,7 @@ import io
 from io import (__all__, SEEK_SET, SEEK_CUR, SEEK_END)
 
 valid_seek_flags = {0, 1, 2}  # Hardwired values
-if hasattr(os, 'SEEK_HOLE') :
+if hasattr(os, 'SEEK_HOLE'):
     valid_seek_flags.add(os.SEEK_HOLE)
     valid_seek_flags.add(os.SEEK_DATA)
 
@@ -35,7 +35,8 @@ BlockingIOError = BlockingIOError
 
 # Does io.IOBase finalizer log the exception if the close() method fails?
 # The exception is ignored silently by default in release build.
-_IOBASE_EMITS_UNRAISABLE = (hasattr(sys, "gettotalrefcount") or sys.flags.dev_mode)
+_IOBASE_EMITS_UNRAISABLE = (hasattr(sys, "gettotalrefcount")
+                            or sys.flags.dev_mode)
 # Does open() check its 'errors' argument?
 _CHECK_ERRORS = _IOBASE_EMITS_UNRAISABLE
 
@@ -70,9 +71,14 @@ def text_encoding(encoding, stacklevel=2):
 #
 # See init_set_builtins_open() in Python/pylifecycle.c.
 @staticmethod
-def open(file, mode="r", buffering=-1, encoding=None, errors=None,
-         newline=None, closefd=True, opener=None):
-
+def open(file,
+         mode="r",
+         buffering=-1,
+         encoding=None,
+         errors=None,
+         newline=None,
+         closefd=True,
+         opener=None):
     r"""Open file and return a stream.  Raise OSError upon failure.
 
     file is either a text or byte string giving the name (and the path
@@ -217,10 +223,10 @@ def open(file, mode="r", buffering=-1, encoding=None, errors=None,
     binary = "b" in modes
     if "U" in modes:
         if creating or writing or appending or updating:
-            raise ValueError("mode U cannot be combined with 'x', 'w', 'a', or '+'")
+            raise ValueError(
+                "mode U cannot be combined with 'x', 'w', 'a', or '+'")
         import warnings
-        warnings.warn("'U' mode is deprecated",
-                      DeprecationWarning, 2)
+        warnings.warn("'U' mode is deprecated", DeprecationWarning, 2)
         reading = True
     if text and binary:
         raise ValueError("can't have text and binary mode at once")
@@ -236,16 +242,14 @@ def open(file, mode="r", buffering=-1, encoding=None, errors=None,
         raise ValueError("binary mode doesn't take a newline argument")
     if binary and buffering == 1:
         import warnings
-        warnings.warn("line buffering (buffering=1) isn't supported in binary "
-                      "mode, the default buffer size will be used",
-                      RuntimeWarning, 2)
-    raw = FileIO(file,
-                 (creating and "x" or "") +
-                 (reading and "r" or "") +
-                 (writing and "w" or "") +
-                 (appending and "a" or "") +
+        warnings.warn(
+            "line buffering (buffering=1) isn't supported in binary "
+            "mode, the default buffer size will be used", RuntimeWarning, 2)
+    raw = FileIO(file, (creating and "x" or "") + (reading and "r" or "") +
+                 (writing and "w" or "") + (appending and "a" or "") +
                  (updating and "+" or ""),
-                 closefd, opener=opener)
+                 closefd,
+                 opener=opener)
     result = raw
     try:
         line_buffering = False
@@ -287,6 +291,7 @@ def open(file, mode="r", buffering=-1, encoding=None, errors=None,
         result.close()
         raise
 
+
 # Define a default pure-Python implementation for open_code()
 # that does not allow hooks. Warn on first use. Defined for tests.
 def _open_code_with_warning(path):
@@ -301,9 +306,10 @@ def _open_code_with_warning(path):
     This functionality is not supported on the current runtime.
     """
     import warnings
-    warnings.warn("_pyio.open_code() may not be using hooks",
-                  RuntimeWarning, 2)
+    warnings.warn("_pyio.open_code() may not be using hooks", RuntimeWarning,
+                  2)
     return open(path, "rb")
+
 
 try:
     open_code = io.open_code
@@ -320,7 +326,8 @@ def __getattr__(name):
         # a static method, and builtins.open() is now io.open().
         import warnings
         warnings.warn('OpenWrapper is deprecated, use open instead',
-                      DeprecationWarning, stacklevel=2)
+                      DeprecationWarning,
+                      stacklevel=2)
         global OpenWrapper
         OpenWrapper = open
         return OpenWrapper
@@ -332,12 +339,12 @@ def __getattr__(name):
 try:
     UnsupportedOperation = io.UnsupportedOperation
 except AttributeError:
+
     class UnsupportedOperation(OSError, ValueError):
         pass
 
 
 class IOBase(metaclass=abc.ABCMeta):
-
     """The abstract base class for all I/O classes, acting on streams of
     bytes. There is no public constructor.
 
@@ -468,8 +475,8 @@ class IOBase(metaclass=abc.ABCMeta):
         """Internal: raise UnsupportedOperation if file is not seekable
         """
         if not self.seekable():
-            raise UnsupportedOperation("File or stream is not seekable."
-                                       if msg is None else msg)
+            raise UnsupportedOperation(
+                "File or stream is not seekable." if msg is None else msg)
 
     def readable(self):
         """Return a bool indicating whether object was opened for reading.
@@ -482,8 +489,8 @@ class IOBase(metaclass=abc.ABCMeta):
         """Internal: raise UnsupportedOperation if file is not readable
         """
         if not self.readable():
-            raise UnsupportedOperation("File or stream is not readable."
-                                       if msg is None else msg)
+            raise UnsupportedOperation(
+                "File or stream is not readable." if msg is None else msg)
 
     def writable(self):
         """Return a bool indicating whether object was opened for writing.
@@ -496,8 +503,8 @@ class IOBase(metaclass=abc.ABCMeta):
         """Internal: raise UnsupportedOperation if file is not writable
         """
         if not self.writable():
-            raise UnsupportedOperation("File or stream is not writable."
-                                       if msg is None else msg)
+            raise UnsupportedOperation(
+                "File or stream is not writable." if msg is None else msg)
 
     @property
     def closed(self):
@@ -511,8 +518,8 @@ class IOBase(metaclass=abc.ABCMeta):
         """Internal: raise a ValueError if file is closed
         """
         if self.closed:
-            raise ValueError("I/O operation on closed file."
-                             if msg is None else msg)
+            raise ValueError("I/O operation on closed file." if msg is
+                             None else msg)
 
     ### Context manager ###
 
@@ -558,6 +565,7 @@ class IOBase(metaclass=abc.ABCMeta):
         """
         # For backwards compatibility, a (slowish) readline().
         if hasattr(self, "peek"):
+
             def nreadahead():
                 readahead = self.peek(1)
                 if not readahead:
@@ -567,8 +575,10 @@ class IOBase(metaclass=abc.ABCMeta):
                     n = min(n, size)
                 return n
         else:
+
             def nreadahead():
                 return 1
+
         if size is None:
             size = -1
         else:
@@ -626,11 +636,11 @@ class IOBase(metaclass=abc.ABCMeta):
         for line in lines:
             self.write(line)
 
+
 io.IOBase.register(IOBase)
 
 
 class RawIOBase(IOBase):
-
     """Base class for raw binary I/O."""
 
     # The read() method is implemented by calling readinto(); derived
@@ -690,13 +700,14 @@ class RawIOBase(IOBase):
         """
         self._unsupported("write")
 
+
 io.RawIOBase.register(RawIOBase)
 from _io import FileIO
+
 RawIOBase.register(FileIO)
 
 
 class BufferedIOBase(IOBase):
-
     """Base class for buffered IO objects.
 
     The main difference with RawIOBase is that the read() method
@@ -798,11 +809,11 @@ class BufferedIOBase(IOBase):
         """
         self._unsupported("detach")
 
+
 io.BufferedIOBase.register(BufferedIOBase)
 
 
 class _BufferedIOMixin(BufferedIOBase):
-
     """A mixin implementation of BufferedIOBase with an underlying raw stream.
 
     This passes most requests on to the underlying raw stream.  It
@@ -909,7 +920,6 @@ class _BufferedIOMixin(BufferedIOBase):
 
 
 class BytesIO(BufferedIOBase):
-
     """Buffered I/O implementation using an in-memory bytes buffer."""
 
     # Initialize _buffer as soon as possible since it's used by __del__()
@@ -964,7 +974,7 @@ class BytesIO(BufferedIOBase):
         if len(self._buffer) <= self._pos:
             return b""
         newpos = min(len(self._buffer), self._pos + size)
-        b = self._buffer[self._pos : newpos]
+        b = self._buffer[self._pos:newpos]
         self._pos = newpos
         return bytes(b)
 
@@ -1003,7 +1013,7 @@ class BytesIO(BufferedIOBase):
             pos = pos_index()
         if whence == 0:
             if pos < 0:
-                raise ValueError("negative seek position %r" % (pos,))
+                raise ValueError("negative seek position %r" % (pos, ))
             self._pos = pos
         elif whence == 1:
             self._pos = max(0, self._pos + pos)
@@ -1031,7 +1041,7 @@ class BytesIO(BufferedIOBase):
             else:
                 pos = pos_index()
             if pos < 0:
-                raise ValueError("negative truncate position %r" % (pos,))
+                raise ValueError("negative truncate position %r" % (pos, ))
         del self._buffer[pos:]
         return pos
 
@@ -1052,7 +1062,6 @@ class BytesIO(BufferedIOBase):
 
 
 class BufferedReader(_BufferedIOMixin):
-
     """BufferedReader(raw[, buffer_size])
 
     A buffer for a readable, sequential BaseRawIO object.
@@ -1127,7 +1136,7 @@ class BufferedReader(_BufferedIOMixin):
         if n <= avail:
             # Fast path: the data to read is fully buffered.
             self._read_pos += n
-            return buf[pos:pos+n]
+            return buf[pos:pos + n]
         # Slow path: read from the stream until enough bytes are read,
         # or until an EOF occurs or until read() would block.
         chunks = [buf[pos:]]
@@ -1179,7 +1188,8 @@ class BufferedReader(_BufferedIOMixin):
         with self._read_lock:
             self._peek_unlocked(1)
             return self._read_unlocked(
-                min(size, len(self._read_buf) - self._read_pos))
+                min(size,
+                    len(self._read_buf) - self._read_pos))
 
     # Implementing readinto() and readinto1() is not strictly necessary (we
     # could rely on the base class that provides an implementation in terms of
@@ -1217,14 +1227,14 @@ class BufferedReader(_BufferedIOMixin):
                 if len(buf) - written > self.buffer_size:
                     n = self.raw.readinto(buf[written:])
                     if not n:
-                        break # eof
+                        break  # eof
                     written += n
 
                 # Otherwise refill internal buffer - unless we're
                 # in read1 mode and already got some data
                 elif not (read1 and written):
                     if not self._peek_unlocked(1):
-                        break # eof
+                        break  # eof
 
                 # In readinto1 mode, return as soon as we have some data
                 if read1 and written:
@@ -1233,7 +1243,8 @@ class BufferedReader(_BufferedIOMixin):
         return written
 
     def tell(self):
-        return _BufferedIOMixin.tell(self) - len(self._read_buf) + self._read_pos
+        return _BufferedIOMixin.tell(self) - len(
+            self._read_buf) + self._read_pos
 
     def seek(self, pos, whence=0):
         if whence not in valid_seek_flags:
@@ -1245,8 +1256,8 @@ class BufferedReader(_BufferedIOMixin):
             self._reset_read_buf()
             return pos
 
-class BufferedWriter(_BufferedIOMixin):
 
+class BufferedWriter(_BufferedIOMixin):
     """A buffer for a writeable sequential RawIO object.
 
     The constructor creates a BufferedWriter for the given writeable raw
@@ -1318,8 +1329,8 @@ class BufferedWriter(_BufferedIOMixin):
                                    "should not raise BlockingIOError")
             if n is None:
                 raise BlockingIOError(
-                    errno.EAGAIN,
-                    "write could not complete without blocking", 0)
+                    errno.EAGAIN, "write could not complete without blocking",
+                    0)
             if n > len(self._write_buf) or n < 0:
                 raise OSError("write() returned incorrect number of bytes")
             del self._write_buf[:n]
@@ -1351,7 +1362,6 @@ class BufferedWriter(_BufferedIOMixin):
 
 
 class BufferedRWPair(BufferedIOBase):
-
     """A buffered reader and writer object together.
 
     A buffered reader object and buffered writer object put together to
@@ -1424,7 +1434,6 @@ class BufferedRWPair(BufferedIOBase):
 
 
 class BufferedRandom(BufferedWriter, BufferedReader):
-
     """A buffered interface to random access streams.
 
     The constructor creates a reader and writer for a seekable stream,
@@ -1537,12 +1546,13 @@ class FileIO(RawIOBase):
             fd = -1
 
         if not isinstance(mode, str):
-            raise TypeError('invalid mode: %s' % (mode,))
+            raise TypeError('invalid mode: %s' % (mode, ))
         if not set(mode) <= set('xrwab+'):
-            raise ValueError('invalid mode: %s' % (mode,))
+            raise ValueError('invalid mode: %s' % (mode, ))
         if sum(c in 'rwax' for c in mode) != 1 or mode.count('+') > 1:
-            raise ValueError('Must have exactly one of create/read/write/append '
-                             'mode and at most one plus')
+            raise ValueError(
+                'Must have exactly one of create/read/write/append '
+                'mode and at most one plus')
 
         if 'x' in mode:
             self._created = True
@@ -1572,8 +1582,8 @@ class FileIO(RawIOBase):
 
         flags |= getattr(os, 'O_BINARY', 0)
 
-        noinherit_flag = (getattr(os, 'O_NOINHERIT', 0) or
-                          getattr(os, 'O_CLOEXEC', 0))
+        noinherit_flag = (getattr(os, 'O_NOINHERIT', 0)
+                          or getattr(os, 'O_CLOEXEC', 0))
         flags |= noinherit_flag
 
         owned_fd = None
@@ -1630,8 +1640,10 @@ class FileIO(RawIOBase):
     def __del__(self):
         if self._fd >= 0 and self._closefd and not self.closed:
             import warnings
-            warnings.warn('unclosed file %r' % (self,), ResourceWarning,
-                          stacklevel=2, source=self)
+            warnings.warn('unclosed file %r' % (self, ),
+                          ResourceWarning,
+                          stacklevel=2,
+                          source=self)
             self.close()
 
     def __getstate__(self):
@@ -1704,7 +1716,7 @@ class FileIO(RawIOBase):
                 if result:
                     break
                 return None
-            if not chunk: # reached the end of the file
+            if not chunk:  # reached the end of the file
                 break
             result += chunk
 
@@ -1841,7 +1853,6 @@ class FileIO(RawIOBase):
 
 
 class TextIOBase(IOBase):
-
     """Base class for text I/O.
 
     This class provides a character and line based interface to stream
@@ -1904,6 +1915,7 @@ class TextIOBase(IOBase):
         Subclasses should override."""
         return None
 
+
 io.TextIOBase.register(TextIOBase)
 
 
@@ -1914,6 +1926,7 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
     translate=False, it ensures that the newline sequence is returned in
     one piece.
     """
+
     def __init__(self, decoder, translate, errors='strict'):
         codecs.IncrementalDecoder.__init__(self, errors=errors)
         self.translate = translate
@@ -1981,19 +1994,11 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
 
     @property
     def newlines(self):
-        return (None,
-                "\n",
-                "\r",
-                ("\r", "\n"),
-                "\r\n",
-                ("\n", "\r\n"),
-                ("\r", "\r\n"),
-                ("\r", "\n", "\r\n")
-               )[self.seennl]
+        return (None, "\n", "\r", ("\r", "\n"), "\r\n", ("\n", "\r\n"),
+                ("\r", "\r\n"), ("\r", "\n", "\r\n"))[self.seennl]
 
 
 class TextIOWrapper(TextIOBase):
-
     r"""Character and line based layer over a BufferedIOBase object, buffer.
 
     encoding gives the name of the encoding that the stream will be
@@ -2025,8 +2030,13 @@ class TextIOWrapper(TextIOBase):
     # The write_through argument has no effect here since this
     # implementation always writes through.  The argument is present only
     # so that the signature can match the signature of the C version.
-    def __init__(self, buffer, encoding=None, errors=None, newline=None,
-                 line_buffering=False, write_through=False):
+    def __init__(self,
+                 buffer,
+                 encoding=None,
+                 errors=None,
+                 newline=None,
+                 line_buffering=False,
+                 write_through=False):
         self._check_newline(newline)
         encoding = text_encoding(encoding)
 
@@ -2067,17 +2077,21 @@ class TextIOWrapper(TextIOBase):
         self._snapshot = None  # info for reconstructing decoder state
         self._seekable = self._telling = self.buffer.seekable()
         self._has_read1 = hasattr(self.buffer, 'read1')
-        self._configure(encoding, errors, newline,
-                        line_buffering, write_through)
+        self._configure(encoding, errors, newline, line_buffering,
+                        write_through)
 
     def _check_newline(self, newline):
         if newline is not None and not isinstance(newline, str):
-            raise TypeError("illegal newline type: %r" % (type(newline),))
+            raise TypeError("illegal newline type: %r" % (type(newline), ))
         if newline not in (None, "", "\n", "\r", "\r\n"):
-            raise ValueError("illegal newline value: %r" % (newline,))
+            raise ValueError("illegal newline value: %r" % (newline, ))
 
-    def _configure(self, encoding=None, errors=None, newline=None,
-                   line_buffering=False, write_through=False):
+    def _configure(self,
+                   encoding=None,
+                   errors=None,
+                   newline=None,
+                   line_buffering=False,
+                   write_through=False):
         self._encoding = encoding
         self._errors = errors
         self._encoder = None
@@ -2149,9 +2163,13 @@ class TextIOWrapper(TextIOBase):
     def buffer(self):
         return self._buffer
 
-    def reconfigure(self, *,
-                    encoding=None, errors=None, newline=Ellipsis,
-                    line_buffering=None, write_through=None):
+    def reconfigure(self,
+                    *,
+                    encoding=None,
+                    errors=None,
+                    newline=Ellipsis,
+                    line_buffering=None,
+                    write_through=None):
         """Reconfigure the text stream with new parameters.
 
         This also flushes the stream.
@@ -2187,8 +2205,8 @@ class TextIOWrapper(TextIOBase):
             write_through = self.write_through
 
         self.flush()
-        self._configure(encoding, errors, newline,
-                        line_buffering, write_through)
+        self._configure(encoding, errors, newline, line_buffering,
+                        write_through)
 
     def seekable(self):
         if self.closed:
@@ -2328,22 +2346,27 @@ class TextIOWrapper(TextIOBase):
 
         return not eof
 
-    def _pack_cookie(self, position, dec_flags=0,
-                           bytes_to_feed=0, need_eof=False, chars_to_skip=0):
+    def _pack_cookie(self,
+                     position,
+                     dec_flags=0,
+                     bytes_to_feed=0,
+                     need_eof=False,
+                     chars_to_skip=0):
         # The meaning of a tell() cookie is: seek to position, set the
         # decoder flags to dec_flags, read bytes_to_feed bytes, feed them
         # into the decoder with need_eof as the EOF flag, then skip
         # chars_to_skip characters of the decoded result.  For most simple
         # decoders, tell() will often just give a byte offset in the file.
-        return (position | (dec_flags<<64) | (bytes_to_feed<<128) |
-               (chars_to_skip<<192) | bool(need_eof)<<256)
+        return (position | (dec_flags << 64) | (bytes_to_feed << 128) |
+                (chars_to_skip << 192) | bool(need_eof) << 256)
 
     def _unpack_cookie(self, bigint):
-        rest, position = divmod(bigint, 1<<64)
-        rest, dec_flags = divmod(rest, 1<<64)
-        rest, bytes_to_feed = divmod(rest, 1<<64)
-        need_eof, chars_to_skip = divmod(rest, 1<<64)
-        return position, dec_flags, bytes_to_feed, bool(need_eof), chars_to_skip
+        rest, position = divmod(bigint, 1 << 64)
+        rest, dec_flags = divmod(rest, 1 << 64)
+        rest, bytes_to_feed = divmod(rest, 1 << 64)
+        need_eof, chars_to_skip = divmod(rest, 1 << 64)
+        return position, dec_flags, bytes_to_feed, bool(
+            need_eof), chars_to_skip
 
     def tell(self):
         if not self._seekable:
@@ -2422,7 +2445,7 @@ class TextIOWrapper(TextIOBase):
             chars_decoded = 0
             for i in range(skip_bytes, len(next_input)):
                 bytes_fed += 1
-                chars_decoded += len(decoder.decode(next_input[i:i+1]))
+                chars_decoded += len(decoder.decode(next_input[i:i + 1]))
                 dec_buffer, dec_flags = decoder.getstate()
                 if not dec_buffer and chars_decoded <= chars_to_skip:
                     # Decoder buffer is empty, so this is a safe start point.
@@ -2439,8 +2462,8 @@ class TextIOWrapper(TextIOBase):
                     raise OSError("can't reconstruct logical file position")
 
             # The returned cookie corresponds to the last safe start point.
-            return self._pack_cookie(
-                start_pos, start_flags, bytes_fed, need_eof, chars_to_skip)
+            return self._pack_cookie(start_pos, start_flags, bytes_fed,
+                                     need_eof, chars_to_skip)
         finally:
             decoder.setstate(saved_state)
 
@@ -2459,6 +2482,7 @@ class TextIOWrapper(TextIOBase):
         return buffer
 
     def seek(self, cookie, whence=0):
+
         def _reset_encoder(position):
             """Reset the encoder (merely useful for proper BOM handling)"""
             try:
@@ -2478,14 +2502,16 @@ class TextIOWrapper(TextIOBase):
             raise UnsupportedOperation("underlying stream is not seekable")
         if whence == SEEK_CUR:
             if cookie != 0:
-                raise UnsupportedOperation("can't do nonzero cur-relative seeks")
+                raise UnsupportedOperation(
+                    "can't do nonzero cur-relative seeks")
             # Seeking to the current position should attempt to
             # sync the underlying buffer with the current position.
             whence = 0
             cookie = self.tell()
         elif whence == SEEK_END:
             if cookie != 0:
-                raise UnsupportedOperation("can't do nonzero end-relative seeks")
+                raise UnsupportedOperation(
+                    "can't do nonzero end-relative seeks")
             self.flush()
             position = self.buffer.seek(0, whence)
             self._set_decoded_chars('')
@@ -2495,9 +2521,9 @@ class TextIOWrapper(TextIOBase):
             _reset_encoder(position)
             return position
         if whence != 0:
-            raise ValueError("unsupported whence (%r)" % (whence,))
+            raise ValueError("unsupported whence (%r)" % (whence, ))
         if cookie < 0:
-            raise ValueError("negative seek position %r" % (cookie,))
+            raise ValueError("negative seek position %r" % (cookie, ))
         self.flush()
 
         # The strategy of seek() is to go back to the safe start point
@@ -2521,8 +2547,8 @@ class TextIOWrapper(TextIOBase):
         if chars_to_skip:
             # Just like _read_chunk, feed the decoder and save a snapshot.
             input_chunk = self.buffer.read(bytes_to_feed)
-            self._set_decoded_chars(
-                self._decoder.decode(input_chunk, need_eof))
+            self._set_decoded_chars(self._decoder.decode(
+                input_chunk, need_eof))
             self._snapshot = (dec_flags, input_chunk)
 
             # Skip chars_to_skip of the decoded characters.
@@ -2686,8 +2712,9 @@ class StringIO(TextIOWrapper):
             self._writetranslate = False
         if initial_value is not None:
             if not isinstance(initial_value, str):
-                raise TypeError("initial_value must be str or None, not {0}"
-                                .format(type(initial_value).__name__))
+                raise TypeError(
+                    "initial_value must be str or None, not {0}".format(
+                        type(initial_value).__name__))
             self.write(initial_value)
             self.seek(0)
 

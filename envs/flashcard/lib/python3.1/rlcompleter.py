@@ -36,8 +36,10 @@ import __main__
 
 __all__ = ["Completer"]
 
+
 class Completer:
-    def __init__(self, namespace = None):
+
+    def __init__(self, namespace=None):
         """Create a new completer for the command line.
 
         Completer([namespace]) -> completer instance.
@@ -122,9 +124,10 @@ class Completer:
                 seen.add(word)
                 if word in {'finally', 'try'}:
                     word = word + ':'
-                elif word not in {'False', 'None', 'True',
-                                  'break', 'continue', 'pass',
-                                  'else'}:
+                elif word not in {
+                        'False', 'None', 'True', 'break', 'continue', 'pass',
+                        'else'
+                }:
                     word = word + ' '
                 matches.append(word)
         for nspace in [self.namespace, builtins.__dict__]:
@@ -173,8 +176,8 @@ class Completer:
             noprefix = None
         while True:
             for word in words:
-                if (word[:n] == attr and
-                    not (noprefix and word[:n+1] == noprefix)):
+                if (word[:n] == attr
+                        and not (noprefix and word[:n + 1] == noprefix)):
                     match = "%s.%s" % (expr, word)
                     if isinstance(getattr(type(thisobject), word, None),
                                   property):
@@ -199,12 +202,14 @@ class Completer:
         matches.sort()
         return matches
 
+
 def get_class_members(klass):
     ret = dir(klass)
-    if hasattr(klass,'__bases__'):
+    if hasattr(klass, '__bases__'):
         for base in klass.__bases__:
             ret = ret + get_class_members(base)
     return ret
+
 
 try:
     import readline

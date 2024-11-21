@@ -105,9 +105,8 @@ is destroyed.
 
 from collections import namedtuple
 
-
-_sunau_params = namedtuple('_sunau_params',
-                           'nchannels sampwidth framerate nframes comptype compname')
+_sunau_params = namedtuple(
+    '_sunau_params', 'nchannels sampwidth framerate nframes comptype compname')
 
 # from <multimedia/audio_filehdr.h>
 AUDIO_FILE_MAGIC = 0x2e736e64
@@ -125,17 +124,18 @@ AUDIO_FILE_ENCODING_ADPCM_G723_5 = 26
 AUDIO_FILE_ENCODING_ALAW_8 = 27
 
 # from <multimedia/audio_hdr.h>
-AUDIO_UNKNOWN_SIZE = 0xFFFFFFFF        # ((unsigned)(~0))
+AUDIO_UNKNOWN_SIZE = 0xFFFFFFFF  # ((unsigned)(~0))
 
-_simple_encodings = [AUDIO_FILE_ENCODING_MULAW_8,
-                     AUDIO_FILE_ENCODING_LINEAR_8,
-                     AUDIO_FILE_ENCODING_LINEAR_16,
-                     AUDIO_FILE_ENCODING_LINEAR_24,
-                     AUDIO_FILE_ENCODING_LINEAR_32,
-                     AUDIO_FILE_ENCODING_ALAW_8]
+_simple_encodings = [
+    AUDIO_FILE_ENCODING_MULAW_8, AUDIO_FILE_ENCODING_LINEAR_8,
+    AUDIO_FILE_ENCODING_LINEAR_16, AUDIO_FILE_ENCODING_LINEAR_24,
+    AUDIO_FILE_ENCODING_LINEAR_32, AUDIO_FILE_ENCODING_ALAW_8
+]
+
 
 class Error(Exception):
     pass
+
 
 def _read_u32(file):
     x = 0
@@ -143,8 +143,9 @@ def _read_u32(file):
         byte = file.read(1)
         if not byte:
             raise EOFError
-        x = x*256 + ord(byte)
+        x = x * 256 + ord(byte)
     return x
+
 
 def _write_u32(file, x):
     data = []
@@ -153,6 +154,7 @@ def _write_u32(file, x):
         data.insert(0, int(m))
         x = d
     file.write(bytes(data))
+
 
 class Au_read:
 
@@ -193,7 +195,7 @@ class Au_read:
         if self._encoding not in _simple_encodings:
             raise Error('encoding not (yet) supported')
         if self._encoding in (AUDIO_FILE_ENCODING_MULAW_8,
-                  AUDIO_FILE_ENCODING_ALAW_8):
+                              AUDIO_FILE_ENCODING_ALAW_8):
             self._sampwidth = 2
             self._framesize = 1
         elif self._encoding == AUDIO_FILE_ENCODING_LINEAR_8:
@@ -238,7 +240,7 @@ class Au_read:
             return AUDIO_UNKNOWN_SIZE
         if self._encoding in _simple_encodings:
             return self._data_size // self._framesize
-        return 0                # XXX--must do some arithmetic here
+        return 0  # XXX--must do some arithmetic here
 
     def getcomptype(self):
         if self._encoding == AUDIO_FILE_ENCODING_MULAW_8:
@@ -258,8 +260,8 @@ class Au_read:
 
     def getparams(self):
         return _sunau_params(self.getnchannels(), self.getsampwidth(),
-                  self.getframerate(), self.getnframes(),
-                  self.getcomptype(), self.getcompname())
+                             self.getframerate(), self.getnframes(),
+                             self.getcomptype(), self.getcompname())
 
     def getmarkers(self):
         return None
@@ -278,7 +280,7 @@ class Au_read:
                 import audioop
                 data = audioop.ulaw2lin(data, self._sampwidth)
             return data
-        return None             # XXX--not implemented yet
+        return None  # XXX--not implemented yet
 
     def rewind(self):
         if self._data_pos is None:
@@ -303,6 +305,7 @@ class Au_read:
             self._file = None
             if self._opened:
                 file.close()
+
 
 class Au_write:
 
@@ -337,7 +340,7 @@ class Au_write:
         self._datawritten = 0
         self._datalength = 0
         self._info = b''
-        self._comptype = 'ULAW' # default is U-law
+        self._comptype = 'ULAW'  # default is U-law
 
     def setnchannels(self, nchannels):
         if self._nframeswritten:
@@ -410,8 +413,8 @@ class Au_write:
 
     def getparams(self):
         return _sunau_params(self.getnchannels(), self.getsampwidth(),
-                  self.getframerate(), self.getnframes(),
-                  self.getcomptype(), self.getcompname())
+                             self.getframerate(), self.getnframes(),
+                             self.getcomptype(), self.getcompname())
 
     def tell(self):
         return self._nframeswritten
@@ -502,7 +505,7 @@ class Au_write:
         _write_u32(self._file, self._framerate)
         _write_u32(self._file, self._nchannels)
         self._file.write(self._info)
-        self._file.write(b'\0'*(header_size - len(self._info) - 24))
+        self._file.write(b'\0' * (header_size - len(self._info) - 24))
 
     def _patchheader(self):
         if self._form_length_pos is None:
@@ -511,6 +514,7 @@ class Au_write:
         _write_u32(self._file, self._datawritten)
         self._datalength = self._datawritten
         self._file.seek(0, 2)
+
 
 def open(f, mode=None):
     if mode is None:

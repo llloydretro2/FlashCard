@@ -14,9 +14,10 @@ except ImportError:  # pragma: no cover
 def _aix_tag(vrtl, bd):
     # type: (List[int], int) -> str
     # Infer the ABI bitwidth from maxsize (assuming 64 bit as the default)
-    _sz = 32 if sys.maxsize == (2**31-1) else 64
+    _sz = 32 if sys.maxsize == (2**31 - 1) else 64
     # vrtl[version, release, technology_level]
-    return "aix-{:1x}{:1d}{:02d}-{:04d}-{}".format(vrtl[0], vrtl[1], vrtl[2], bd, _sz)
+    return "aix-{:1x}{:1d}{:02d}-{:04d}-{}".format(vrtl[0], vrtl[1], vrtl[2],
+                                                   bd, _sz)
 
 
 # extract version, release and technology level from a VRMF string

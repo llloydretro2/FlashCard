@@ -8,20 +8,19 @@ except ModuleNotFoundError:
     if _sys.platform == 'win32':
         raise ImportError("The crypt module is not supported on Windows")
     else:
-        raise ImportError("The required _crypt module was not built as part of CPython")
+        raise ImportError(
+            "The required _crypt module was not built as part of CPython")
 
 import errno
 import string as _string
 from random import SystemRandom as _SystemRandom
 from collections import namedtuple as _namedtuple
 
-
 _saltchars = _string.ascii_letters + _string.digits + './'
 _sr = _SystemRandom()
 
 
 class _Method(_namedtuple('_Method', 'name ident salt_chars total_size')):
-
     """Class representing a salt method per the Modular Crypt Format or the
     legacy 2-character crypt method."""
 
@@ -49,7 +48,7 @@ def mksalt(method=None, *, rounds=None):
         if rounds is None:
             log_rounds = 12
         else:
-            log_rounds = int.bit_length(rounds-1)
+            log_rounds = int.bit_length(rounds - 1)
             if rounds != 1 << log_rounds:
                 raise ValueError('rounds must be a power of 2')
             if not 4 <= log_rounds <= 31:
@@ -85,6 +84,7 @@ def crypt(word, salt=None):
 #  available salting/crypto methods
 methods = []
 
+
 def _add_method(name, *args, rounds=None):
     method = _Method(name, *args)
     globals()['METHOD_' + name] = method
@@ -102,6 +102,7 @@ def _add_method(name, *args, rounds=None):
         return True
     return False
 
+
 _add_method('SHA512', '6', 16, 106)
 _add_method('SHA256', '5', 16, 63)
 
@@ -111,7 +112,7 @@ _add_method('SHA256', '5', 16, 63)
 # 'y' is the same as 'b', for compatibility
 # with openwall crypt_blowfish.
 for _v in 'b', 'y', 'a', '':
-    if _add_method('BLOWFISH', '2' + _v, 22, 59 + len(_v), rounds=1<<4):
+    if _add_method('BLOWFISH', '2' + _v, 22, 59 + len(_v), rounds=1 << 4):
         break
 
 _add_method('MD5', '1', 8, 34)

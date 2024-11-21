@@ -1,6 +1,5 @@
 # Copyright 2007 Google Inc.
 #  Licensed to PSF under a Contributor Agreement.
-
 """A fast, lightweight IPv4/IPv6 manipulation library in Python.
 
 This library is used to create/poke/manipulate IPv4 and IPv6 addresses
@@ -9,7 +8,6 @@ and networks.
 """
 
 __version__ = '1.0'
-
 
 import functools
 
@@ -197,7 +195,7 @@ def _count_righthand_zero_bits(number, bits):
     """
     if number == 0:
         return bits
-    return min(bits, (~number & (number-1)).bit_length())
+    return min(bits, (~number & (number - 1)).bit_length())
 
 
 def summarize_address_range(first, last):
@@ -226,12 +224,12 @@ def summarize_address_range(first, last):
             If the version of the first address is not 4 or 6.
 
     """
-    if (not (isinstance(first, _BaseAddress) and
-             isinstance(last, _BaseAddress))):
+    if (not (isinstance(first, _BaseAddress)
+             and isinstance(last, _BaseAddress))):
         raise TypeError('first and last must be IP addresses, not networks')
     if first.version != last.version:
-        raise TypeError("%s and %s are not of the same version" % (
-                         first, last))
+        raise TypeError("%s and %s are not of the same version" %
+                        (first, last))
     if first > last:
         raise ValueError('last IP address must be greater than first')
 
@@ -330,21 +328,21 @@ def collapse_addresses(addresses):
     for ip in addresses:
         if isinstance(ip, _BaseAddress):
             if ips and ips[-1]._version != ip._version:
-                raise TypeError("%s and %s are not of the same version" % (
-                                 ip, ips[-1]))
+                raise TypeError("%s and %s are not of the same version" %
+                                (ip, ips[-1]))
             ips.append(ip)
         elif ip._prefixlen == ip._max_prefixlen:
             if ips and ips[-1]._version != ip._version:
-                raise TypeError("%s and %s are not of the same version" % (
-                                 ip, ips[-1]))
+                raise TypeError("%s and %s are not of the same version" %
+                                (ip, ips[-1]))
             try:
                 ips.append(ip.ip)
             except AttributeError:
                 ips.append(ip.network_address)
         else:
             if nets and nets[-1]._version != ip._version:
-                raise TypeError("%s and %s are not of the same version" % (
-                                 ip, nets[-1]))
+                raise TypeError("%s and %s are not of the same version" %
+                                (ip, nets[-1]))
             nets.append(ip)
 
     # sort and dedup
@@ -384,7 +382,6 @@ def get_mixed_type_key(obj):
 
 
 class _IPAddressBase:
-
     """The mother class."""
 
     __slots__ = ()
@@ -412,7 +409,7 @@ class _IPAddressBase:
 
     @property
     def version(self):
-        msg = '%200s has no version specified' % (type(self),)
+        msg = '%200s has no version specified' % (type(self), )
         raise NotImplementedError(msg)
 
     def _check_int_address(self, address):
@@ -421,15 +418,15 @@ class _IPAddressBase:
             raise AddressValueError(msg % (address, self._version))
         if address > self._ALL_ONES:
             msg = "%d (>= 2**%d) is not permitted as an IPv%d address"
-            raise AddressValueError(msg % (address, self._max_prefixlen,
-                                           self._version))
+            raise AddressValueError(
+                msg % (address, self._max_prefixlen, self._version))
 
     def _check_packed_address(self, address, expected_len):
         address_len = len(address)
         if address_len != expected_len:
             msg = "%r (len %d != %d) is not permitted as an IPv%d address"
-            raise AddressValueError(msg % (address, address_len,
-                                           expected_len, self._version))
+            raise AddressValueError(
+                msg % (address, address_len, expected_len, self._version))
 
     @classmethod
     def _ip_int_from_prefix(cls, prefixlen):
@@ -558,14 +555,14 @@ class _IPAddressBase:
         return address[0], cls._max_prefixlen
 
     def __reduce__(self):
-        return self.__class__, (str(self),)
+        return self.__class__, (str(self), )
 
 
 _address_fmt_re = None
 
+
 @functools.total_ordering
 class _BaseAddress(_IPAddressBase):
-
     """A generic IP object.
 
     This IP class contains the version independent methods which are
@@ -579,8 +576,7 @@ class _BaseAddress(_IPAddressBase):
 
     def __eq__(self, other):
         try:
-            return (self._ip == other._ip
-                    and self._version == other._version)
+            return (self._ip == other._ip and self._version == other._version)
         except AttributeError:
             return NotImplemented
 
@@ -588,8 +584,8 @@ class _BaseAddress(_IPAddressBase):
         if not isinstance(other, _BaseAddress):
             return NotImplemented
         if self._version != other._version:
-            raise TypeError('%s and %s are not of the same version' % (
-                             self, other))
+            raise TypeError('%s and %s are not of the same version' %
+                            (self, other))
         if self._ip != other._ip:
             return self._ip < other._ip
         return False
@@ -619,7 +615,7 @@ class _BaseAddress(_IPAddressBase):
         return (self._version, self)
 
     def __reduce__(self):
-        return self.__class__, (self._ip,)
+        return self.__class__, (self._ip, )
 
     def __format__(self, fmt):
         """Returns an IP address as a formatted string.
@@ -720,8 +716,8 @@ class _BaseNetwork(_IPAddressBase):
         if not isinstance(other, _BaseNetwork):
             return NotImplemented
         if self._version != other._version:
-            raise TypeError('%s and %s are not of the same version' % (
-                             self, other))
+            raise TypeError('%s and %s are not of the same version' %
+                            (self, other))
         if self.network_address != other.network_address:
             return self.network_address < other.network_address
         if self.netmask != other.netmask:
@@ -730,9 +726,9 @@ class _BaseNetwork(_IPAddressBase):
 
     def __eq__(self, other):
         try:
-            return (self._version == other._version and
-                    self.network_address == other.network_address and
-                    int(self.netmask) == int(other.netmask))
+            return (self._version == other._version
+                    and self.network_address == other.network_address
+                    and int(self.netmask) == int(other.netmask))
         except AttributeError:
             return NotImplemented
 
@@ -754,14 +750,14 @@ class _BaseNetwork(_IPAddressBase):
     def overlaps(self, other):
         """Tell if self is partly contained in other."""
         return self.network_address in other or (
-            self.broadcast_address in other or (
-                other.network_address in self or (
-                    other.broadcast_address in self)))
+            self.broadcast_address in other or
+            (other.network_address in self or
+             (other.broadcast_address in self)))
 
     @functools.cached_property
     def broadcast_address(self):
-        return self._address_class(int(self.network_address) |
-                                   int(self.hostmask))
+        return self._address_class(
+            int(self.network_address) | int(self.hostmask))
 
     @functools.cached_property
     def hostmask(self):
@@ -789,7 +785,7 @@ class _BaseNetwork(_IPAddressBase):
         # Returning bare address objects (rather than interfaces) allows for
         # more consistent behaviour across the network address, broadcast
         # address and individual host addresses.
-        msg = '%200s has no associated address class' % (type(self),)
+        msg = '%200s has no associated address class' % (type(self), )
         raise NotImplementedError(msg)
 
     @property
@@ -833,8 +829,8 @@ class _BaseNetwork(_IPAddressBase):
 
         """
         if not self._version == other._version:
-            raise TypeError("%s and %s are not of the same version" % (
-                             self, other))
+            raise TypeError("%s and %s are not of the same version" %
+                            (self, other))
 
         if not isinstance(other, _BaseNetwork):
             raise TypeError("%s is not a network object" % other)
@@ -845,8 +841,8 @@ class _BaseNetwork(_IPAddressBase):
             return
 
         # Make sure we're comparing the network of other.
-        other = other.__class__('%s/%s' % (other.network_address,
-                                           other.prefixlen))
+        other = other.__class__('%s/%s' %
+                                (other.network_address, other.prefixlen))
 
         s1, s2 = self.subnets()
         while s1 != other and s2 != other:
@@ -868,8 +864,7 @@ class _BaseNetwork(_IPAddressBase):
         else:
             # If we got here, there's a bug somewhere.
             raise AssertionError('Error performing exclusion: '
-                                 's1: %s s2: %s other: %s' %
-                                 (s1, s2, other))
+                                 's1: %s s2: %s other: %s' % (s1, s2, other))
 
     def compare_networks(self, other):
         """Compare two IP objects.
@@ -905,8 +900,8 @@ class _BaseNetwork(_IPAddressBase):
         """
         # does this need to raise a ValueError?
         if self._version != other._version:
-            raise TypeError('%s and %s are not of the same type' % (
-                             self, other))
+            raise TypeError('%s and %s are not of the same type' %
+                            (self, other))
         # self._version == other._version below here:
         if self.network_address < other.network_address:
             return -1
@@ -972,8 +967,8 @@ class _BaseNetwork(_IPAddressBase):
 
         if new_prefixlen > self._max_prefixlen:
             raise ValueError(
-                'prefix length diff %d is invalid for netblock %s' % (
-                    new_prefixlen, self))
+                'prefix length diff %d is invalid for netblock %s' %
+                (new_prefixlen, self))
 
         start = int(self.network_address)
         end = int(self.broadcast_address) + 1
@@ -1018,10 +1013,9 @@ class _BaseNetwork(_IPAddressBase):
             raise ValueError(
                 'current prefixlen is %d, cannot have a prefixlen_diff of %d' %
                 (self.prefixlen, prefixlen_diff))
-        return self.__class__((
-            int(self.network_address) & (int(self.netmask) << prefixlen_diff),
-            new_prefixlen
-            ))
+        return self.__class__(
+            (int(self.network_address) & (int(self.netmask) << prefixlen_diff),
+             new_prefixlen))
 
     @property
     def is_multicast(self):
@@ -1032,8 +1026,8 @@ class _BaseNetwork(_IPAddressBase):
             See RFC 2373 2.7 for details.
 
         """
-        return (self.network_address.is_multicast and
-                self.broadcast_address.is_multicast)
+        return (self.network_address.is_multicast
+                and self.broadcast_address.is_multicast)
 
     @staticmethod
     def _is_subnet_of(a, b):
@@ -1041,8 +1035,8 @@ class _BaseNetwork(_IPAddressBase):
             # Always false if one is v4 and the other is v6.
             if a._version != b._version:
                 raise TypeError(f"{a} and {b} are not of the same version")
-            return (b.network_address <= a.network_address and
-                    b.broadcast_address >= a.broadcast_address)
+            return (b.network_address <= a.network_address
+                    and b.broadcast_address >= a.broadcast_address)
         except AttributeError:
             raise TypeError(f"Unable to test subnet containment "
                             f"between {a} and {b}")
@@ -1064,8 +1058,8 @@ class _BaseNetwork(_IPAddressBase):
             reserved IPv6 Network ranges.
 
         """
-        return (self.network_address.is_reserved and
-                self.broadcast_address.is_reserved)
+        return (self.network_address.is_reserved
+                and self.broadcast_address.is_reserved)
 
     @property
     def is_link_local(self):
@@ -1075,8 +1069,8 @@ class _BaseNetwork(_IPAddressBase):
             A boolean, True if the address is reserved per RFC 4291.
 
         """
-        return (self.network_address.is_link_local and
-                self.broadcast_address.is_link_local)
+        return (self.network_address.is_link_local
+                and self.broadcast_address.is_link_local)
 
     @property
     def is_private(self):
@@ -1087,8 +1081,8 @@ class _BaseNetwork(_IPAddressBase):
             iana-ipv4-special-registry or iana-ipv6-special-registry.
 
         """
-        return (self.network_address.is_private and
-                self.broadcast_address.is_private)
+        return (self.network_address.is_private
+                and self.broadcast_address.is_private)
 
     @property
     def is_global(self):
@@ -1110,8 +1104,8 @@ class _BaseNetwork(_IPAddressBase):
             RFC 2373 2.5.2.
 
         """
-        return (self.network_address.is_unspecified and
-                self.broadcast_address.is_unspecified)
+        return (self.network_address.is_unspecified
+                and self.broadcast_address.is_unspecified)
 
     @property
     def is_loopback(self):
@@ -1122,11 +1116,11 @@ class _BaseNetwork(_IPAddressBase):
             RFC 2373 2.5.3.
 
         """
-        return (self.network_address.is_loopback and
-                self.broadcast_address.is_loopback)
+        return (self.network_address.is_loopback
+                and self.broadcast_address.is_loopback)
+
 
 class _BaseV4:
-
     """Base IPv4 object.
 
     The following methods are used by IPv4 objects in both single IP
@@ -1267,13 +1261,11 @@ class _BaseV4:
 
 
 class IPv4Address(_BaseV4, _BaseAddress):
-
     """Represent and manipulate single IPv4 Addresses."""
 
     __slots__ = ('_ip', '__weakref__')
 
     def __init__(self, address):
-
         """
         Args:
             address: A string or integer representing the IP
@@ -1398,8 +1390,7 @@ class IPv4Interface(IPv4Address):
         return self.network.hostmask
 
     def __str__(self):
-        return '%s/%d' % (self._string_from_ip_int(self._ip),
-                          self._prefixlen)
+        return '%s/%d' % (self._string_from_ip_int(self._ip), self._prefixlen)
 
     def __eq__(self, other):
         address_equal = IPv4Address.__eq__(self, other)
@@ -1418,15 +1409,16 @@ class IPv4Interface(IPv4Address):
         if address_less is NotImplemented:
             return NotImplemented
         try:
-            return (self.network < other.network or
-                    self.network == other.network and address_less)
+            return (self.network < other.network
+                    or self.network == other.network and address_less)
         except AttributeError:
             # We *do* allow addresses and interfaces to be sorted. The
             # unassociated address is considered less than all interfaces.
             return False
 
     def __hash__(self):
-        return hash((self._ip, self._prefixlen, int(self.network.network_address)))
+        return hash(
+            (self._ip, self._prefixlen, int(self.network.network_address)))
 
     __reduce__ = _IPAddressBase.__reduce__
 
@@ -1436,22 +1428,18 @@ class IPv4Interface(IPv4Address):
 
     @property
     def with_prefixlen(self):
-        return '%s/%s' % (self._string_from_ip_int(self._ip),
-                          self._prefixlen)
+        return '%s/%s' % (self._string_from_ip_int(self._ip), self._prefixlen)
 
     @property
     def with_netmask(self):
-        return '%s/%s' % (self._string_from_ip_int(self._ip),
-                          self.netmask)
+        return '%s/%s' % (self._string_from_ip_int(self._ip), self.netmask)
 
     @property
     def with_hostmask(self):
-        return '%s/%s' % (self._string_from_ip_int(self._ip),
-                          self.hostmask)
+        return '%s/%s' % (self._string_from_ip_int(self._ip), self.hostmask)
 
 
 class IPv4Network(_BaseV4, _BaseNetwork):
-
     """This class represents and manipulates 32-bit IPv4 network + addresses..
 
     Attributes: [examples for IPv4Network('192.0.2.0/27')]
@@ -1509,8 +1497,7 @@ class IPv4Network(_BaseV4, _BaseNetwork):
             if strict:
                 raise ValueError('%s has host bits set' % self)
             else:
-                self.network_address = IPv4Address(packed &
-                                                   int(self.netmask))
+                self.network_address = IPv4Address(packed & int(self.netmask))
 
         if self._prefixlen == (self._max_prefixlen - 1):
             self.hosts = self.__iter__
@@ -1528,8 +1515,8 @@ class IPv4Network(_BaseV4, _BaseNetwork):
 
         """
         return (not (self.network_address in IPv4Network('100.64.0.0/10') and
-                    self.broadcast_address in IPv4Network('100.64.0.0/10')) and
-                not self.is_private)
+                     self.broadcast_address in IPv4Network('100.64.0.0/10'))
+                and not self.is_private)
 
 
 class _IPv4Constants:
@@ -1556,7 +1543,7 @@ class _IPv4Constants:
         IPv4Network('203.0.113.0/24'),
         IPv4Network('240.0.0.0/4'),
         IPv4Network('255.255.255.255/32'),
-        ]
+    ]
 
     _reserved_network = IPv4Network('240.0.0.0/4')
 
@@ -1567,7 +1554,6 @@ IPv4Address._constants = _IPv4Constants
 
 
 class _BaseV6:
-
     """Base IPv6 object.
 
     The following methods are used by IPv6 objects in both single IP
@@ -1645,7 +1631,8 @@ class _BaseV6:
         # leading or trailing zero part.
         _max_parts = cls._HEXTET_COUNT + 1
         if len(parts) > _max_parts:
-            msg = "At most %d colons permitted in %r" % (_max_parts-1, ip_str)
+            msg = "At most %d colons permitted in %r" % (_max_parts - 1,
+                                                         ip_str)
             raise AddressValueError(msg)
 
         # Disregarding the endpoints, find '::' with nothing in between.
@@ -1678,7 +1665,7 @@ class _BaseV6:
             parts_skipped = cls._HEXTET_COUNT - (parts_hi + parts_lo)
             if parts_skipped < 1:
                 msg = "Expected at most %d other parts with '::' in %r"
-                raise AddressValueError(msg % (cls._HEXTET_COUNT-1, ip_str))
+                raise AddressValueError(msg % (cls._HEXTET_COUNT - 1, ip_str))
         else:
             # Otherwise, allocate the entire address to parts_hi.  The
             # endpoints could still be empty, but _parse_hextet() will check
@@ -1805,7 +1792,7 @@ class _BaseV6:
             raise ValueError('IPv6 address is too large')
 
         hex_str = '%032x' % ip_int
-        hextets = ['%x' % int(hex_str[x:x+4], 16) for x in range(0, 32, 4)]
+        hextets = ['%x' % int(hex_str[x:x + 4], 16) for x in range(0, 32, 4)]
 
         hextets = cls._compress_hextets(hextets)
         return ':'.join(hextets)
@@ -1829,7 +1816,7 @@ class _BaseV6:
 
         ip_int = self._ip_int_from_string(ip_str)
         hex_str = '%032x' % ip_int
-        parts = [hex_str[x:x+4] for x in range(0, 32, 4)]
+        parts = [hex_str[x:x + 4] for x in range(0, 32, 4)]
         if isinstance(self, (_BaseNetwork, IPv6Interface)):
             return '%s/%d' % (':'.join(parts), self._prefixlen)
         return ':'.join(parts)
@@ -1873,7 +1860,6 @@ class _BaseV6:
 
 
 class IPv6Address(_BaseV6, _BaseAddress):
-
     """Represent and manipulate single IPv6 Addresses."""
 
     __slots__ = ('_ip', '_scope_id', '__weakref__')
@@ -2102,8 +2088,7 @@ class IPv6Interface(IPv6Address):
         return self.network.hostmask
 
     def __str__(self):
-        return '%s/%d' % (super().__str__(),
-                          self._prefixlen)
+        return '%s/%d' % (super().__str__(), self._prefixlen)
 
     def __eq__(self, other):
         address_equal = IPv6Address.__eq__(self, other)
@@ -2122,15 +2107,16 @@ class IPv6Interface(IPv6Address):
         if address_less is NotImplemented:
             return address_less
         try:
-            return (self.network < other.network or
-                    self.network == other.network and address_less)
+            return (self.network < other.network
+                    or self.network == other.network and address_less)
         except AttributeError:
             # We *do* allow addresses and interfaces to be sorted. The
             # unassociated address is considered less than all interfaces.
             return False
 
     def __hash__(self):
-        return hash((self._ip, self._prefixlen, int(self.network.network_address)))
+        return hash(
+            (self._ip, self._prefixlen, int(self.network.network_address)))
 
     __reduce__ = _IPAddressBase.__reduce__
 
@@ -2140,18 +2126,15 @@ class IPv6Interface(IPv6Address):
 
     @property
     def with_prefixlen(self):
-        return '%s/%s' % (self._string_from_ip_int(self._ip),
-                          self._prefixlen)
+        return '%s/%s' % (self._string_from_ip_int(self._ip), self._prefixlen)
 
     @property
     def with_netmask(self):
-        return '%s/%s' % (self._string_from_ip_int(self._ip),
-                          self.netmask)
+        return '%s/%s' % (self._string_from_ip_int(self._ip), self.netmask)
 
     @property
     def with_hostmask(self):
-        return '%s/%s' % (self._string_from_ip_int(self._ip),
-                          self.hostmask)
+        return '%s/%s' % (self._string_from_ip_int(self._ip), self.hostmask)
 
     @property
     def is_unspecified(self):
@@ -2163,7 +2146,6 @@ class IPv6Interface(IPv6Address):
 
 
 class IPv6Network(_BaseV6, _BaseNetwork):
-
     """This class represents and manipulates 128-bit IPv6 networks.
 
     Attributes: [examples for IPv6('2001:db8::1000/124')]
@@ -2218,8 +2200,7 @@ class IPv6Network(_BaseV6, _BaseNetwork):
             if strict:
                 raise ValueError('%s has host bits set' % self)
             else:
-                self.network_address = IPv6Address(packed &
-                                                   int(self.netmask))
+                self.network_address = IPv6Address(packed & int(self.netmask))
 
         if self._prefixlen == (self._max_prefixlen - 1):
             self.hosts = self.__iter__
@@ -2250,8 +2231,8 @@ class IPv6Network(_BaseV6, _BaseNetwork):
             A boolean, True if the address is reserved per RFC 3513 2.5.6.
 
         """
-        return (self.network_address.is_site_local and
-                self.broadcast_address.is_site_local)
+        return (self.network_address.is_site_local
+                and self.broadcast_address.is_site_local)
 
 
 class _IPv6Constants:
@@ -2271,16 +2252,23 @@ class _IPv6Constants:
         IPv6Network('2001:10::/28'),
         IPv6Network('fc00::/7'),
         IPv6Network('fe80::/10'),
-        ]
+    ]
 
     _reserved_networks = [
-        IPv6Network('::/8'), IPv6Network('100::/8'),
-        IPv6Network('200::/7'), IPv6Network('400::/6'),
-        IPv6Network('800::/5'), IPv6Network('1000::/4'),
-        IPv6Network('4000::/3'), IPv6Network('6000::/3'),
-        IPv6Network('8000::/3'), IPv6Network('A000::/3'),
-        IPv6Network('C000::/3'), IPv6Network('E000::/4'),
-        IPv6Network('F000::/5'), IPv6Network('F800::/6'),
+        IPv6Network('::/8'),
+        IPv6Network('100::/8'),
+        IPv6Network('200::/7'),
+        IPv6Network('400::/6'),
+        IPv6Network('800::/5'),
+        IPv6Network('1000::/4'),
+        IPv6Network('4000::/3'),
+        IPv6Network('6000::/3'),
+        IPv6Network('8000::/3'),
+        IPv6Network('A000::/3'),
+        IPv6Network('C000::/3'),
+        IPv6Network('E000::/4'),
+        IPv6Network('F000::/5'),
+        IPv6Network('F800::/6'),
         IPv6Network('FE00::/9'),
     ]
 

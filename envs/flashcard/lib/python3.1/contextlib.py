@@ -6,14 +6,15 @@ from collections import deque
 from functools import wraps
 from types import MethodType, GenericAlias
 
-__all__ = ["asynccontextmanager", "contextmanager", "closing", "nullcontext",
-           "AbstractContextManager", "AbstractAsyncContextManager",
-           "AsyncExitStack", "ContextDecorator", "ExitStack",
-           "redirect_stdout", "redirect_stderr", "suppress", "aclosing"]
+__all__ = [
+    "asynccontextmanager", "contextmanager", "closing", "nullcontext",
+    "AbstractContextManager", "AbstractAsyncContextManager", "AsyncExitStack",
+    "ContextDecorator", "ExitStack", "redirect_stdout", "redirect_stderr",
+    "suppress", "aclosing"
+]
 
 
 class AbstractContextManager(abc.ABC):
-
     """An abstract base class for context managers."""
 
     __class_getitem__ = classmethod(GenericAlias)
@@ -35,7 +36,6 @@ class AbstractContextManager(abc.ABC):
 
 
 class AbstractAsyncContextManager(abc.ABC):
-
     """An abstract base class for asynchronous context managers."""
 
     __class_getitem__ = classmethod(GenericAlias)
@@ -73,10 +73,12 @@ class ContextDecorator(object):
         return self
 
     def __call__(self, func):
+
         @wraps(func)
         def inner(*args, **kwds):
             with self._recreate_cm():
                 return func(*args, **kwds)
+
         return inner
 
 
@@ -89,10 +91,12 @@ class AsyncContextDecorator(object):
         return self
 
     def __call__(self, func):
+
         @wraps(func)
         async def inner(*args, **kwds):
             async with self._recreate_cm():
                 return await func(*args, **kwds)
+
         return inner
 
 
@@ -121,9 +125,9 @@ class _GeneratorContextManagerBase:
 
 
 class _GeneratorContextManager(
-    _GeneratorContextManagerBase,
-    AbstractContextManager,
-    ContextDecorator,
+        _GeneratorContextManagerBase,
+        AbstractContextManager,
+        ContextDecorator,
 ):
     """Helper for @contextmanager decorator."""
 
@@ -166,10 +170,8 @@ class _GeneratorContextManager(
                 # have this behavior). But do this only if the exception wrapped
                 # by the RuntimeError is actually Stop(Async)Iteration (see
                 # issue29692).
-                if (
-                    isinstance(value, StopIteration)
-                    and exc.__cause__ is value
-                ):
+                if (isinstance(value, StopIteration)
+                        and exc.__cause__ is value):
                     return False
                 raise
             except BaseException as exc:
@@ -184,10 +186,11 @@ class _GeneratorContextManager(
                 return False
             raise RuntimeError("generator didn't stop after throw()")
 
+
 class _AsyncGeneratorContextManager(
-    _GeneratorContextManagerBase,
-    AbstractAsyncContextManager,
-    AsyncContextDecorator,
+        _GeneratorContextManagerBase,
+        AbstractAsyncContextManager,
+        AsyncContextDecorator,
 ):
     """Helper for @asynccontextmanager decorator."""
 
@@ -230,10 +233,8 @@ class _AsyncGeneratorContextManager(
                 # have this behavior). But do this only if the exception wrapped
                 # by the RuntimeError is actully Stop(Async)Iteration (see
                 # issue29692).
-                if (
-                    isinstance(value, (StopIteration, StopAsyncIteration))
-                    and exc.__cause__ is value
-                ):
+                if (isinstance(value, (StopIteration, StopAsyncIteration))
+                        and exc.__cause__ is value):
                     return False
                 raise
             except BaseException as exc:
@@ -276,9 +277,11 @@ def contextmanager(func):
         finally:
             <cleanup>
     """
+
     @wraps(func)
     def helper(*args, **kwds):
         return _GeneratorContextManager(func, args, kwds)
+
     return helper
 
 
@@ -309,9 +312,11 @@ def asynccontextmanager(func):
         finally:
             <cleanup>
     """
+
     @wraps(func)
     def helper(*args, **kwds):
         return _AsyncGeneratorContextManager(func, args, kwds)
+
     return helper
 
 
@@ -332,10 +337,13 @@ class closing(AbstractContextManager):
             f.close()
 
     """
+
     def __init__(self, thing):
         self.thing = thing
+
     def __enter__(self):
         return self.thing
+
     def __exit__(self, *exc_info):
         self.thing.close()
 
@@ -358,10 +366,13 @@ class aclosing(AbstractAsyncContextManager):
             await agen.aclose()
 
     """
+
     def __init__(self, thing):
         self.thing = thing
+
     async def __aenter__(self):
         return self.thing
+
     async def __aexit__(self, *exc_info):
         await self.thing.aclose()
 
@@ -445,8 +456,10 @@ class _BaseExitStack:
 
     @staticmethod
     def _create_cb_wrapper(callback, /, *args, **kwds):
+
         def _exit_wrapper(exc_type, exc, tb):
             callback(*args, **kwds)
+
         return _exit_wrapper
 
     def __init__(self):
@@ -536,6 +549,7 @@ class ExitStack(_BaseExitStack, AbstractContextManager):
         # We manipulate the exception state so it behaves as though
         # we were actually nesting multiple with statements
         frame_exc = sys.exc_info()[1]
+
         def _fix_exception_context(new_exc, old_exc):
             # Context may not be correct, so find the end of the chain
             while 1:
@@ -604,8 +618,10 @@ class AsyncExitStack(_BaseExitStack, AbstractAsyncContextManager):
 
     @staticmethod
     def _create_async_cb_wrapper(callback, /, *args, **kwds):
+
         async def _exit_wrapper(exc_type, exc, tb):
             await callback(*args, **kwds)
+
         return _exit_wrapper
 
     async def enter_async_context(self, cm):
@@ -670,6 +686,7 @@ class AsyncExitStack(_BaseExitStack, AbstractAsyncContextManager):
         # We manipulate the exception state so it behaves as though
         # we were actually nesting multiple with statements
         frame_exc = sys.exc_info()[1]
+
         def _fix_exception_context(new_exc, old_exc):
             # Context may not be correct, so find the end of the chain
             while 1:

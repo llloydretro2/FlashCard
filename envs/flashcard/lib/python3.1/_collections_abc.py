@@ -1,6 +1,5 @@
 # Copyright 2007 Google, Inc. All Rights Reserved.
 # Licensed to PSF under a Contributor Agreement.
-
 """Abstract Base Classes (ABCs) for collections, according to PEP 3119.
 
 Unit tests are in test_collections.
@@ -11,20 +10,42 @@ import sys
 
 GenericAlias = type(list[int])
 EllipsisType = type(...)
-def _f(): pass
+
+
+def _f():
+    pass
+
+
 FunctionType = type(_f)
 del _f
 
-__all__ = ["Awaitable", "Coroutine",
-           "AsyncIterable", "AsyncIterator", "AsyncGenerator",
-           "Hashable", "Iterable", "Iterator", "Generator", "Reversible",
-           "Sized", "Container", "Callable", "Collection",
-           "Set", "MutableSet",
-           "Mapping", "MutableMapping",
-           "MappingView", "KeysView", "ItemsView", "ValuesView",
-           "Sequence", "MutableSequence",
-           "ByteString",
-           ]
+__all__ = [
+    "Awaitable",
+    "Coroutine",
+    "AsyncIterable",
+    "AsyncIterator",
+    "AsyncGenerator",
+    "Hashable",
+    "Iterable",
+    "Iterator",
+    "Generator",
+    "Reversible",
+    "Sized",
+    "Container",
+    "Callable",
+    "Collection",
+    "Set",
+    "MutableSet",
+    "Mapping",
+    "MutableMapping",
+    "MappingView",
+    "KeysView",
+    "ItemsView",
+    "ValuesView",
+    "Sequence",
+    "MutableSequence",
+    "ByteString",
+]
 
 # This module has been renamed from collections.abc to _collections_abc to
 # speed up interpreter startup. Some of the types such as MutableMapping are
@@ -60,20 +81,30 @@ dict_items = type({}.items())
 ## misc ##
 mappingproxy = type(type.__dict__)
 generator = type((lambda: (yield))())
+
+
 ## coroutine ##
-async def _coro(): pass
+async def _coro():
+    pass
+
+
 _coro = _coro()
 coroutine = type(_coro)
 _coro.close()  # Prevent ResourceWarning
 del _coro
+
+
 ## asynchronous generator ##
-async def _ag(): yield
+async def _ag():
+    yield
+
+
 _ag = _ag()
 async_generator = type(_ag)
 del _ag
 
-
 ### ONE-TRICK PONIES ###
+
 
 def _check_methods(C, *methods):
     mro = C.__mro__
@@ -86,6 +117,7 @@ def _check_methods(C, *methods):
         else:
             return NotImplemented
     return True
+
 
 class Hashable(metaclass=ABCMeta):
 
@@ -242,8 +274,8 @@ class AsyncGenerator(AsyncIterator):
     @classmethod
     def __subclasshook__(cls, C):
         if cls is AsyncGenerator:
-            return _check_methods(C, '__aiter__', '__anext__',
-                                  'asend', 'athrow', 'aclose')
+            return _check_methods(C, '__aiter__', '__anext__', 'asend',
+                                  'athrow', 'aclose')
         return NotImplemented
 
 
@@ -362,8 +394,8 @@ class Generator(Iterator):
     @classmethod
     def __subclasshook__(cls, C):
         if cls is Generator:
-            return _check_methods(C, '__iter__', '__next__',
-                                  'send', 'throw', 'close')
+            return _check_methods(C, '__iter__', '__next__', 'send', 'throw',
+                                  'close')
         return NotImplemented
 
 
@@ -409,7 +441,7 @@ class Collection(Sized, Iterable, Container):
     @classmethod
     def __subclasshook__(cls, C):
         if cls is Collection:
-            return _check_methods(C,  "__len__", "__iter__", "__contains__")
+            return _check_methods(C, "__len__", "__iter__", "__contains__")
         return NotImplemented
 
 
@@ -442,7 +474,8 @@ class _CallableGenericAlias(GenericAlias):
         params = []
         for arg in self.__args__:
             # Looks like a genericalias
-            if hasattr(arg, "__parameters__") and isinstance(arg.__parameters__, tuple):
+            if hasattr(arg, "__parameters__") and isinstance(
+                    arg.__parameters__, tuple):
                 params.extend(arg.__parameters__)
             else:
                 if _is_typevarlike(arg):
@@ -452,9 +485,10 @@ class _CallableGenericAlias(GenericAlias):
     def __repr__(self):
         if len(self.__args__) == 2 and _is_param_expr(self.__args__[0]):
             return super().__repr__()
-        return (f'collections.abc.Callable'
-                f'[[{", ".join([_type_repr(a) for a in self.__args__[:-1]])}], '
-                f'{_type_repr(self.__args__[-1])}]')
+        return (
+            f'collections.abc.Callable'
+            f'[[{", ".join([_type_repr(a) for a in self.__args__[:-1]])}], '
+            f'{_type_repr(self.__args__[-1])}]')
 
     def __reduce__(self):
         args = self.__args__
@@ -474,10 +508,10 @@ class _CallableGenericAlias(GenericAlias):
         if param_len == 0:
             raise TypeError(f'{self} is not a generic class')
         if not isinstance(item, tuple):
-            item = (item,)
-        if (param_len == 1 and _is_param_expr(self.__parameters__[0])
-                and item and not _is_param_expr(item[0])):
-            item = (list(item),)
+            item = (item, )
+        if (param_len == 1 and _is_param_expr(self.__parameters__[0]) and item
+                and not _is_param_expr(item[0])):
+            item = (list(item), )
         item_len = len(item)
         if item_len != param_len:
             raise TypeError(f'Too {"many" if item_len > param_len else "few"}'
@@ -490,12 +524,14 @@ class _CallableGenericAlias(GenericAlias):
                 if _is_param_expr(arg):
                     arg = subst[arg]
                     if not _is_param_expr(arg):
-                        raise TypeError(f"Expected a list of types, an ellipsis, "
-                                        f"ParamSpec, or Concatenate. Got {arg}")
+                        raise TypeError(
+                            f"Expected a list of types, an ellipsis, "
+                            f"ParamSpec, or Concatenate. Got {arg}")
                 else:
                     arg = subst[arg]
             # Looks like a GenericAlias
-            elif hasattr(arg, '__parameters__') and isinstance(arg.__parameters__, tuple):
+            elif hasattr(arg, '__parameters__') and isinstance(
+                    arg.__parameters__, tuple):
                 subparams = arg.__parameters__
                 if subparams:
                     subargs = tuple(subst[x] for x in subparams)
@@ -516,6 +552,7 @@ def _is_typevarlike(arg):
     return (obj.__module__ == 'typing'
             and obj.__name__ in {'ParamSpec', 'TypeVar'})
 
+
 def _is_param_expr(obj):
     """Checks if obj matches either a list of types, ``...``, ``ParamSpec`` or
     ``_ConcatenateGenericAlias`` from typing.py
@@ -526,7 +563,9 @@ def _is_param_expr(obj):
         return True
     obj = type(obj)
     names = ('ParamSpec', '_ConcatenateGenericAlias')
-    return obj.__module__ == 'typing' and any(obj.__name__ == name for name in names)
+    return obj.__module__ == 'typing' and any(obj.__name__ == name
+                                              for name in names)
+
 
 def _type_repr(obj):
     """Return the repr() of an object, special-casing types (internal helper).
@@ -693,7 +732,7 @@ class Set(Collection):
         h &= MASK
         for x in self:
             hx = hash(x)
-            h ^= (hx ^ (hx << 16) ^ 89869747)  * 3644798167
+            h ^= (hx ^ (hx << 16) ^ 89869747) * 3644798167
             h &= MASK
         h ^= (h >> 11) ^ (h >> 25)
         h = h * 69069 + 907133923
@@ -790,8 +829,8 @@ class MutableSet(Set):
 
 MutableSet.register(set)
 
-
 ### MAPPINGS ###
+
 
 class Mapping(Collection):
     """A Mapping is a generic container for associating key/value
@@ -804,7 +843,7 @@ class Mapping(Collection):
     __slots__ = ()
 
     # Tell ABCMeta.__new__ that this class should have TPFLAGS_MAPPING set.
-    __abc_tpflags__ = 1 << 6 # Py_TPFLAGS_MAPPING
+    __abc_tpflags__ = 1 << 6  # Py_TPFLAGS_MAPPING
 
     @abstractmethod
     def __getitem__(self, key):
@@ -843,6 +882,7 @@ class Mapping(Collection):
         return dict(self.items()) == dict(other.items())
 
     __reversed__ = None
+
 
 Mapping.register(mappingproxy)
 
@@ -1009,8 +1049,8 @@ class MutableMapping(Mapping):
 
 MutableMapping.register(dict)
 
-
 ### SEQUENCES ###
+
 
 class Sequence(Reversible, Collection):
     """All the operations on a read-only sequence.
@@ -1022,7 +1062,7 @@ class Sequence(Reversible, Collection):
     __slots__ = ()
 
     # Tell ABCMeta.__new__ that this class should have TPFLAGS_SEQUENCE set.
-    __abc_tpflags__ = 1 << 5 # Py_TPFLAGS_SEQUENCE
+    __abc_tpflags__ = 1 << 5  # Py_TPFLAGS_SEQUENCE
 
     @abstractmethod
     def __getitem__(self, index):
@@ -1075,6 +1115,7 @@ class Sequence(Reversible, Collection):
         'S.count(value) -> integer -- return number of occurrences of value'
         return sum(1 for v in self if v is value or v == value)
 
+
 Sequence.register(tuple)
 Sequence.register(str)
 Sequence.register(range)
@@ -1088,6 +1129,7 @@ class ByteString(Sequence):
     """
 
     __slots__ = ()
+
 
 ByteString.register(bytes)
 ByteString.register(bytearray)
@@ -1130,8 +1172,8 @@ class MutableSequence(Sequence):
     def reverse(self):
         'S.reverse() -- reverse *IN PLACE*'
         n = len(self)
-        for i in range(n//2):
-            self[i], self[n-i-1] = self[n-i-1], self[i]
+        for i in range(n // 2):
+            self[i], self[n - i - 1] = self[n - i - 1], self[i]
 
     def extend(self, values):
         'S.extend(iterable) -- extend sequence by appending elements from the iterable'

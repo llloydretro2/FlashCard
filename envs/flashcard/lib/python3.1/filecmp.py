@@ -18,14 +18,17 @@ from types import GenericAlias
 __all__ = ['clear_cache', 'cmp', 'dircmp', 'cmpfiles', 'DEFAULT_IGNORES']
 
 _cache = {}
-BUFSIZE = 8*1024
+BUFSIZE = 8 * 1024
 
 DEFAULT_IGNORES = [
-    'RCS', 'CVS', 'tags', '.git', '.hg', '.bzr', '_darcs', '__pycache__']
+    'RCS', 'CVS', 'tags', '.git', '.hg', '.bzr', '_darcs', '__pycache__'
+]
+
 
 def clear_cache():
     """Clear the filecmp cache."""
     _cache.clear()
+
 
 def cmp(f1, f2, shallow=True):
     """Compare two files.
@@ -62,15 +65,15 @@ def cmp(f1, f2, shallow=True):
     outcome = _cache.get((f1, f2, s1, s2))
     if outcome is None:
         outcome = _do_cmp(f1, f2)
-        if len(_cache) > 100:      # limit the maximum size of the cache
+        if len(_cache) > 100:  # limit the maximum size of the cache
             clear_cache()
         _cache[f1, f2, s1, s2] = outcome
     return outcome
 
+
 def _sig(st):
-    return (stat.S_IFMT(st.st_mode),
-            st.st_size,
-            st.st_mtime)
+    return (stat.S_IFMT(st.st_mode), st.st_size, st.st_mtime)
+
 
 def _do_cmp(f1, f2):
     bufsize = BUFSIZE
@@ -82,6 +85,7 @@ def _do_cmp(f1, f2):
                 return False
             if not b1:
                 return True
+
 
 # Directory comparison class.
 #
@@ -121,11 +125,11 @@ class dircmp:
        in common_dirs.
      """
 
-    def __init__(self, a, b, ignore=None, hide=None): # Initialize
+    def __init__(self, a, b, ignore=None, hide=None):  # Initialize
         self.left = a
         self.right = b
         if hide is None:
-            self.hide = [os.curdir, os.pardir] # Names never to be shown
+            self.hide = [os.curdir, os.pardir]  # Names never to be shown
         else:
             self.hide = hide
         if ignore is None:
@@ -133,22 +137,24 @@ class dircmp:
         else:
             self.ignore = ignore
 
-    def phase0(self): # Compare everything except common subdirectories
+    def phase0(self):  # Compare everything except common subdirectories
         self.left_list = _filter(os.listdir(self.left),
-                                 self.hide+self.ignore)
+                                 self.hide + self.ignore)
         self.right_list = _filter(os.listdir(self.right),
-                                  self.hide+self.ignore)
+                                  self.hide + self.ignore)
         self.left_list.sort()
         self.right_list.sort()
 
-    def phase1(self): # Compute common names
+    def phase1(self):  # Compute common names
         a = dict(zip(map(os.path.normcase, self.left_list), self.left_list))
         b = dict(zip(map(os.path.normcase, self.right_list), self.right_list))
         self.common = list(map(a.__getitem__, filter(b.__contains__, a)))
-        self.left_only = list(map(a.__getitem__, filterfalse(b.__contains__, a)))
-        self.right_only = list(map(b.__getitem__, filterfalse(a.__contains__, b)))
+        self.left_only = list(
+            map(a.__getitem__, filterfalse(b.__contains__, a)))
+        self.right_only = list(
+            map(b.__getitem__, filterfalse(a.__contains__, b)))
 
-    def phase2(self): # Distinguish files, directories, funnies
+    def phase2(self):  # Distinguish files, directories, funnies
         self.common_dirs = []
         self.common_files = []
         self.common_funny = []
@@ -183,11 +189,11 @@ class dircmp:
             else:
                 self.common_funny.append(x)
 
-    def phase3(self): # Find out differences between common files
+    def phase3(self):  # Find out differences between common files
         xx = cmpfiles(self.left, self.right, self.common_files)
         self.same_files, self.diff_files, self.funny_files = xx
 
-    def phase4(self): # Find out differences between common subdirectories
+    def phase4(self):  # Find out differences between common subdirectories
         # A new dircmp (or MyDirCmp if dircmp was subclassed) object is created
         # for each common subdirectory,
         # these are stored in a dictionary indexed by filename.
@@ -196,14 +202,14 @@ class dircmp:
         for x in self.common_dirs:
             a_x = os.path.join(self.left, x)
             b_x = os.path.join(self.right, x)
-            self.subdirs[x]  = self.__class__(a_x, b_x, self.ignore, self.hide)
+            self.subdirs[x] = self.__class__(a_x, b_x, self.ignore, self.hide)
 
-    def phase4_closure(self): # Recursively call phase4() on subdirectories
+    def phase4_closure(self):  # Recursively call phase4() on subdirectories
         self.phase4()
         for sd in self.subdirs.values():
             sd.phase4_closure()
 
-    def report(self): # Print a report on the differences between a and b
+    def report(self):  # Print a report on the differences between a and b
         # Output format is purposely lousy
         print('diff', self.left, self.right)
         if self.left_only:
@@ -228,23 +234,30 @@ class dircmp:
             self.common_funny.sort()
             print('Common funny cases :', self.common_funny)
 
-    def report_partial_closure(self): # Print reports on self and on subdirs
+    def report_partial_closure(self):  # Print reports on self and on subdirs
         self.report()
         for sd in self.subdirs.values():
             print()
             sd.report()
 
-    def report_full_closure(self): # Report on self and subdirs recursively
+    def report_full_closure(self):  # Report on self and subdirs recursively
         self.report()
         for sd in self.subdirs.values():
             print()
             sd.report_full_closure()
 
     methodmap = dict(subdirs=phase4,
-                     same_files=phase3, diff_files=phase3, funny_files=phase3,
-                     common_dirs = phase2, common_files=phase2, common_funny=phase2,
-                     common=phase1, left_only=phase1, right_only=phase1,
-                     left_list=phase0, right_list=phase0)
+                     same_files=phase3,
+                     diff_files=phase3,
+                     funny_files=phase3,
+                     common_dirs=phase2,
+                     common_files=phase2,
+                     common_funny=phase2,
+                     common=phase1,
+                     left_only=phase1,
+                     right_only=phase1,
+                     left_list=phase0,
+                     right_list=phase0)
 
     def __getattr__(self, attr):
         if attr not in self.methodmap:
@@ -308,6 +321,7 @@ def demo():
         dd.report_full_closure()
     else:
         dd.report()
+
 
 if __name__ == '__main__':
     demo()

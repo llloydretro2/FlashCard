@@ -19,8 +19,10 @@ __all__ = ["filter", "fnmatch", "fnmatchcase", "translate"]
 # Build a thread-safe incrementing counter to help create unique regexp group
 # names across calls.
 from itertools import count
+
 _nextgroupnum = count().__next__
 del count
+
 
 def fnmatch(name, pat):
     """Test whether FILENAME matches PATTERN.
@@ -41,6 +43,7 @@ def fnmatch(name, pat):
     pat = os.path.normcase(pat)
     return fnmatchcase(name, pat)
 
+
 @functools.lru_cache(maxsize=256, typed=True)
 def _compile_pattern(pat):
     if isinstance(pat, bytes):
@@ -50,6 +53,7 @@ def _compile_pattern(pat):
     else:
         res = translate(pat)
     return re.compile(res).match
+
 
 def filter(names, pat):
     """Construct a list from those elements of the iterable NAMES that match PAT."""
@@ -66,6 +70,7 @@ def filter(names, pat):
             if match(os.path.normcase(name)):
                 result.append(name)
     return result
+
 
 def fnmatchcase(name, pat):
     """Test whether FILENAME matches PATTERN, including case.
@@ -89,7 +94,7 @@ def translate(pat):
     i, n = 0, len(pat)
     while i < n:
         c = pat[i]
-        i = i+1
+        i = i + 1
         if c == '*':
             # compress consecutive `*` into one
             if (not res) or res[-1] is not STAR:
@@ -99,11 +104,11 @@ def translate(pat):
         elif c == '[':
             j = i
             if j < n and pat[j] == '!':
-                j = j+1
+                j = j + 1
             if j < n and pat[j] == ']':
-                j = j+1
+                j = j + 1
             while j < n and pat[j] != ']':
-                j = j+1
+                j = j + 1
             if j >= n:
                 add('\\[')
             else:
@@ -112,22 +117,23 @@ def translate(pat):
                     stuff = stuff.replace('\\', r'\\')
                 else:
                     chunks = []
-                    k = i+2 if pat[i] == '!' else i+1
+                    k = i + 2 if pat[i] == '!' else i + 1
                     while True:
                         k = pat.find('-', k, j)
                         if k < 0:
                             break
                         chunks.append(pat[i:k])
-                        i = k+1
-                        k = k+3
+                        i = k + 1
+                        k = k + 3
                     chunks.append(pat[i:j])
                     # Escape backslashes and hyphens for set difference (--).
                     # Hyphens that create ranges shouldn't be escaped.
-                    stuff = '-'.join(s.replace('\\', r'\\').replace('-', r'\-')
-                                     for s in chunks)
+                    stuff = '-'.join(
+                        s.replace('\\', r'\\').replace('-', r'\-')
+                        for s in chunks)
                 # Escape set operations (&&, ~~ and ||).
                 stuff = re.sub(r'([&~|])', r'\\\1', stuff)
-                i = j+1
+                i = j + 1
                 if stuff[0] == '!':
                     stuff = '^' + stuff[1:]
                 elif stuff[0] in ('^', '['):

@@ -34,7 +34,6 @@ bytes_types = pickle.bytes_types
 #   is recursive.  Or lots of times a PUT is generated that's never accessed
 #   by a later GET.
 
-
 # "A pickle" is a program for a virtual pickle machine (PM, but more accurately
 # called an unpickling machine).  It's a sequence of opcodes, interpreted by the
 # PM, building an arbitrarily complex Python object.
@@ -147,7 +146,6 @@ bytes_types = pickle.bytes_types
 # References to these variables in the descriptions below are to be seen
 # as describing unpickling in Python 2.2 and before.
 
-
 # Meta-rule:  Descriptions are stored in instances of descriptor objects,
 # with plain constructors.  No meta-language is defined from which
 # descriptors could be constructed.  If you want, e.g., XML, write a little
@@ -166,10 +164,11 @@ UP_TO_NEWLINE = -1
 
 # Represents the number of bytes consumed by a two-argument opcode where
 # the first argument gives the number of bytes in the second argument.
-TAKEN_FROM_ARGUMENT1  = -2   # num bytes is 1-byte unsigned int
-TAKEN_FROM_ARGUMENT4  = -3   # num bytes is 4-byte signed little-endian int
-TAKEN_FROM_ARGUMENT4U = -4   # num bytes is 4-byte unsigned little-endian int
-TAKEN_FROM_ARGUMENT8U = -5   # num bytes is 8-byte unsigned little-endian int
+TAKEN_FROM_ARGUMENT1 = -2  # num bytes is 1-byte unsigned int
+TAKEN_FROM_ARGUMENT4 = -3  # num bytes is 4-byte signed little-endian int
+TAKEN_FROM_ARGUMENT4U = -4  # num bytes is 4-byte unsigned little-endian int
+TAKEN_FROM_ARGUMENT8U = -5  # num bytes is 8-byte unsigned little-endian int
+
 
 class ArgumentDescriptor(object):
     __slots__ = (
@@ -194,12 +193,9 @@ class ArgumentDescriptor(object):
         assert isinstance(name, str)
         self.name = name
 
-        assert isinstance(n, int) and (n >= 0 or
-                                       n in (UP_TO_NEWLINE,
-                                             TAKEN_FROM_ARGUMENT1,
-                                             TAKEN_FROM_ARGUMENT4,
-                                             TAKEN_FROM_ARGUMENT4U,
-                                             TAKEN_FROM_ARGUMENT8U))
+        assert isinstance(n, int) and (n >= 0 or n in (
+            UP_TO_NEWLINE, TAKEN_FROM_ARGUMENT1, TAKEN_FROM_ARGUMENT4,
+            TAKEN_FROM_ARGUMENT4U, TAKEN_FROM_ARGUMENT8U))
         self.n = n
 
         self.reader = reader
@@ -207,7 +203,9 @@ class ArgumentDescriptor(object):
         assert isinstance(doc, str)
         self.doc = doc
 
+
 from struct import unpack as _unpack
+
 
 def read_uint1(f):
     r"""
@@ -221,11 +219,11 @@ def read_uint1(f):
         return data[0]
     raise ValueError("not enough data in stream to read uint1")
 
-uint1 = ArgumentDescriptor(
-            name='uint1',
-            n=1,
-            reader=read_uint1,
-            doc="One-byte unsigned integer.")
+
+uint1 = ArgumentDescriptor(name='uint1',
+                           n=1,
+                           reader=read_uint1,
+                           doc="One-byte unsigned integer.")
 
 
 def read_uint2(f):
@@ -242,11 +240,11 @@ def read_uint2(f):
         return _unpack("<H", data)[0]
     raise ValueError("not enough data in stream to read uint2")
 
-uint2 = ArgumentDescriptor(
-            name='uint2',
-            n=2,
-            reader=read_uint2,
-            doc="Two-byte unsigned integer, little-endian.")
+
+uint2 = ArgumentDescriptor(name='uint2',
+                           n=2,
+                           reader=read_uint2,
+                           doc="Two-byte unsigned integer, little-endian.")
 
 
 def read_int4(f):
@@ -263,11 +261,12 @@ def read_int4(f):
         return _unpack("<i", data)[0]
     raise ValueError("not enough data in stream to read int4")
 
+
 int4 = ArgumentDescriptor(
-           name='int4',
-           n=4,
-           reader=read_int4,
-           doc="Four-byte signed integer, little-endian, 2's complement.")
+    name='int4',
+    n=4,
+    reader=read_int4,
+    doc="Four-byte signed integer, little-endian, 2's complement.")
 
 
 def read_uint4(f):
@@ -284,11 +283,11 @@ def read_uint4(f):
         return _unpack("<I", data)[0]
     raise ValueError("not enough data in stream to read uint4")
 
-uint4 = ArgumentDescriptor(
-            name='uint4',
-            n=4,
-            reader=read_uint4,
-            doc="Four-byte unsigned integer, little-endian.")
+
+uint4 = ArgumentDescriptor(name='uint4',
+                           n=4,
+                           reader=read_uint4,
+                           doc="Four-byte unsigned integer, little-endian.")
 
 
 def read_uint8(f):
@@ -305,11 +304,11 @@ def read_uint8(f):
         return _unpack("<Q", data)[0]
     raise ValueError("not enough data in stream to read uint8")
 
-uint8 = ArgumentDescriptor(
-            name='uint8',
-            n=8,
-            reader=read_uint8,
-            doc="Eight-byte unsigned integer, little-endian.")
+
+uint8 = ArgumentDescriptor(name='uint8',
+                           n=8,
+                           reader=read_uint8,
+                           doc="Eight-byte unsigned integer, little-endian.")
 
 
 def read_stringnl(f, decode=True, stripquotes=True):
@@ -342,7 +341,7 @@ def read_stringnl(f, decode=True, stripquotes=True):
     data = f.readline()
     if not data.endswith(b'\n'):
         raise ValueError("no newline found when trying to read stringnl")
-    data = data[:-1]    # lose the newline
+    data = data[:-1]  # lose the newline
 
     if stripquotes:
         for q in (b'"', b"'"):
@@ -359,29 +358,31 @@ def read_stringnl(f, decode=True, stripquotes=True):
         data = codecs.escape_decode(data)[0].decode("ascii")
     return data
 
-stringnl = ArgumentDescriptor(
-               name='stringnl',
-               n=UP_TO_NEWLINE,
-               reader=read_stringnl,
-               doc="""A newline-terminated string.
+
+stringnl = ArgumentDescriptor(name='stringnl',
+                              n=UP_TO_NEWLINE,
+                              reader=read_stringnl,
+                              doc="""A newline-terminated string.
 
                    This is a repr-style string, with embedded escapes, and
                    bracketing quotes.
                    """)
 
+
 def read_stringnl_noescape(f):
     return read_stringnl(f, stripquotes=False)
 
-stringnl_noescape = ArgumentDescriptor(
-                        name='stringnl_noescape',
-                        n=UP_TO_NEWLINE,
-                        reader=read_stringnl_noescape,
-                        doc="""A newline-terminated string.
+
+stringnl_noescape = ArgumentDescriptor(name='stringnl_noescape',
+                                       n=UP_TO_NEWLINE,
+                                       reader=read_stringnl_noescape,
+                                       doc="""A newline-terminated string.
 
                         This is a str-style string, without embedded escapes,
                         or bracketing quotes.  It should consist solely of
                         printable ASCII characters.
                         """)
+
 
 def read_stringnl_noescape_pair(f):
     r"""
@@ -392,11 +393,12 @@ def read_stringnl_noescape_pair(f):
 
     return "%s %s" % (read_stringnl_noescape(f), read_stringnl_noescape(f))
 
+
 stringnl_noescape_pair = ArgumentDescriptor(
-                             name='stringnl_noescape_pair',
-                             n=UP_TO_NEWLINE,
-                             reader=read_stringnl_noescape_pair,
-                             doc="""A pair of newline-terminated strings.
+    name='stringnl_noescape_pair',
+    n=UP_TO_NEWLINE,
+    reader=read_stringnl_noescape_pair,
+    doc="""A pair of newline-terminated strings.
 
                              These are str-style strings, without embedded
                              escapes, or bracketing quotes.  They should
@@ -423,11 +425,11 @@ def read_string1(f):
     raise ValueError("expected %d bytes in a string1, but only %d remain" %
                      (n, len(data)))
 
-string1 = ArgumentDescriptor(
-              name="string1",
-              n=TAKEN_FROM_ARGUMENT1,
-              reader=read_string1,
-              doc="""A counted string.
+
+string1 = ArgumentDescriptor(name="string1",
+                             n=TAKEN_FROM_ARGUMENT1,
+                             reader=read_string1,
+                             doc="""A counted string.
 
               The first argument is a 1-byte unsigned int giving the number
               of bytes in the string, and the second argument is that many
@@ -457,11 +459,11 @@ def read_string4(f):
     raise ValueError("expected %d bytes in a string4, but only %d remain" %
                      (n, len(data)))
 
-string4 = ArgumentDescriptor(
-              name="string4",
-              n=TAKEN_FROM_ARGUMENT4,
-              reader=read_string4,
-              doc="""A counted string.
+
+string4 = ArgumentDescriptor(name="string4",
+                             n=TAKEN_FROM_ARGUMENT4,
+                             reader=read_string4,
+                             doc="""A counted string.
 
               The first argument is a 4-byte little-endian signed int giving
               the number of bytes in the string, and the second argument is
@@ -486,11 +488,11 @@ def read_bytes1(f):
     raise ValueError("expected %d bytes in a bytes1, but only %d remain" %
                      (n, len(data)))
 
-bytes1 = ArgumentDescriptor(
-              name="bytes1",
-              n=TAKEN_FROM_ARGUMENT1,
-              reader=read_bytes1,
-              doc="""A counted bytes string.
+
+bytes1 = ArgumentDescriptor(name="bytes1",
+                            n=TAKEN_FROM_ARGUMENT1,
+                            reader=read_bytes1,
+                            doc="""A counted bytes string.
 
               The first argument is a 1-byte unsigned int giving the number
               of bytes, and the second argument is that many bytes.
@@ -520,11 +522,11 @@ def read_bytes4(f):
     raise ValueError("expected %d bytes in a bytes4, but only %d remain" %
                      (n, len(data)))
 
-bytes4 = ArgumentDescriptor(
-              name="bytes4",
-              n=TAKEN_FROM_ARGUMENT4U,
-              reader=read_bytes4,
-              doc="""A counted bytes string.
+
+bytes4 = ArgumentDescriptor(name="bytes4",
+                            n=TAKEN_FROM_ARGUMENT4U,
+                            reader=read_bytes4,
+                            doc="""A counted bytes string.
 
               The first argument is a 4-byte little-endian unsigned int giving
               the number of bytes, and the second argument is that many bytes.
@@ -555,11 +557,11 @@ def read_bytes8(f):
     raise ValueError("expected %d bytes in a bytes8, but only %d remain" %
                      (n, len(data)))
 
-bytes8 = ArgumentDescriptor(
-              name="bytes8",
-              n=TAKEN_FROM_ARGUMENT8U,
-              reader=read_bytes8,
-              doc="""A counted bytes string.
+
+bytes8 = ArgumentDescriptor(name="bytes8",
+                            n=TAKEN_FROM_ARGUMENT8U,
+                            reader=read_bytes8,
+                            doc="""A counted bytes string.
 
               The first argument is an 8-byte little-endian unsigned int giving
               the number of bytes, and the second argument is that many bytes.
@@ -590,15 +592,16 @@ def read_bytearray8(f):
     raise ValueError("expected %d bytes in a bytearray8, but only %d remain" %
                      (n, len(data)))
 
-bytearray8 = ArgumentDescriptor(
-              name="bytearray8",
-              n=TAKEN_FROM_ARGUMENT8U,
-              reader=read_bytearray8,
-              doc="""A counted bytearray.
+
+bytearray8 = ArgumentDescriptor(name="bytearray8",
+                                n=TAKEN_FROM_ARGUMENT8U,
+                                reader=read_bytearray8,
+                                doc="""A counted bytearray.
 
               The first argument is an 8-byte little-endian unsigned int giving
               the number of bytes, and the second argument is that many bytes.
               """)
+
 
 def read_unicodestringnl(f):
     r"""
@@ -611,14 +614,15 @@ def read_unicodestringnl(f):
     if not data.endswith(b'\n'):
         raise ValueError("no newline found when trying to read "
                          "unicodestringnl")
-    data = data[:-1]    # lose the newline
+    data = data[:-1]  # lose the newline
     return str(data, 'raw-unicode-escape')
 
+
 unicodestringnl = ArgumentDescriptor(
-                      name='unicodestringnl',
-                      n=UP_TO_NEWLINE,
-                      reader=read_unicodestringnl,
-                      doc="""A newline-terminated Unicode string.
+    name='unicodestringnl',
+    n=UP_TO_NEWLINE,
+    reader=read_unicodestringnl,
+    doc="""A newline-terminated Unicode string.
 
                       This is raw-unicode-escape encoded, so consists of
                       printable ASCII characters, and may contain embedded
@@ -652,11 +656,11 @@ def read_unicodestring1(f):
     raise ValueError("expected %d bytes in a unicodestring1, but only %d "
                      "remain" % (n, len(data)))
 
-unicodestring1 = ArgumentDescriptor(
-                    name="unicodestring1",
-                    n=TAKEN_FROM_ARGUMENT1,
-                    reader=read_unicodestring1,
-                    doc="""A counted Unicode string.
+
+unicodestring1 = ArgumentDescriptor(name="unicodestring1",
+                                    n=TAKEN_FROM_ARGUMENT1,
+                                    reader=read_unicodestring1,
+                                    doc="""A counted Unicode string.
 
                     The first argument is a 1-byte little-endian signed int
                     giving the number of bytes in the string, and the second
@@ -693,11 +697,11 @@ def read_unicodestring4(f):
     raise ValueError("expected %d bytes in a unicodestring4, but only %d "
                      "remain" % (n, len(data)))
 
-unicodestring4 = ArgumentDescriptor(
-                    name="unicodestring4",
-                    n=TAKEN_FROM_ARGUMENT4U,
-                    reader=read_unicodestring4,
-                    doc="""A counted Unicode string.
+
+unicodestring4 = ArgumentDescriptor(name="unicodestring4",
+                                    n=TAKEN_FROM_ARGUMENT4U,
+                                    reader=read_unicodestring4,
+                                    doc="""A counted Unicode string.
 
                     The first argument is a 4-byte little-endian signed int
                     giving the number of bytes in the string, and the second
@@ -734,11 +738,11 @@ def read_unicodestring8(f):
     raise ValueError("expected %d bytes in a unicodestring8, but only %d "
                      "remain" % (n, len(data)))
 
-unicodestring8 = ArgumentDescriptor(
-                    name="unicodestring8",
-                    n=TAKEN_FROM_ARGUMENT8U,
-                    reader=read_unicodestring8,
-                    doc="""A counted Unicode string.
+
+unicodestring8 = ArgumentDescriptor(name="unicodestring8",
+                                    n=TAKEN_FROM_ARGUMENT8U,
+                                    reader=read_unicodestring8,
+                                    doc="""A counted Unicode string.
 
                     The first argument is an 8-byte little-endian signed int
                     giving the number of bytes in the string, and the second
@@ -769,6 +773,7 @@ def read_decimalnl_short(f):
 
     return int(s)
 
+
 def read_decimalnl_long(f):
     r"""
     >>> import io
@@ -787,10 +792,10 @@ def read_decimalnl_long(f):
 
 
 decimalnl_short = ArgumentDescriptor(
-                      name='decimalnl_short',
-                      n=UP_TO_NEWLINE,
-                      reader=read_decimalnl_short,
-                      doc="""A newline-terminated decimal integer literal.
+    name='decimalnl_short',
+    n=UP_TO_NEWLINE,
+    reader=read_decimalnl_short,
+    doc="""A newline-terminated decimal integer literal.
 
                           This never has a trailing 'L', and the integer fit
                           in a short Python int on the box where the pickle
@@ -800,10 +805,10 @@ decimalnl_short = ArgumentDescriptor(
                           """)
 
 decimalnl_long = ArgumentDescriptor(
-                     name='decimalnl_long',
-                     n=UP_TO_NEWLINE,
-                     reader=read_decimalnl_long,
-                     doc="""A newline-terminated decimal integer literal.
+    name='decimalnl_long',
+    n=UP_TO_NEWLINE,
+    reader=read_decimalnl_long,
+    doc="""A newline-terminated decimal integer literal.
 
                          This has a trailing 'L', and can represent integers
                          of any size.
@@ -819,11 +824,12 @@ def read_floatnl(f):
     s = read_stringnl(f, decode=False, stripquotes=False)
     return float(s)
 
+
 floatnl = ArgumentDescriptor(
-              name='floatnl',
-              n=UP_TO_NEWLINE,
-              reader=read_floatnl,
-              doc="""A newline-terminated decimal floating literal.
+    name='floatnl',
+    n=UP_TO_NEWLINE,
+    reader=read_floatnl,
+    doc="""A newline-terminated decimal floating literal.
 
               In general this requires 17 significant digits for roundtrip
               identity, and pickling then unpickling infinities, NaNs, and
@@ -831,6 +837,7 @@ floatnl = ArgumentDescriptor(
               on itself (e.g., Windows can't read the strings it produces
               for infinities or NaNs).
               """)
+
 
 def read_float8(f):
     r"""
@@ -849,10 +856,10 @@ def read_float8(f):
 
 
 float8 = ArgumentDescriptor(
-             name='float8',
-             n=8,
-             reader=read_float8,
-             doc="""An 8-byte binary representation of a float, big-endian.
+    name='float8',
+    n=8,
+    reader=read_float8,
+    doc="""An 8-byte binary representation of a float, big-endian.
 
              The format is unique to Python, and shared with the struct
              module (format string '>d') "in theory" (the struct and pickle
@@ -869,6 +876,7 @@ float8 = ArgumentDescriptor(
 # Protocol 2 formats
 
 from pickle import decode_long
+
 
 def read_long1(f):
     r"""
@@ -891,6 +899,7 @@ def read_long1(f):
         raise ValueError("not enough data in stream to read long1")
     return decode_long(data)
 
+
 long1 = ArgumentDescriptor(
     name="long1",
     n=TAKEN_FROM_ARGUMENT1,
@@ -901,6 +910,7 @@ long1 = ArgumentDescriptor(
     many bytes and interprets them as a little-endian 2's-complement long.
     If the size is 0, that's taken as a shortcut for the long 0L.
     """)
+
 
 def read_long4(f):
     r"""
@@ -925,6 +935,7 @@ def read_long4(f):
         raise ValueError("not enough data in stream to read long4")
     return decode_long(data)
 
+
 long4 = ArgumentDescriptor(
     name="long4",
     n=TAKEN_FROM_ARGUMENT4,
@@ -938,12 +949,12 @@ long4 = ArgumentDescriptor(
     then instead (and in any case where # of bytes < 256).
     """)
 
-
 ##############################################################################
 # Object descriptors.  The stack used by the pickle machine holds objects,
 # and in the stack_before and stack_after attributes of OpcodeInfo
 # descriptors we need names to describe the various types of objects that can
 # appear on the stack.
+
 
 class StackObject(object):
     __slots__ = (
@@ -975,90 +986,60 @@ class StackObject(object):
         return self.name
 
 
-pyint = pylong = StackObject(
-    name='int',
-    obtype=int,
-    doc="A Python integer object.")
+pyint = pylong = StackObject(name='int',
+                             obtype=int,
+                             doc="A Python integer object.")
 
-pyinteger_or_bool = StackObject(
-    name='int_or_bool',
-    obtype=(int, bool),
-    doc="A Python integer or boolean object.")
+pyinteger_or_bool = StackObject(name='int_or_bool',
+                                obtype=(int, bool),
+                                doc="A Python integer or boolean object.")
 
-pybool = StackObject(
-    name='bool',
-    obtype=bool,
-    doc="A Python boolean object.")
+pybool = StackObject(name='bool', obtype=bool, doc="A Python boolean object.")
 
-pyfloat = StackObject(
-    name='float',
-    obtype=float,
-    doc="A Python float object.")
+pyfloat = StackObject(name='float', obtype=float, doc="A Python float object.")
 
 pybytes_or_str = pystring = StackObject(
     name='bytes_or_str',
     obtype=(bytes, str),
     doc="A Python bytes or (Unicode) string object.")
 
-pybytes = StackObject(
-    name='bytes',
-    obtype=bytes,
-    doc="A Python bytes object.")
+pybytes = StackObject(name='bytes', obtype=bytes, doc="A Python bytes object.")
 
-pybytearray = StackObject(
-    name='bytearray',
-    obtype=bytearray,
-    doc="A Python bytearray object.")
+pybytearray = StackObject(name='bytearray',
+                          obtype=bytearray,
+                          doc="A Python bytearray object.")
 
-pyunicode = StackObject(
-    name='str',
-    obtype=str,
-    doc="A Python (Unicode) string object.")
+pyunicode = StackObject(name='str',
+                        obtype=str,
+                        doc="A Python (Unicode) string object.")
 
-pynone = StackObject(
-    name="None",
-    obtype=type(None),
-    doc="The Python None object.")
+pynone = StackObject(name="None",
+                     obtype=type(None),
+                     doc="The Python None object.")
 
-pytuple = StackObject(
-    name="tuple",
-    obtype=tuple,
-    doc="A Python tuple object.")
+pytuple = StackObject(name="tuple", obtype=tuple, doc="A Python tuple object.")
 
-pylist = StackObject(
-    name="list",
-    obtype=list,
-    doc="A Python list object.")
+pylist = StackObject(name="list", obtype=list, doc="A Python list object.")
 
-pydict = StackObject(
-    name="dict",
-    obtype=dict,
-    doc="A Python dict object.")
+pydict = StackObject(name="dict", obtype=dict, doc="A Python dict object.")
 
-pyset = StackObject(
-    name="set",
-    obtype=set,
-    doc="A Python set object.")
+pyset = StackObject(name="set", obtype=set, doc="A Python set object.")
 
-pyfrozenset = StackObject(
-    name="frozenset",
-    obtype=set,
-    doc="A Python frozenset object.")
+pyfrozenset = StackObject(name="frozenset",
+                          obtype=set,
+                          doc="A Python frozenset object.")
 
-pybuffer = StackObject(
-    name='buffer',
-    obtype=object,
-    doc="A Python buffer-like object.")
+pybuffer = StackObject(name='buffer',
+                       obtype=object,
+                       doc="A Python buffer-like object.")
 
-anyobject = StackObject(
-    name='any',
-    obtype=object,
-    doc="Any kind of object whatsoever.")
+anyobject = StackObject(name='any',
+                        obtype=object,
+                        doc="Any kind of object whatsoever.")
 
-markobject = StackObject(
-    name="mark",
-    obtype=StackObject,
-    doc="""'The mark' is a unique object.
+markobject = StackObject(name="mark",
+                         obtype=StackObject,
+                         doc="""'The mark' is a unique object.
 
 Opcodes that operate on a variable number of objects
 generally don't embed the count of objects in the opcode,
@@ -1089,6 +1070,7 @@ topmost markobject too).
 
 ##############################################################################
 # Descriptors for pickle opcodes.
+
 
 class OpcodeInfo(object):
 
@@ -1121,8 +1103,7 @@ class OpcodeInfo(object):
         'doc',
     )
 
-    def __init__(self, name, code, arg,
-                 stack_before, stack_after, proto, doc):
+    def __init__(self, name, code, arg, stack_before, stack_after, proto, doc):
         assert isinstance(name, str)
         self.name = name
 
@@ -1149,11 +1130,11 @@ class OpcodeInfo(object):
         assert isinstance(doc, str)
         self.doc = doc
 
+
 I = OpcodeInfo
 opcodes = [
 
     # Ways to spell integers.
-
     I(name='INT',
       code='I',
       arg=decimalnl_short,
@@ -1178,7 +1159,6 @@ opcodes = [
       (and later) unpicklers special-case these and return bool instead;
       earlier unpicklers ignore the leading "0" and return the int.
       """),
-
     I(name='BININT',
       code='J',
       arg=int4,
@@ -1192,7 +1172,6 @@ opcodes = [
       If the integer is non-negative and fits in 1 or 2 bytes, pickling via
       BININT1 or BININT2 saves space.
       """),
-
     I(name='BININT1',
       code='K',
       arg=uint1,
@@ -1204,7 +1183,6 @@ opcodes = [
       This is a space optimization for pickling very small non-negative ints,
       in range(256).
       """),
-
     I(name='BININT2',
       code='M',
       arg=uint2,
@@ -1217,7 +1195,6 @@ opcodes = [
       range(256, 2**16).  Integers in range(256) can also be pickled via
       BININT2, but BININT1 instead saves a byte.
       """),
-
     I(name='LONG',
       code='L',
       arg=decimalnl_long,
@@ -1235,7 +1212,6 @@ opcodes = [
       conversion).  Proto 2 added linear-time (in C; still quadratic-time
       in Python) LONG1 and LONG4 opcodes.
       """),
-
     I(name="LONG1",
       code='\x8a',
       arg=long1,
@@ -1246,7 +1222,6 @@ opcodes = [
 
       A more efficient encoding of a Python long; the long1 encoding
       says it all."""),
-
     I(name="LONG4",
       code='\x8b',
       arg=long4,
@@ -1259,7 +1234,6 @@ opcodes = [
       says it all."""),
 
     # Ways to spell strings (8-bit, not Unicode).
-
     I(name='STRING',
       code='S',
       arg=stringnl,
@@ -1275,7 +1249,6 @@ opcodes = [
       'ASCII'.  If the encoding given was 'bytes' however, they will be
       decoded as bytes object instead.
       """),
-
     I(name='BINSTRING',
       code='T',
       arg=string4,
@@ -1292,7 +1265,6 @@ opcodes = [
       'ASCII'.  If the encoding given was 'bytes' however, they will be
       decoded as bytes object instead.
       """),
-
     I(name='SHORT_BINSTRING',
       code='U',
       arg=string1,
@@ -1311,7 +1283,6 @@ opcodes = [
       """),
 
     # Bytes (protocol 3 and higher)
-
     I(name='BINBYTES',
       code='B',
       arg=bytes4,
@@ -1324,7 +1295,6 @@ opcodes = [
       giving the number of bytes, and the second is that many bytes, which are
       taken literally as the bytes content.
       """),
-
     I(name='SHORT_BINBYTES',
       code='C',
       arg=bytes1,
@@ -1337,7 +1307,6 @@ opcodes = [
       the number of bytes, and the second is that many bytes, which are taken
       literally as the string content.
       """),
-
     I(name='BINBYTES8',
       code='\x8e',
       arg=bytes8,
@@ -1352,7 +1321,6 @@ opcodes = [
       """),
 
     # Bytearray (protocol 5 and higher)
-
     I(name='BYTEARRAY8',
       code='\x96',
       arg=bytearray8,
@@ -1367,7 +1335,6 @@ opcodes = [
       """),
 
     # Out-of-band buffer (protocol 5 and higher)
-
     I(name='NEXT_BUFFER',
       code='\x97',
       arg=None,
@@ -1375,7 +1342,6 @@ opcodes = [
       stack_after=[pybuffer],
       proto=5,
       doc="Push an out-of-band buffer object."),
-
     I(name='READONLY_BUFFER',
       code='\x98',
       arg=None,
@@ -1385,7 +1351,6 @@ opcodes = [
       doc="Make an out-of-band buffer object read-only."),
 
     # Ways to spell None.
-
     I(name='NONE',
       code='N',
       arg=None,
@@ -1396,7 +1361,6 @@ opcodes = [
 
     # Ways to spell bools, starting with proto 2.  See INT for how this was
     # done before proto 2.
-
     I(name='NEWTRUE',
       code='\x88',
       arg=None,
@@ -1404,7 +1368,6 @@ opcodes = [
       stack_after=[pybool],
       proto=2,
       doc="Push True onto the stack."),
-
     I(name='NEWFALSE',
       code='\x89',
       arg=None,
@@ -1414,20 +1377,19 @@ opcodes = [
       doc="Push False onto the stack."),
 
     # Ways to spell Unicode strings.
-
-    I(name='UNICODE',
-      code='V',
-      arg=unicodestringnl,
-      stack_before=[],
-      stack_after=[pyunicode],
-      proto=0,  # this may be pure-text, but it's a later addition
-      doc="""Push a Python Unicode string object.
+    I(
+        name='UNICODE',
+        code='V',
+        arg=unicodestringnl,
+        stack_before=[],
+        stack_after=[pyunicode],
+        proto=0,  # this may be pure-text, but it's a later addition
+        doc="""Push a Python Unicode string object.
 
       The argument is a raw-unicode-escape encoding of a Unicode string,
       and so may contain embedded escape sequences.  The argument extends
       until the next newline character.
       """),
-
     I(name='SHORT_BINUNICODE',
       code='\x8c',
       arg=unicodestring1,
@@ -1440,7 +1402,6 @@ opcodes = [
       giving the number of bytes in the string.  The second is that many
       bytes, and is the UTF-8 encoding of the Unicode string.
       """),
-
     I(name='BINUNICODE',
       code='X',
       arg=unicodestring4,
@@ -1453,7 +1414,6 @@ opcodes = [
       giving the number of bytes in the string.  The second is that many
       bytes, and is the UTF-8 encoding of the Unicode string.
       """),
-
     I(name='BINUNICODE8',
       code='\x8d',
       arg=unicodestring8,
@@ -1468,7 +1428,6 @@ opcodes = [
       """),
 
     # Ways to spell floats.
-
     I(name='FLOAT',
       code='F',
       arg=floatnl,
@@ -1488,7 +1447,6 @@ opcodes = [
       is like that), but may do less damage than BINFLOAT on boxes with
       greater precision or dynamic range than IEEE-754 double.
       """),
-
     I(name='BINFLOAT',
       code='G',
       arg=float8,
@@ -1506,7 +1464,6 @@ opcodes = [
       """),
 
     # Ways to build lists.
-
     I(name='EMPTY_LIST',
       code=']',
       arg=None,
@@ -1514,7 +1471,6 @@ opcodes = [
       stack_after=[pylist],
       proto=1,
       doc="Push an empty list."),
-
     I(name='APPEND',
       code='a',
       arg=None,
@@ -1528,7 +1484,6 @@ opcodes = [
 
       although pylist is really extended in-place.
       """),
-
     I(name='APPENDS',
       code='e',
       arg=None,
@@ -1542,7 +1497,6 @@ opcodes = [
 
       although pylist is really extended in-place.
       """),
-
     I(name='LIST',
       code='l',
       arg=None,
@@ -1560,7 +1514,6 @@ opcodes = [
       """),
 
     # Ways to build tuples.
-
     I(name='EMPTY_TUPLE',
       code=')',
       arg=None,
@@ -1568,7 +1521,6 @@ opcodes = [
       stack_after=[pytuple],
       proto=1,
       doc="Push an empty tuple."),
-
     I(name='TUPLE',
       code='t',
       arg=None,
@@ -1584,7 +1536,6 @@ opcodes = [
       Stack before: ... markobject 1 2 3 'abc'
       Stack after:  ... (1, 2, 3, 'abc')
       """),
-
     I(name='TUPLE1',
       code='\x85',
       arg=None,
@@ -1599,7 +1550,6 @@ opcodes = [
 
           stack[-1] = tuple(stack[-1:])
       """),
-
     I(name='TUPLE2',
       code='\x86',
       arg=None,
@@ -1614,7 +1564,6 @@ opcodes = [
 
           stack[-2:] = [tuple(stack[-2:])]
       """),
-
     I(name='TUPLE3',
       code='\x87',
       arg=None,
@@ -1631,7 +1580,6 @@ opcodes = [
       """),
 
     # Ways to build dicts.
-
     I(name='EMPTY_DICT',
       code='}',
       arg=None,
@@ -1639,7 +1587,6 @@ opcodes = [
       stack_after=[pydict],
       proto=1,
       doc="Push an empty dict."),
-
     I(name='DICT',
       code='d',
       arg=None,
@@ -1656,7 +1603,6 @@ opcodes = [
       Stack before: ... markobject 1 2 3 'abc'
       Stack after:  ... {1: 2, 3: 'abc'}
       """),
-
     I(name='SETITEM',
       code='s',
       arg=None,
@@ -1670,7 +1616,6 @@ opcodes = [
 
       where pydict has been modified via pydict[key] = value.
       """),
-
     I(name='SETITEMS',
       code='u',
       arg=None,
@@ -1693,7 +1638,6 @@ opcodes = [
       """),
 
     # Ways to build sets
-
     I(name='EMPTY_SET',
       code='\x8f',
       arg=None,
@@ -1701,7 +1645,6 @@ opcodes = [
       stack_after=[pyset],
       proto=4,
       doc="Push an empty set."),
-
     I(name='ADDITEMS',
       code='\x90',
       arg=None,
@@ -1723,7 +1666,6 @@ opcodes = [
       """),
 
     # Way to build frozensets
-
     I(name='FROZENSET',
       code='\x91',
       arg=None,
@@ -1741,7 +1683,6 @@ opcodes = [
       """),
 
     # Stack manipulation.
-
     I(name='POP',
       code='0',
       arg=None,
@@ -1749,7 +1690,6 @@ opcodes = [
       stack_after=[],
       proto=0,
       doc="Discard the top stack item, shrinking the stack by one item."),
-
     I(name='DUP',
       code='2',
       arg=None,
@@ -1757,7 +1697,6 @@ opcodes = [
       stack_after=[anyobject, anyobject],
       proto=0,
       doc="Push the top stack item onto the stack again, duplicating it."),
-
     I(name='MARK',
       code='(',
       arg=None,
@@ -1770,7 +1709,6 @@ opcodes = [
       region of the stack containing a variable number of objects for them
       to work on.  See markobject.doc for more detail.
       """),
-
     I(name='POP_MARK',
       code='1',
       arg=None,
@@ -1786,7 +1724,6 @@ opcodes = [
 
     # Memo manipulation.  There are really only two operations (get and put),
     # each in all-text, "short binary", and "long binary" flavors.
-
     I(name='GET',
       code='g',
       arg=decimalnl_short,
@@ -1799,7 +1736,6 @@ opcodes = [
       decimal string following.  BINGET and LONG_BINGET are space-optimized
       versions.
       """),
-
     I(name='BINGET',
       code='h',
       arg=uint1,
@@ -1811,7 +1747,6 @@ opcodes = [
       The index of the memo object to push is given by the 1-byte unsigned
       integer following.
       """),
-
     I(name='LONG_BINGET',
       code='j',
       arg=uint4,
@@ -1823,7 +1758,6 @@ opcodes = [
       The index of the memo object to push is given by the 4-byte unsigned
       little-endian integer following.
       """),
-
     I(name='PUT',
       code='p',
       arg=decimalnl_short,
@@ -1836,7 +1770,6 @@ opcodes = [
       terminated decimal string following.  BINPUT and LONG_BINPUT are
       space-optimized versions.
       """),
-
     I(name='BINPUT',
       code='q',
       arg=uint1,
@@ -1848,7 +1781,6 @@ opcodes = [
       The index of the memo location to write into is given by the 1-byte
       unsigned integer following.
       """),
-
     I(name='LONG_BINPUT',
       code='r',
       arg=uint4,
@@ -1860,7 +1792,6 @@ opcodes = [
       The index of the memo location to write into is given by the 4-byte
       unsigned little-endian integer following.
       """),
-
     I(name='MEMOIZE',
       code='\x94',
       arg=None,
@@ -1875,7 +1806,6 @@ opcodes = [
 
     # Access the extension registry (predefined objects).  Akin to the GET
     # family.
-
     I(name='EXT1',
       code='\x82',
       arg=uint1,
@@ -1897,7 +1827,6 @@ opcodes = [
       EXT1 has a 1-byte integer argument.  This is used to index into the
       extension registry, and the object at that index is pushed on the stack.
       """),
-
     I(name='EXT2',
       code='\x83',
       arg=uint2,
@@ -1908,7 +1837,6 @@ opcodes = [
 
       See EXT1.  EXT2 has a two-byte integer argument.
       """),
-
     I(name='EXT4',
       code='\x84',
       arg=int4,
@@ -1922,7 +1850,6 @@ opcodes = [
 
     # Push a class object, or module function, on the stack, via its module
     # and name.
-
     I(name='GLOBAL',
       code='c',
       arg=stringnl_noescape_pair,
@@ -1937,7 +1864,6 @@ opcodes = [
       object returned by self.find_class(module, class) is pushed on the
       stack, so unpickling subclasses can override this form of lookup.
       """),
-
     I(name='STACK_GLOBAL',
       code='\x93',
       arg=None,
@@ -1951,7 +1877,6 @@ opcodes = [
     # (user-defined classes).  I despair of documenting this accurately
     # and comprehensibly -- you really have to read the pickle code to
     # find all the special cases.
-
     I(name='REDUCE',
       code='R',
       arg=None,
@@ -1980,7 +1905,6 @@ opcodes = [
       why it does this, but I've sure seen this complaint often enough when
       I didn't want to <wink>.
       """),
-
     I(name='BUILD',
       code='b',
       arg=None,
@@ -2005,7 +1929,6 @@ opcodes = [
 
           anyobject.__dict__.update(argument)
       """),
-
     I(name='INST',
       code='i',
       arg=stringnl_noescape_pair,
@@ -2055,7 +1978,6 @@ opcodes = [
       NOTE:  the distinction between old-style and new-style classes does
              not make sense in Python 3.
       """),
-
     I(name='OBJ',
       code='o',
       arg=None,
@@ -2087,7 +2009,6 @@ opcodes = [
       get the class object.  That was always the intent; the implementations
       had diverged for accidental reasons.
       """),
-
     I(name='NEWOBJ',
       code='\x81',
       arg=None,
@@ -2102,7 +2023,6 @@ opcodes = [
       and the value returned by cls.__new__(cls, *args) is pushed back
       onto the stack.
       """),
-
     I(name='NEWOBJ_EX',
       code='\x92',
       arg=None,
@@ -2119,7 +2039,6 @@ opcodes = [
       """),
 
     # Machine control.
-
     I(name='PROTO',
       code='\x80',
       arg=uint1,
@@ -2131,7 +2050,6 @@ opcodes = [
       For protocol 2 and above, a pickle must start with this opcode.
       The argument is the protocol version, an int in range(2, 256).
       """),
-
     I(name='STOP',
       code='.',
       arg=None,
@@ -2146,7 +2064,6 @@ opcodes = [
       """),
 
     # Framing support.
-
     I(name='FRAME',
       code='\x95',
       arg=uint8,
@@ -2160,7 +2077,6 @@ opcodes = [
       """),
 
     # Ways to deal with persistent IDs.
-
     I(name='PERSID',
       code='P',
       arg=stringnl_noescape,
@@ -2177,7 +2093,6 @@ opcodes = [
       of persistent_load() in Python's unpickler:  it must be supplied by an
       unpickler subclass.
       """),
-
     I(name='BINPERSID',
       code='Q',
       arg=None,
@@ -2221,13 +2136,15 @@ for d in opcodes:
     code2op[d.code] = d
 del d
 
+
 def assure_pickle_consistency(verbose=False):
 
     copy = code2op.copy()
     for name in pickle.__all__:
         if not re.match("[A-Z][A-Z0-9_]+$", name):
             if verbose:
-                print("skipping %r: it doesn't look like an opcode name" % name)
+                print("skipping %r: it doesn't look like an opcode name" %
+                      name)
             continue
         picklecode = getattr(pickle, name)
         if not isinstance(picklecode, bytes) or len(picklecode) != 1:
@@ -2238,14 +2155,13 @@ def assure_pickle_consistency(verbose=False):
         picklecode = picklecode.decode("latin-1")
         if picklecode in copy:
             if verbose:
-                print("checking name %r w/ code %r for consistency" % (
-                      name, picklecode))
+                print("checking name %r w/ code %r for consistency" %
+                      (name, picklecode))
             d = copy[picklecode]
             if d.name != name:
                 raise ValueError("for pickle code %r, pickle.py uses name %r "
-                                 "but we're using name %r" % (picklecode,
-                                                              name,
-                                                              d.name))
+                                 "but we're using name %r" %
+                                 (picklecode, name, d.name))
             # Forget this one.  Any left over in copy at the end are a problem
             # of a different kind.
             del copy[picklecode]
@@ -2259,11 +2175,13 @@ def assure_pickle_consistency(verbose=False):
             msg.append("    name %r with code %r" % (d.name, code))
         raise ValueError("\n".join(msg))
 
+
 assure_pickle_consistency()
 del assure_pickle_consistency
 
 ##############################################################################
 # A pickle opcode generator.
+
 
 def _genops(data, yield_end_pos=False):
     if isinstance(data, bytes_types):
@@ -2282,9 +2200,8 @@ def _genops(data, yield_end_pos=False):
             if code == b"":
                 raise ValueError("pickle exhausted before seeing STOP")
             else:
-                raise ValueError("at position %s, opcode %r unknown" % (
-                                 "<unknown>" if pos is None else pos,
-                                 code))
+                raise ValueError("at position %s, opcode %r unknown" %
+                                 ("<unknown>" if pos is None else pos, code))
         if opcode.arg is None:
             arg = None
         else:
@@ -2296,6 +2213,7 @@ def _genops(data, yield_end_pos=False):
         if code == b'.':
             assert opcode.name == 'STOP'
             break
+
 
 def genops(pickle):
     """Generate all the opcodes in a pickle.
@@ -2322,16 +2240,18 @@ def genops(pickle):
     """
     return _genops(pickle)
 
+
 ##############################################################################
 # A pickle optimizer.
+
 
 def optimize(p):
     'Optimize a pickle string by removing unused PUT opcodes'
     put = 'PUT'
     get = 'GET'
-    oldids = set()          # set of all PUT ids
-    newids = {}             # set of ids used by a GET opcode
-    opcodes = []            # (op, idx) or (pos, end_pos)
+    oldids = set()  # set of all PUT ids
+    newids = {}  # set of ids used by a GET opcode
+    opcodes = []  # (op, idx) or (pos, end_pos)
     proto = 0
     protoheader = b''
     for opcode, arg, pos, end_pos in _genops(p, yield_end_pos=True):
@@ -2389,8 +2309,10 @@ def optimize(p):
     pickler.framer.end_framing()
     return out.getvalue()
 
+
 ##############################################################################
 # A symbolic pickle disassembler.
+
 
 def dis(pickle, out=None, memo=None, indentlevel=4, annotate=0):
     """Produce a symbolic disassembly of a pickle.
@@ -2437,11 +2359,11 @@ def dis(pickle, out=None, memo=None, indentlevel=4, annotate=0):
     # anyway to detect when a protocol 0 POP takes a MARK off the stack
     # (which in turn is needed to indent MARK blocks correctly).
 
-    stack = []          # crude emulation of unpickler stack
+    stack = []  # crude emulation of unpickler stack
     if memo is None:
-        memo = {}       # crude emulation of unpickler memo
-    maxproto = -1       # max protocol number seen
-    markstack = []      # bytecode positions of MARK opcodes
+        memo = {}  # crude emulation of unpickler memo
+    maxproto = -1  # max protocol number seen
+    markstack = []  # bytecode positions of MARK opcodes
     indentchunk = ' ' * indentlevel
     errormsg = None
     annocol = annotate  # column hint for annotations
@@ -2449,20 +2371,18 @@ def dis(pickle, out=None, memo=None, indentlevel=4, annotate=0):
         if pos is not None:
             print("%5d:" % pos, end=' ', file=out)
 
-        line = "%-4s %s%s" % (repr(opcode.code)[1:-1],
-                              indentchunk * len(markstack),
-                              opcode.name)
+        line = "%-4s %s%s" % (repr(
+            opcode.code)[1:-1], indentchunk * len(markstack), opcode.name)
 
         maxproto = max(maxproto, opcode.proto)
-        before = opcode.stack_before    # don't mutate
-        after = opcode.stack_after      # don't mutate
+        before = opcode.stack_before  # don't mutate
+        after = opcode.stack_after  # don't mutate
         numtopop = len(before)
 
         # See whether a MARK should be popped.
         markmsg = None
-        if markobject in before or (opcode.name == "POP" and
-                                    stack and
-                                    stack[-1] is markobject):
+        if markobject in before or (opcode.name == "POP" and stack
+                                    and stack[-1] is markobject):
             assert markobject not in after
             if __debug__:
                 if markobject in before:
@@ -2505,7 +2425,7 @@ def dis(pickle, out=None, memo=None, indentlevel=4, annotate=0):
         elif opcode.name in ("GET", "BINGET", "LONG_BINGET"):
             if arg in memo:
                 assert len(after) == 1
-                after = [memo[arg]]     # for better stack emulation
+                after = [memo[arg]]  # for better stack emulation
             else:
                 errormsg = "memo key %r has never been stored into" % arg
 
@@ -2546,10 +2466,13 @@ def dis(pickle, out=None, memo=None, indentlevel=4, annotate=0):
     if stack:
         raise ValueError("stack not empty after STOP: %r" % stack)
 
+
 # For use in the doctest, simply as an example of a class to pickle.
 class _Example:
+
     def __init__(self, value):
         self.value = value
+
 
 _dis_test = r"""
 >>> import pickle
@@ -2835,43 +2758,58 @@ highest protocol among opcodes = 2
 highest protocol among opcodes = 2
 """
 
-__test__ = {'disassembler_test': _dis_test,
-            'disassembler_memo_test': _memo_test,
-           }
+__test__ = {
+    'disassembler_test': _dis_test,
+    'disassembler_memo_test': _memo_test,
+}
+
 
 def _test():
     import doctest
     return doctest.testmod()
 
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
         description='disassemble one or more pickle files')
+    parser.add_argument('pickle_file',
+                        type=argparse.FileType('br'),
+                        nargs='*',
+                        help='the pickle file')
+    parser.add_argument('-o',
+                        '--output',
+                        default=sys.stdout,
+                        type=argparse.FileType('w'),
+                        help='the file where the output should be written')
+    parser.add_argument('-m',
+                        '--memo',
+                        action='store_true',
+                        help='preserve memo between disassemblies')
     parser.add_argument(
-        'pickle_file', type=argparse.FileType('br'),
-        nargs='*', help='the pickle file')
-    parser.add_argument(
-        '-o', '--output', default=sys.stdout, type=argparse.FileType('w'),
-        help='the file where the output should be written')
-    parser.add_argument(
-        '-m', '--memo', action='store_true',
-        help='preserve memo between disassemblies')
-    parser.add_argument(
-        '-l', '--indentlevel', default=4, type=int,
+        '-l',
+        '--indentlevel',
+        default=4,
+        type=int,
         help='the number of blanks by which to indent a new MARK level')
     parser.add_argument(
-        '-a', '--annotate',  action='store_true',
+        '-a',
+        '--annotate',
+        action='store_true',
         help='annotate each line with a short opcode description')
     parser.add_argument(
-        '-p', '--preamble', default="==> {name} <==",
+        '-p',
+        '--preamble',
+        default="==> {name} <==",
         help='if more than one pickle file is specified, print this before'
         ' each disassembly')
-    parser.add_argument(
-        '-t', '--test', action='store_true',
-        help='run self-test suite')
-    parser.add_argument(
-        '-v', action='store_true',
-        help='run verbosely; only affects self-test run')
+    parser.add_argument('-t',
+                        '--test',
+                        action='store_true',
+                        help='run self-test suite')
+    parser.add_argument('-v',
+                        action='store_true',
+                        help='run verbosely; only affects self-test run')
     args = parser.parse_args()
     if args.test:
         _test()
@@ -2880,8 +2818,8 @@ if __name__ == "__main__":
         if not args.pickle_file:
             parser.print_help()
         elif len(args.pickle_file) == 1:
-            dis(args.pickle_file[0], args.output, None,
-                args.indentlevel, annotate)
+            dis(args.pickle_file[0], args.output, None, args.indentlevel,
+                annotate)
         else:
             memo = {} if args.memo else None
             for f in args.pickle_file:

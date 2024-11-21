@@ -52,6 +52,7 @@ _modules = {}  # Initialize cache of modules we've seen.
 
 class _Object:
     "Information about Python class or function."
+
     def __init__(self, module, name, file, lineno, end_lineno, parent):
         self.module = module
         self.name = name
@@ -67,8 +68,16 @@ class _Object:
 # Odd Function and Class signatures are for back-compatibility.
 class Function(_Object):
     "Information about a Python function, including methods."
-    def __init__(self, module, name, file, lineno,
-                 parent=None, is_async=False, *, end_lineno=None):
+
+    def __init__(self,
+                 module,
+                 name,
+                 file,
+                 lineno,
+                 parent=None,
+                 is_async=False,
+                 *,
+                 end_lineno=None):
         super().__init__(module, name, file, lineno, end_lineno, parent)
         self.is_async = is_async
         if isinstance(parent, Class):
@@ -77,8 +86,16 @@ class Function(_Object):
 
 class Class(_Object):
     "Information about a Python class."
-    def __init__(self, module, name, super_, file, lineno,
-                 parent=None, *, end_lineno=None):
+
+    def __init__(self,
+                 module,
+                 name,
+                 super_,
+                 file,
+                 lineno,
+                 parent=None,
+                 *,
+                 end_lineno=None):
         super().__init__(module, name, file, lineno, end_lineno, parent)
         self.super = super_ or []
         self.methods = {}
@@ -88,13 +105,24 @@ class Class(_Object):
 # Lib/test/test_pyclbr, Lib/idlelib/idle_test/test_browser.py
 def _nest_function(ob, func_name, lineno, end_lineno, is_async=False):
     "Return a Function after nesting within ob."
-    return Function(ob.module, func_name, ob.file, lineno,
-                    parent=ob, is_async=is_async, end_lineno=end_lineno)
+    return Function(ob.module,
+                    func_name,
+                    ob.file,
+                    lineno,
+                    parent=ob,
+                    is_async=is_async,
+                    end_lineno=end_lineno)
+
 
 def _nest_class(ob, class_name, lineno, end_lineno, super=None):
     "Return a Class after nesting within ob."
-    return Class(ob.module, class_name, super, ob.file, lineno,
-                 parent=ob, end_lineno=end_lineno)
+    return Class(ob.module,
+                 class_name,
+                 super,
+                 ob.file,
+                 lineno,
+                 parent=ob,
+                 end_lineno=end_lineno)
 
 
 def readmodule(module, path=None):
@@ -108,6 +136,7 @@ def readmodule(module, path=None):
         if isinstance(value, Class):
             res[key] = value
     return res
+
 
 def readmodule_ex(module, path=None):
     """Return a dictionary with all functions and classes in module.
@@ -149,7 +178,7 @@ def _readmodule(module, path, inpackage=None):
     i = module.rfind('.')
     if i >= 0:
         package = module[:i]
-        submodule = module[i+1:]
+        submodule = module[i + 1:]
         parent = _readmodule(package, path, inpackage)
         if inpackage is not None:
             package = "%s.%s" % (inpackage, package)
@@ -165,7 +194,8 @@ def _readmodule(module, path, inpackage=None):
         search_path = path + sys.path
     spec = importlib.util._find_spec_from_path(fullmodule, search_path)
     if spec is None:
-        raise ModuleNotFoundError(f"no module named {fullmodule!r}", name=fullmodule)
+        raise ModuleNotFoundError(f"no module named {fullmodule!r}",
+                                  name=fullmodule)
     _modules[fullmodule] = tree
     # Is module a package?
     if spec.submodule_search_locations is not None:
@@ -184,6 +214,7 @@ def _readmodule(module, path, inpackage=None):
 
 
 class _ModuleBrowser(ast.NodeVisitor):
+
     def __init__(self, module, path, file, tree, inpackage):
         self.path = path
         self.tree = tree
@@ -209,8 +240,13 @@ class _ModuleBrowser(ast.NodeVisitor):
                 bases.append(name)
 
         parent = self.stack[-1] if self.stack else None
-        class_ = Class(self.module, node.name, bases, self.file, node.lineno,
-                       parent=parent, end_lineno=node.end_lineno)
+        class_ = Class(self.module,
+                       node.name,
+                       bases,
+                       self.file,
+                       node.lineno,
+                       parent=parent,
+                       end_lineno=node.end_lineno)
         if parent is None:
             self.tree[node.name] = class_
         self.stack.append(class_)
@@ -219,8 +255,13 @@ class _ModuleBrowser(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node, *, is_async=False):
         parent = self.stack[-1] if self.stack else None
-        function = Function(self.module, node.name, self.file, node.lineno,
-                            parent, is_async, end_lineno=node.end_lineno)
+        function = Function(self.module,
+                            node.name,
+                            self.file,
+                            node.lineno,
+                            parent,
+                            is_async,
+                            end_lineno=node.end_lineno)
         if parent is None:
             self.tree[node.name] = function
         self.stack.append(function)
@@ -300,15 +341,17 @@ def _main():
 
         if isinstance(obj, _Object):
             new_objs = sorted(obj.children.values(),
-                              key=lineno_key, reverse=True)
+                              key=lineno_key,
+                              reverse=True)
             for ob in new_objs:
                 ob.indent = obj.indent + indent_level
             objs.extend(new_objs)
         if isinstance(obj, Class):
-            print("{}class {} {} {}"
-                  .format(' ' * obj.indent, obj.name, obj.super, obj.lineno))
+            print("{}class {} {} {}".format(' ' * obj.indent, obj.name,
+                                            obj.super, obj.lineno))
         elif isinstance(obj, Function):
             print("{}def {} {}".format(' ' * obj.indent, obj.name, obj.lineno))
+
 
 if __name__ == "__main__":
     _main()

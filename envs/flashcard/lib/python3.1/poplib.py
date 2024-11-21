@@ -24,11 +24,14 @@ try:
 except ImportError:
     HAVE_SSL = False
 
-__all__ = ["POP3","error_proto"]
+__all__ = ["POP3", "error_proto"]
 
 # Exception raised when an error or invalid response is received:
 
-class error_proto(Exception): pass
+
+class error_proto(Exception):
+    pass
+
 
 # Standard Port
 POP3_PORT = 110
@@ -39,7 +42,7 @@ POP3_SSL_PORT = 995
 # Line terminators (we always output CRLF, but accept any of CRLF, LFCR, LF)
 CR = b'\r'
 LF = b'\n'
-CRLF = CR+LF
+CRLF = CR + LF
 
 # maximal line length when calling readline(). This is to prevent
 # reading arbitrary length lines. RFC 1939 limits POP3 line length to
@@ -49,7 +52,6 @@ _MAXLINE = 2048
 
 
 class POP3:
-
     """This class supports both the minimal and optional command sets.
     Arguments can be strings or integers (where appropriate)
     (e.g.: retr(1) and retr('1') both work equally well.
@@ -95,7 +97,9 @@ class POP3:
 
     encoding = 'UTF-8'
 
-    def __init__(self, host, port=POP3_PORT,
+    def __init__(self,
+                 host,
+                 port=POP3_PORT,
                  timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         self.host = host
         self.port = port
@@ -108,7 +112,8 @@ class POP3:
 
     def _create_socket(self, timeout):
         if timeout is not None and not timeout:
-            raise ValueError('Non-blocking socket (timeout=0) is not supported')
+            raise ValueError(
+                'Non-blocking socket (timeout=0) is not supported')
         return socket.create_connection((self.host, self.port), timeout)
 
     def _putline(self, line):
@@ -116,14 +121,12 @@ class POP3:
         sys.audit("poplib.putline", self, line)
         self.sock.sendall(line + CRLF)
 
-
     # Internal: send one command to the server (through _putline())
 
     def _putcmd(self, line):
         if self._debugging: print('*cmd*', repr(line))
         line = bytes(line, self.encoding)
         self._putline(line)
-
 
     # Internal: return one line from the server, stripping CRLF.
     # This is where all the CPU time of this module is consumed.
@@ -146,7 +149,6 @@ class POP3:
             return line[1:-1], octets
         return line[:-1], octets
 
-
     # Internal: get a response from the server.
     # Raise 'error_proto' if the response doesn't start with '+'.
 
@@ -157,22 +159,21 @@ class POP3:
             raise error_proto(resp)
         return resp
 
-
     # Internal: get a response plus following text from the server.
 
     def _getlongresp(self):
         resp = self._getresp()
-        list = []; octets = 0
+        list = []
+        octets = 0
         line, o = self._getline()
         while line != b'.':
             if line.startswith(b'..'):
-                o = o-1
+                o = o - 1
                 line = line[1:]
             octets = octets + o
             list.append(line)
             line, o = self._getline()
         return resp, list, octets
-
 
     # Internal: send a command and get the response
 
@@ -180,23 +181,19 @@ class POP3:
         self._putcmd(line)
         return self._getresp()
 
-
     # Internal: send a command and get the response plus following text
 
     def _longcmd(self, line):
         self._putcmd(line)
         return self._getlongresp()
 
-
     # These can be useful:
 
     def getwelcome(self):
         return self.welcome
 
-
     def set_debuglevel(self, level):
         self._debugging = level
-
 
     # Here are all the POP commands:
 
@@ -207,7 +204,6 @@ class POP3:
         """
         return self._shortcmd('USER %s' % user)
 
-
     def pass_(self, pswd):
         """Send password, return response
 
@@ -216,7 +212,6 @@ class POP3:
         NB: mailbox is locked by server from here to 'quit()'
         """
         return self._shortcmd('PASS %s' % pswd)
-
 
     def stat(self):
         """Get mailbox status.
@@ -229,7 +224,6 @@ class POP3:
         numMessages = int(rets[1])
         sizeMessages = int(rets[2])
         return (numMessages, sizeMessages)
-
 
     def list(self, which=None):
         """Request listing, return result.
@@ -244,14 +238,12 @@ class POP3:
             return self._shortcmd('LIST %s' % which)
         return self._longcmd('LIST')
 
-
     def retr(self, which):
         """Retrieve whole message number 'which'.
 
         Result is in form ['response', ['line', ...], octets].
         """
         return self._longcmd('RETR %s' % which)
-
 
     def dele(self, which):
         """Delete message number 'which'.
@@ -260,7 +252,6 @@ class POP3:
         """
         return self._shortcmd('DELE %s' % which)
 
-
     def noop(self):
         """Does nothing.
 
@@ -268,11 +259,9 @@ class POP3:
         """
         return self._shortcmd('NOOP')
 
-
     def rset(self):
         """Unmark all messages marked for deletion."""
         return self._shortcmd('RSET')
-
 
     def quit(self):
         """Signoff: commit changes on server, unlock mailbox, close connection."""
@@ -298,20 +287,18 @@ class POP3:
                     # On Windows, this may result in WSAEINVAL (error 10022):
                     # An invalid operation was attempted.
                     if (exc.errno != errno.ENOTCONN
-                       and getattr(exc, 'winerror', 0) != 10022):
+                            and getattr(exc, 'winerror', 0) != 10022):
                         raise
                 finally:
                     sock.close()
 
     #__del__ = quit
 
-
     # optional commands:
 
     def rpop(self, user):
         """Not sure what this does."""
         return self._shortcmd('RPOP %s' % user)
-
 
     timestamp = re.compile(br'\+OK.[^<]*(<.*>)')
 
@@ -331,10 +318,9 @@ class POP3:
         if not m:
             raise error_proto('-ERR APOP not supported by server')
         import hashlib
-        digest = m.group(1)+secret
+        digest = m.group(1) + secret
         digest = hashlib.md5(digest).hexdigest()
         return self._shortcmd('APOP %s %s' % (user, digest))
-
 
     def top(self, which, howmuch):
         """Retrieve message header of message number 'which'
@@ -343,7 +329,6 @@ class POP3:
         Result is in form ['response', ['line', ...], octets].
         """
         return self._longcmd('TOP %s %s' % (which, howmuch))
-
 
     def uidl(self, which=None):
         """Return message digest (unique id) list.
@@ -356,12 +341,10 @@ class POP3:
             return self._shortcmd('UIDL %s' % which)
         return self._longcmd('UIDL')
 
-
     def utf8(self):
         """Try to enter UTF-8 mode (see RFC 6856). Returns server response.
         """
         return self._shortcmd('UTF8')
-
 
     def capa(self):
         """Return server capabilities (RFC 2449) as a dictionary
@@ -376,6 +359,7 @@ class POP3:
         Really, according to RFC 2449, the cyrus folks should avoid
         having the implementation split into multiple arguments...
         """
+
         def _parsecap(line):
             lst = line.decode('ascii').split()
             return lst[0], lst[1:]
@@ -390,7 +374,6 @@ class POP3:
         except error_proto:
             raise error_proto('-ERR CAPA not supported by server')
         return caps
-
 
     def stls(self, context=None):
         """Start a TLS session on the active connection as specified in RFC 2595.
@@ -407,8 +390,7 @@ class POP3:
         if context is None:
             context = ssl._create_stdlib_context()
         resp = self._shortcmd('STLS')
-        self.sock = context.wrap_socket(self.sock,
-                                        server_hostname=self.host)
+        self.sock = context.wrap_socket(self.sock, server_hostname=self.host)
         self.file = self.sock.makefile('rb')
         self._tls_established = True
         return resp
@@ -431,8 +413,13 @@ if HAVE_SSL:
         See the methods of the parent class POP3 for more documentation.
         """
 
-        def __init__(self, host, port=POP3_SSL_PORT, keyfile=None, certfile=None,
-                     timeout=socket._GLOBAL_DEFAULT_TIMEOUT, context=None):
+        def __init__(self,
+                     host,
+                     port=POP3_SSL_PORT,
+                     keyfile=None,
+                     certfile=None,
+                     timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+                     context=None):
             if context is not None and keyfile is not None:
                 raise ValueError("context and keyfile arguments are mutually "
                                  "exclusive")
@@ -441,8 +428,9 @@ if HAVE_SSL:
                                  "exclusive")
             if keyfile is not None or certfile is not None:
                 import warnings
-                warnings.warn("keyfile and certfile are deprecated, use a "
-                              "custom context instead", DeprecationWarning, 2)
+                warnings.warn(
+                    "keyfile and certfile are deprecated, use a "
+                    "custom context instead", DeprecationWarning, 2)
             self.keyfile = keyfile
             self.certfile = certfile
             if context is None:
@@ -453,8 +441,7 @@ if HAVE_SSL:
 
         def _create_socket(self, timeout):
             sock = POP3._create_socket(self, timeout)
-            sock = self.context.wrap_socket(sock,
-                                            server_hostname=self.host)
+            sock = self.context.wrap_socket(sock, server_hostname=self.host)
             return sock
 
         def stls(self, keyfile=None, certfile=None, context=None):

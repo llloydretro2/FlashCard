@@ -40,12 +40,13 @@ import sys
 import socket
 from socket import _GLOBAL_DEFAULT_TIMEOUT
 
-__all__ = ["FTP", "error_reply", "error_temp", "error_perm", "error_proto",
-           "all_errors"]
+__all__ = [
+    "FTP", "error_reply", "error_temp", "error_perm", "error_proto",
+    "all_errors"
+]
 
 # Magic number from <socket.h>
-MSG_OOB = 0x1                           # Process data out of band
-
+MSG_OOB = 0x1  # Process data out of band
 
 # The standard FTP server control port
 FTP_PORT = 21
@@ -54,21 +55,34 @@ MAXLINE = 8192
 
 
 # Exception raised when an error or invalid response is received
-class Error(Exception): pass
-class error_reply(Error): pass          # unexpected [123]xx reply
-class error_temp(Error): pass           # 4xx errors
-class error_perm(Error): pass           # 5xx errors
-class error_proto(Error): pass          # response does not begin with [1-5]
+class Error(Exception):
+    pass
+
+
+class error_reply(Error):
+    pass  # unexpected [123]xx reply
+
+
+class error_temp(Error):
+    pass  # 4xx errors
+
+
+class error_perm(Error):
+    pass  # 5xx errors
+
+
+class error_proto(Error):
+    pass  # response does not begin with [1-5]
 
 
 # All exceptions (hopefully) that may be raised here and that aren't
 # (always) programming errors on our side
 all_errors = (Error, OSError, EOFError)
 
-
 # Line terminators (we always output CRLF, but accept any of CRLF, CR, LF)
 CRLF = '\r\n'
 B_CRLF = b'\r\n'
+
 
 # The class itself
 class FTP:
@@ -106,8 +120,14 @@ class FTP:
     # Disables https://bugs.python.org/issue43285 security if set to True.
     trust_server_pasv_ipv4_address = False
 
-    def __init__(self, host='', user='', passwd='', acct='',
-                 timeout=_GLOBAL_DEFAULT_TIMEOUT, source_address=None, *,
+    def __init__(self,
+                 host='',
+                 user='',
+                 passwd='',
+                 acct='',
+                 timeout=_GLOBAL_DEFAULT_TIMEOUT,
+                 source_address=None,
+                 *,
                  encoding='utf-8'):
         """Initialization method (called by class instantiation).
         Initialize host to localhost, port to standard ftp port.
@@ -151,12 +171,15 @@ class FTP:
         if timeout != -999:
             self.timeout = timeout
         if self.timeout is not None and not self.timeout:
-            raise ValueError('Non-blocking socket (timeout=0) is not supported')
+            raise ValueError(
+                'Non-blocking socket (timeout=0) is not supported')
         if source_address is not None:
             self.source_address = source_address
         sys.audit("ftplib.connect", self, self.host, self.port)
-        self.sock = socket.create_connection((self.host, self.port), self.timeout,
-                                             source_address=self.source_address)
+        self.sock = socket.create_connection(
+            (self.host, self.port),
+            self.timeout,
+            source_address=self.source_address)
         self.af = self.sock.family
         self.file = self.sock.makefile('r', encoding=self.encoding)
         self.welcome = self.getresp()
@@ -176,6 +199,7 @@ class FTP:
         1: print commands and responses but not body text etc.
         2: also print raw lines read and sent before stripping CR/LF'''
         self.debugging = level
+
     debug = set_debuglevel
 
     def set_pasv(self, val):
@@ -188,13 +212,14 @@ class FTP:
     def sanitize(self, s):
         if s[:5] in {'pass ', 'PASS '}:
             i = len(s.rstrip('\r\n'))
-            s = s[:5] + '*'*(i-5) + s[i:]
+            s = s[:5] + '*' * (i - 5) + s[i:]
         return repr(s)
 
     # Internal: send one line to the server, appending CRLF
     def putline(self, line):
         if '\r' in line or '\n' in line:
-            raise ValueError('an illegal newline character should not be contained')
+            raise ValueError(
+                'an illegal newline character should not be contained')
         sys.audit("ftplib.sendcmd", self, line)
         line = line + CRLF
         if self.debugging > 1:
@@ -290,7 +315,7 @@ class FTP:
         port number.
         '''
         hbytes = host.split('.')
-        pbytes = [repr(port//256), repr(port%256)]
+        pbytes = [repr(port // 256), repr(port % 256)]
         bytes = hbytes + pbytes
         cmd = 'PORT ' + ','.join(bytes)
         return self.voidcmd(cmd)
@@ -311,8 +336,8 @@ class FTP:
     def makeport(self):
         '''Create a new socket and send a PORT command for it.'''
         sock = socket.create_server(("", 0), family=self.af, backlog=1)
-        port = sock.getsockname()[1] # Get proper port
-        host = self.sock.getsockname()[0] # Get proper host
+        port = sock.getsockname()[1]  # Get proper port
+        host = self.sock.getsockname()[0]  # Get proper host
         if self.af == socket.AF_INET:
             resp = self.sendport(host, port)
         else:
@@ -330,7 +355,8 @@ class FTP:
             else:
                 host = self.sock.getpeername()[0]
         else:
-            host, port = parse229(self.sendcmd('EPSV'), self.sock.getpeername())
+            host, port = parse229(self.sendcmd('EPSV'),
+                                  self.sock.getpeername())
         return host, port
 
     def ntransfercmd(self, cmd, rest=None):
@@ -351,7 +377,8 @@ class FTP:
         size = None
         if self.passiveserver:
             host, port = self.makepasv()
-            conn = socket.create_connection((host, port), self.timeout,
+            conn = socket.create_connection((host, port),
+                                            self.timeout,
                                             source_address=self.source_address)
             try:
                 if rest is not None:
@@ -392,7 +419,7 @@ class FTP:
         """Like ntransfercmd() but returns only the socket."""
         return self.ntransfercmd(cmd, rest)[0]
 
-    def login(self, user = '', passwd = '', acct = ''):
+    def login(self, user='', passwd='', acct=''):
         '''Login, default anonymous.'''
         if not user:
             user = 'anonymous'
@@ -444,7 +471,7 @@ class FTP:
                 conn.unwrap()
         return self.voidresp()
 
-    def retrlines(self, cmd, callback = None):
+    def retrlines(self, cmd, callback=None):
         """Retrieve data in line mode.  A new port is created for you.
 
         Args:
@@ -673,6 +700,7 @@ class FTP:
             if sock is not None:
                 sock.close()
 
+
 try:
     import ssl
 except ImportError:
@@ -715,9 +743,17 @@ else:
         '''
         ssl_version = ssl.PROTOCOL_TLS_CLIENT
 
-        def __init__(self, host='', user='', passwd='', acct='',
-                     keyfile=None, certfile=None, context=None,
-                     timeout=_GLOBAL_DEFAULT_TIMEOUT, source_address=None, *,
+        def __init__(self,
+                     host='',
+                     user='',
+                     passwd='',
+                     acct='',
+                     keyfile=None,
+                     certfile=None,
+                     context=None,
+                     timeout=_GLOBAL_DEFAULT_TIMEOUT,
+                     source_address=None,
+                     *,
                      encoding='utf-8'):
             if context is not None and keyfile is not None:
                 raise ValueError("context and keyfile arguments are mutually "
@@ -727,8 +763,9 @@ else:
                                  "exclusive")
             if keyfile is not None or certfile is not None:
                 import warnings
-                warnings.warn("keyfile and certfile are deprecated, use a "
-                              "custom context instead", DeprecationWarning, 2)
+                warnings.warn(
+                    "keyfile and certfile are deprecated, use a "
+                    "custom context instead", DeprecationWarning, 2)
             self.keyfile = keyfile
             self.certfile = certfile
             if context is None:
@@ -737,8 +774,13 @@ else:
                                                      keyfile=keyfile)
             self.context = context
             self._prot_p = False
-            super().__init__(host, user, passwd, acct,
-                             timeout, source_address, encoding=encoding)
+            super().__init__(host,
+                             user,
+                             passwd,
+                             acct,
+                             timeout,
+                             source_address,
+                             encoding=encoding)
 
         def login(self, user='', passwd='', acct='', secure=True):
             if secure and not isinstance(self.sock, ssl.SSLSocket):
@@ -753,7 +795,8 @@ else:
                 resp = self.voidcmd('AUTH TLS')
             else:
                 resp = self.voidcmd('AUTH SSL')
-            self.sock = self.context.wrap_socket(self.sock, server_hostname=self.host)
+            self.sock = self.context.wrap_socket(self.sock,
+                                                 server_hostname=self.host)
             self.file = self.sock.makefile(mode='r', encoding=self.encoding)
             return resp
 
@@ -808,8 +851,8 @@ else:
     __all__.append('FTP_TLS')
     all_errors = (Error, OSError, EOFError, ssl.SSLError)
 
-
 _150_re = None
+
 
 def parse150(resp):
     '''Parse the '150' response for a RETR request.
@@ -821,8 +864,8 @@ def parse150(resp):
     global _150_re
     if _150_re is None:
         import re
-        _150_re = re.compile(
-            r"150 .* \((\d+) bytes\)", re.IGNORECASE | re.ASCII)
+        _150_re = re.compile(r"150 .* \((\d+) bytes\)",
+                             re.IGNORECASE | re.ASCII)
     m = _150_re.match(resp)
     if not m:
         return None
@@ -830,6 +873,7 @@ def parse150(resp):
 
 
 _227_re = None
+
 
 def parse227(resp):
     '''Parse the '227' response for a PASV request.
@@ -860,10 +904,10 @@ def parse229(resp, peer):
     if left < 0: raise error_proto(resp)
     right = resp.find(')', left + 1)
     if right < 0:
-        raise error_proto(resp) # should contain '(|||port|)'
+        raise error_proto(resp)  # should contain '(|||port|)'
     if resp[left + 1] != resp[right - 1]:
         raise error_proto(resp)
-    parts = resp[left + 1:right].split(resp[left+1])
+    parts = resp[left + 1:right].split(resp[left + 1])
     if len(parts) != 5:
         raise error_proto(resp)
     host = peer[0]
@@ -878,17 +922,17 @@ def parse257(resp):
     if resp[:3] != '257':
         raise error_reply(resp)
     if resp[3:5] != ' "':
-        return '' # Not compliant to RFC 959, but UNIX ftpd does this
+        return ''  # Not compliant to RFC 959, but UNIX ftpd does this
     dirname = ''
     i = 5
     n = len(resp)
     while i < n:
         c = resp[i]
-        i = i+1
+        i = i + 1
         if c == '"':
             if i >= n or resp[i] != '"':
                 break
-            i = i+1
+            i = i + 1
         dirname = dirname + c
     return dirname
 
@@ -898,7 +942,7 @@ def print_line(line):
     print(line)
 
 
-def ftpcp(source, sourcename, target, targetname = '', type = 'I'):
+def ftpcp(source, sourcename, target, targetname='', type='I'):
     '''Copy file from one FTP-instance to another.'''
     if not targetname:
         targetname = sourcename
@@ -938,7 +982,7 @@ def test():
     debugging = 0
     rcfile = None
     while sys.argv[1] == '-d':
-        debugging = debugging+1
+        debugging = debugging + 1
         del sys.argv[1]
     if sys.argv[1][:2] == '-r':
         # get name of alternate ~/.netrc file:
@@ -959,8 +1003,7 @@ def test():
             userid, acct, passwd = netrcobj.authenticators(host)
         except KeyError:
             # no account for host
-            sys.stderr.write(
-                    "No account -- using anonymous login.")
+            sys.stderr.write("No account -- using anonymous login.")
     ftp.login(userid, passwd, acct)
     for file in sys.argv[2:]:
         if file[:2] == '-l':

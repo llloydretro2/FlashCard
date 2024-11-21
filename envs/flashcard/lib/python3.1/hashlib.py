@@ -56,17 +56,14 @@ More condensed:
 # This tuple and __get_builtin_constructor() must be modified if a new
 # always available algorithm is added.
 __always_supported = ('md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512',
-                      'blake2b', 'blake2s',
-                      'sha3_224', 'sha3_256', 'sha3_384', 'sha3_512',
-                      'shake_128', 'shake_256')
-
+                      'blake2b', 'blake2s', 'sha3_224', 'sha3_256', 'sha3_384',
+                      'sha3_512', 'shake_128', 'shake_256')
 
 algorithms_guaranteed = set(__always_supported)
 algorithms_available = set(__always_supported)
 
 __all__ = __always_supported + ('new', 'algorithms_guaranteed',
                                 'algorithms_available', 'pbkdf2_hmac')
-
 
 __builtin_constructor_cache = {}
 
@@ -76,8 +73,10 @@ __builtin_constructor_cache = {}
 # features like salt, personalization, or tree hashing. OpenSSL hash-only
 # variants are available as 'blake2b512' and 'blake2s256', though.
 __block_openssl_constructor = {
-    'blake2b', 'blake2s',
+    'blake2b',
+    'blake2s',
 }
+
 
 def __get_builtin_constructor(name):
     cache = __builtin_constructor_cache
@@ -171,7 +170,7 @@ try:
     new = __hash_new
     __get_hash = __get_openssl_constructor
     algorithms_available = algorithms_available.union(
-            _hashlib.openssl_md_meth_names)
+        _hashlib.openssl_md_meth_names)
 except ImportError:
     _hashlib = None
     new = __py_new
@@ -192,11 +191,9 @@ except ImportError:
         as OpenSSL's PKCS5_PBKDF2_HMAC for short passwords and much faster
         for long passwords.
         """
-        _warn(
-            "Python implementation of pbkdf2_hmac() is deprecated.",
-            category=DeprecationWarning,
-            stacklevel=2
-        )
+        _warn("Python implementation of pbkdf2_hmac() is deprecated.",
+              category=DeprecationWarning,
+              stacklevel=2)
         if not isinstance(hash_name, str):
             raise TypeError(hash_name)
 
@@ -247,12 +244,12 @@ except ImportError:
 
         return dkey[:dklen]
 
+
 try:
     # OpenSSL's scrypt requires OpenSSL 1.1+
     from _hashlib import scrypt
 except ImportError:
     pass
-
 
 for __func_name in __always_supported:
     # try them all, some may not work due to the OpenSSL
@@ -262,7 +259,6 @@ for __func_name in __always_supported:
     except ValueError:
         import logging
         logging.exception('code for hash %s was not found.', __func_name)
-
 
 # Cleanup locals()
 del __always_supported, __func_name, __get_hash

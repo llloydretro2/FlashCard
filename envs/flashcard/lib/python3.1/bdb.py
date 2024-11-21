@@ -85,7 +85,7 @@ class Bdb:
         The arg parameter depends on the previous event.
         """
         if self.quitting:
-            return # None
+            return  # None
         if event == 'line':
             return self.dispatch_line(frame)
         if event == 'call':
@@ -125,11 +125,11 @@ class Bdb:
         # XXX 'arg' is no longer used
         if self.botframe is None:
             # First call of dispatch since reset()
-            self.botframe = frame.f_back # (CT) Note that this may also be None!
+            self.botframe = frame.f_back  # (CT) Note that this may also be None!
             return self.trace_dispatch
         if not (self.stop_here(frame) or self.break_anywhere(frame)):
             # No need to trace this function
-            return # None
+            return  # None
         # Ignore call events in generator except when stepping.
         if self.stopframe and frame.f_code.co_flags & GENERATOR_AND_COROUTINE_FLAGS:
             return self.trace_dispatch
@@ -178,9 +178,9 @@ class Bdb:
         # has set stopframe in a generator by issuing a return command, or a
         # next/until command at the last statement in the generator before the
         # exception.
-        elif (self.stopframe and frame is not self.stopframe
-                and self.stopframe.f_code.co_flags & GENERATOR_AND_COROUTINE_FLAGS
-                and arg[0] in (StopIteration, GeneratorExit)):
+        elif (self.stopframe and frame is not self.stopframe and
+              self.stopframe.f_code.co_flags & GENERATOR_AND_COROUTINE_FLAGS
+              and arg[0] in (StopIteration, GeneratorExit)):
             self.user_exception(frame, arg)
             if self.quitting: raise BdbQuit
 
@@ -373,7 +373,11 @@ class Bdb:
         if lineno not in bp_linenos:
             bp_linenos.append(lineno)
 
-    def set_break(self, filename, lineno, temporary=False, cond=None,
+    def set_break(self,
+                  filename,
+                  lineno,
+                  temporary=False,
+                  cond=None,
                   funcname=None):
         """Set a new breakpoint for filename:lineno.
 
@@ -381,7 +385,7 @@ class Bdb:
         The filename should be in canonical form.
         """
         filename = self.canonic(filename)
-        import linecache # Import as late as possible
+        import linecache  # Import as late as possible
         line = linecache.getline(filename, lineno)
         if not line:
             return 'Line %s:%d does not exist' % (filename, lineno)
@@ -482,11 +486,13 @@ class Bdb:
         try:
             number = int(arg)
         except ValueError:
-            raise ValueError('Non-numeric breakpoint number %s' % arg) from None
+            raise ValueError('Non-numeric breakpoint number %s' %
+                             arg) from None
         try:
             bp = Breakpoint.bpbynumber[number]
         except IndexError:
-            raise ValueError('Breakpoint number %d out of range' % number) from None
+            raise ValueError('Breakpoint number %d out of range' %
+                             number) from None
         if bp is None:
             raise ValueError('Breakpoint %d already deleted' % number)
         return bp
@@ -672,17 +678,18 @@ class Breakpoint:
     # XXX Keeping state in the class is a mistake -- this means
     # you cannot have more than one active Bdb instance.
 
-    next = 1        # Next bp to be assigned
-    bplist = {}     # indexed by (file, lineno) tuple
-    bpbynumber = [None] # Each entry is None or an instance of Bpt
-                # index 0 is unused, except for marking an
-                # effective break .... see effective()
+    next = 1  # Next bp to be assigned
+    bplist = {}  # indexed by (file, lineno) tuple
+    bpbynumber = [None]  # Each entry is None or an instance of Bpt
+
+    # index 0 is unused, except for marking an
+    # effective break .... see effective()
 
     def __init__(self, file, line, temporary=False, cond=None, funcname=None):
         self.funcname = funcname
         # Needed if funcname is not None.
         self.func_first_executable_line = None
-        self.file = file    # This better be in canonical form!
+        self.file = file  # This better be in canonical form!
         self.line = line
         self.temporary = temporary
         self.cond = cond
@@ -712,7 +719,7 @@ class Breakpoint:
         """
 
         index = (self.file, self.line)
-        self.bpbynumber[self.number] = None   # No longer in list
+        self.bpbynumber[self.number] = None  # No longer in list
         self.bplist[index].remove(self)
         if not self.bplist[index]:
             # No more bp for this f:l combo
@@ -752,12 +759,12 @@ class Breakpoint:
             disp = disp + 'yes  '
         else:
             disp = disp + 'no   '
-        ret = '%-4dbreakpoint   %s at %s:%d' % (self.number, disp,
-                                                self.file, self.line)
+        ret = '%-4dbreakpoint   %s at %s:%d' % (self.number, disp, self.file,
+                                                self.line)
         if self.cond:
-            ret += '\n\tstop only if %s' % (self.cond,)
+            ret += '\n\tstop only if %s' % (self.cond, )
         if self.ignore:
-            ret += '\n\tignore next %d hits' % (self.ignore,)
+            ret += '\n\tignore next %d hits' % (self.ignore, )
         if self.hits:
             if self.hits > 1:
                 ss = 's'
@@ -769,6 +776,7 @@ class Breakpoint:
     def __str__(self):
         "Return a condensed description of the breakpoint."
         return 'breakpoint %s at %s:%s' % (self.number, self.file, self.line)
+
 
 # -----------end of Breakpoint class----------
 
@@ -855,11 +863,14 @@ def effective(file, line, frame):
 
 # -------------------- testing --------------------
 
+
 class Tdb(Bdb):
+
     def user_call(self, frame, args):
         name = frame.f_code.co_name
         if not name: name = '???'
         print('+++ call', name, args)
+
     def user_line(self, frame):
         import linecache
         name = frame.f_code.co_name
@@ -867,20 +878,25 @@ class Tdb(Bdb):
         fn = self.canonic(frame.f_code.co_filename)
         line = linecache.getline(fn, frame.f_lineno, frame.f_globals)
         print('+++', fn, frame.f_lineno, name, ':', line.strip())
+
     def user_return(self, frame, retval):
         print('+++ return', retval)
+
     def user_exception(self, frame, exc_stuff):
         print('+++ exception', exc_stuff)
         self.set_continue()
 
+
 def foo(n):
     print('foo(', n, ')')
-    x = bar(n*10)
+    x = bar(n * 10)
     print('bar returned', x)
+
 
 def bar(a):
     print('bar(', a, ')')
-    return a/2
+    return a / 2
+
 
 def test():
     t = Tdb()

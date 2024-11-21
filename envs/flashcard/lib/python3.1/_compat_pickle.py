@@ -6,7 +6,7 @@
 # lib2to3 and use the mapping defined there, because lib2to3 uses pickle.
 # Thus, this could cause the module to be imported recursively.
 IMPORT_MAPPING = {
-    '__builtin__' : 'builtins',
+    '__builtin__': 'builtins',
     'copy_reg': 'copyreg',
     'Queue': 'queue',
     'SocketServer': 'socketserver',
@@ -36,34 +36,33 @@ IMPORT_MAPPING = {
     'xmlrpclib': 'xmlrpc.client',
     'SimpleXMLRPCServer': 'xmlrpc.server',
     'httplib': 'http.client',
-    'htmlentitydefs' : 'html.entities',
-    'HTMLParser' : 'html.parser',
+    'htmlentitydefs': 'html.entities',
+    'HTMLParser': 'html.parser',
     'Cookie': 'http.cookies',
     'cookielib': 'http.cookiejar',
     'BaseHTTPServer': 'http.server',
     'test.test_support': 'test.support',
     'commands': 'subprocess',
-    'urlparse' : 'urllib.parse',
-    'robotparser' : 'urllib.robotparser',
+    'urlparse': 'urllib.parse',
+    'robotparser': 'urllib.robotparser',
     'urllib2': 'urllib.request',
     'anydbm': 'dbm',
-    '_abcoll' : 'collections.abc',
+    '_abcoll': 'collections.abc',
 }
-
 
 # This contains rename rules that are easy to handle.  We ignore the more
 # complex stuff (e.g. mapping the names in the urllib and types modules).
 # These rules should be run before import names are fixed.
 NAME_MAPPING = {
-    ('__builtin__', 'xrange'):     ('builtins', 'range'),
-    ('__builtin__', 'reduce'):     ('functools', 'reduce'),
-    ('__builtin__', 'intern'):     ('sys', 'intern'),
-    ('__builtin__', 'unichr'):     ('builtins', 'chr'),
-    ('__builtin__', 'unicode'):    ('builtins', 'str'),
-    ('__builtin__', 'long'):       ('builtins', 'int'),
-    ('itertools', 'izip'):         ('builtins', 'zip'),
-    ('itertools', 'imap'):         ('builtins', 'map'),
-    ('itertools', 'ifilter'):      ('builtins', 'filter'),
+    ('__builtin__', 'xrange'): ('builtins', 'range'),
+    ('__builtin__', 'reduce'): ('functools', 'reduce'),
+    ('__builtin__', 'intern'): ('sys', 'intern'),
+    ('__builtin__', 'unichr'): ('builtins', 'chr'),
+    ('__builtin__', 'unicode'): ('builtins', 'str'),
+    ('__builtin__', 'long'): ('builtins', 'int'),
+    ('itertools', 'izip'): ('builtins', 'zip'),
+    ('itertools', 'imap'): ('builtins', 'map'),
+    ('itertools', 'ifilter'): ('builtins', 'filter'),
     ('itertools', 'ifilterfalse'): ('itertools', 'filterfalse'),
     ('itertools', 'izip_longest'): ('itertools', 'zip_longest'),
     ('UserDict', 'IterableUserDict'): ('collections', 'UserDict'),
@@ -71,10 +70,14 @@ NAME_MAPPING = {
     ('UserString', 'UserString'): ('collections', 'UserString'),
     ('whichdb', 'whichdb'): ('dbm', 'whichdb'),
     ('_socket', 'fromfd'): ('socket', 'fromfd'),
-    ('_multiprocessing', 'Connection'): ('multiprocessing.connection', 'Connection'),
-    ('multiprocessing.process', 'Process'): ('multiprocessing.context', 'Process'),
-    ('multiprocessing.forking', 'Popen'): ('multiprocessing.popen_fork', 'Popen'),
-    ('urllib', 'ContentTooShortError'): ('urllib.error', 'ContentTooShortError'),
+    ('_multiprocessing', 'Connection'):
+    ('multiprocessing.connection', 'Connection'),
+    ('multiprocessing.process', 'Process'):
+    ('multiprocessing.context', 'Process'),
+    ('multiprocessing.forking', 'Popen'):
+    ('multiprocessing.popen_fork', 'Popen'),
+    ('urllib', 'ContentTooShortError'):
+    ('urllib.error', 'ContentTooShortError'),
     ('urllib', 'getproxies'): ('urllib.request', 'getproxies'),
     ('urllib', 'pathname2url'): ('urllib.request', 'pathname2url'),
     ('urllib', 'quote_plus'): ('urllib.parse', 'quote_plus'),
@@ -146,7 +149,7 @@ try:
 except NameError:
     pass
 else:
-    PYTHON2_EXCEPTIONS += ("WindowsError",)
+    PYTHON2_EXCEPTIONS += ("WindowsError", )
 
 for excname in PYTHON2_EXCEPTIONS:
     NAME_MAPPING[("exceptions", excname)] = ("builtins", excname)
@@ -159,7 +162,8 @@ MULTIPROCESSING_EXCEPTIONS = (
 )
 
 for excname in MULTIPROCESSING_EXCEPTIONS:
-    NAME_MAPPING[("multiprocessing", excname)] = ("multiprocessing.context", excname)
+    NAME_MAPPING[("multiprocessing", excname)] = ("multiprocessing.context",
+                                                  excname)
 
 # Same, but for 3.x to 2.x
 REVERSE_IMPORT_MAPPING = dict((v, k) for (k, v) in IMPORT_MAPPING.items())
@@ -182,7 +186,7 @@ IMPORT_MAPPING.update({
     'UserList': 'collections',
     'UserString': 'collections',
     'whichdb': 'dbm',
-    'StringIO':  'io',
+    'StringIO': 'io',
     'cStringIO': 'io',
 })
 
@@ -209,17 +213,17 @@ REVERSE_NAME_MAPPING.update({
     ('tkinter.simpledialog', 'SimpleDialog'): ('SimpleDialog', 'SimpleDialog'),
     ('xmlrpc.server', 'ServerHTMLDoc'): ('DocXMLRPCServer', 'ServerHTMLDoc'),
     ('xmlrpc.server', 'XMLRPCDocGenerator'):
-        ('DocXMLRPCServer', 'XMLRPCDocGenerator'),
+    ('DocXMLRPCServer', 'XMLRPCDocGenerator'),
     ('xmlrpc.server', 'DocXMLRPCRequestHandler'):
-        ('DocXMLRPCServer', 'DocXMLRPCRequestHandler'),
+    ('DocXMLRPCServer', 'DocXMLRPCRequestHandler'),
     ('xmlrpc.server', 'DocXMLRPCServer'):
-        ('DocXMLRPCServer', 'DocXMLRPCServer'),
+    ('DocXMLRPCServer', 'DocXMLRPCServer'),
     ('xmlrpc.server', 'DocCGIXMLRPCRequestHandler'):
-        ('DocXMLRPCServer', 'DocCGIXMLRPCRequestHandler'),
-    ('http.server', 'SimpleHTTPRequestHandler'):
-        ('SimpleHTTPServer', 'SimpleHTTPRequestHandler'),
-    ('http.server', 'CGIHTTPRequestHandler'):
-        ('CGIHTTPServer', 'CGIHTTPRequestHandler'),
+    ('DocXMLRPCServer', 'DocCGIXMLRPCRequestHandler'),
+    ('http.server', 'SimpleHTTPRequestHandler'): ('SimpleHTTPServer',
+                                                  'SimpleHTTPRequestHandler'),
+    ('http.server', 'CGIHTTPRequestHandler'): ('CGIHTTPServer',
+                                               'CGIHTTPRequestHandler'),
     ('_socket', 'socket'): ('socket', '_socketobject'),
 })
 
@@ -243,9 +247,7 @@ PYTHON3_OSERROR_EXCEPTIONS = (
 for excname in PYTHON3_OSERROR_EXCEPTIONS:
     REVERSE_NAME_MAPPING[('builtins', excname)] = ('exceptions', 'OSError')
 
-PYTHON3_IMPORTERROR_EXCEPTIONS = (
-    'ModuleNotFoundError',
-)
+PYTHON3_IMPORTERROR_EXCEPTIONS = ('ModuleNotFoundError', )
 
 for excname in PYTHON3_IMPORTERROR_EXCEPTIONS:
     REVERSE_NAME_MAPPING[('builtins', excname)] = ('exceptions', 'ImportError')

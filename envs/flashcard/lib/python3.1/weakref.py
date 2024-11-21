@@ -9,15 +9,9 @@ https://www.python.org/dev/peps/pep-0205/
 # they are called this instead of "ref" to avoid name collisions with
 # the module-global ref() function imported from _weakref.
 
-from _weakref import (
-     getweakrefcount,
-     getweakrefs,
-     ref,
-     proxy,
-     CallableProxyType,
-     ProxyType,
-     ReferenceType,
-     _remove_dead_weakref)
+from _weakref import (getweakrefcount, getweakrefs, ref, proxy,
+                      CallableProxyType, ProxyType, ReferenceType,
+                      _remove_dead_weakref)
 
 from _weakrefset import WeakSet, _IterationGuard
 
@@ -27,14 +21,15 @@ import itertools
 
 ProxyTypes = (ProxyType, CallableProxyType)
 
-__all__ = ["ref", "proxy", "getweakrefcount", "getweakrefs",
-           "WeakKeyDictionary", "ReferenceType", "ProxyType",
-           "CallableProxyType", "ProxyTypes", "WeakValueDictionary",
-           "WeakSet", "WeakMethod", "finalize"]
-
+__all__ = [
+    "ref", "proxy", "getweakrefcount", "getweakrefs", "WeakKeyDictionary",
+    "ReferenceType", "ProxyType", "CallableProxyType", "ProxyTypes",
+    "WeakValueDictionary", "WeakSet", "WeakMethod", "finalize"
+]
 
 _collections_abc.Set.register(WeakSet)
 _collections_abc.MutableSet.register(WeakSet)
+
 
 class WeakMethod(ref):
     """
@@ -49,8 +44,9 @@ class WeakMethod(ref):
             obj = meth.__self__
             func = meth.__func__
         except AttributeError:
-            raise TypeError("argument should be a bound method, not {}"
-                            .format(type(meth))) from None
+            raise TypeError("argument should be a bound method, not {}".format(
+                type(meth))) from None
+
         def _cb(arg):
             # The self-weakref trick is needed to avoid creating a reference
             # cycle.
@@ -59,6 +55,7 @@ class WeakMethod(ref):
                 self._alive = False
                 if callback is not None:
                     callback(self)
+
         self = ref.__new__(cls, obj, _cb)
         self._func_ref = ref(func, _cb)
         self._meth_type = type(meth)
@@ -77,7 +74,8 @@ class WeakMethod(ref):
         if isinstance(other, WeakMethod):
             if not self._alive or not other._alive:
                 return self is other
-            return ref.__eq__(self, other) and self._func_ref == other._func_ref
+            return ref.__eq__(self,
+                              other) and self._func_ref == other._func_ref
         return NotImplemented
 
     def __ne__(self, other):
@@ -96,6 +94,7 @@ class WeakValueDictionary(_collections_abc.MutableMapping):
     Entries in the dictionary will be discarded when no strong
     reference to the value exists anymore
     """
+
     # We inherit the constructor without worrying about the input
     # dictionary; since it uses our .update() method, we get the right
     # checks (if the other dictionary is a WeakValueDictionary,
@@ -103,7 +102,10 @@ class WeakValueDictionary(_collections_abc.MutableMapping):
     # way in).
 
     def __init__(self, other=(), /, **kw):
-        def remove(wr, selfref=ref(self), _atomic_removal=_remove_dead_weakref):
+
+        def remove(wr,
+                   selfref=ref(self),
+                   _atomic_removal=_remove_dead_weakref):
             self = selfref()
             if self is not None:
                 if self._iterating:
@@ -112,6 +114,7 @@ class WeakValueDictionary(_collections_abc.MutableMapping):
                     # Atomic removal is necessary since this function
                     # can be called asynchronously by the GC
                     _atomic_removal(self.data, wr.key)
+
         self._remove = remove
         # A list of keys to be removed
         self._pending_removals = []
@@ -367,6 +370,7 @@ class WeakKeyDictionary(_collections_abc.MutableMapping):
 
     def __init__(self, dict=None):
         self.data = {}
+
         def remove(k, selfref=ref(self)):
             self = selfref()
             if self is not None:
@@ -377,6 +381,7 @@ class WeakKeyDictionary(_collections_abc.MutableMapping):
                         del self.data[k]
                     except KeyError:
                         pass
+
         self._remove = remove
         # A list of dead weakrefs (keys to be removed)
         self._pending_removals = []
@@ -450,7 +455,7 @@ class WeakKeyDictionary(_collections_abc.MutableMapping):
         return new
 
     def get(self, key, default=None):
-        return self.data.get(ref(key),default)
+        return self.data.get(ref(key), default)
 
     def __contains__(self, key):
         try:
@@ -506,7 +511,7 @@ class WeakKeyDictionary(_collections_abc.MutableMapping):
         return self.data.pop(ref(key), *args)
 
     def setdefault(self, key, default=None):
-        return self.data.setdefault(ref(key, self._remove),default)
+        return self.data.setdefault(ref(key, self._remove), default)
 
     def update(self, dict=None, /, **kwargs):
         d = self.data
@@ -635,9 +640,9 @@ class finalize:
     @classmethod
     def _select_for_exit(cls):
         # Return live finalizers marked for exit, oldest first
-        L = [(f,i) for (f,i) in cls._registry.items() if i.atexit]
-        L.sort(key=lambda item:item[1].index)
-        return [f for (f,i) in L]
+        L = [(f, i) for (f, i) in cls._registry.items() if i.atexit]
+        L.sort(key=lambda item: item[1].index)
+        return [f for (f, i) in L]
 
     @classmethod
     def _exitfunc(cls):

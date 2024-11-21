@@ -46,13 +46,13 @@ class PyCompileError(Exception):
     def __init__(self, exc_type, exc_value, file, msg=''):
         exc_type_name = exc_type.__name__
         if exc_type is SyntaxError:
-            tbtext = ''.join(traceback.format_exception_only(
-                exc_type, exc_value))
+            tbtext = ''.join(
+                traceback.format_exception_only(exc_type, exc_value))
             errmsg = tbtext.replace('File "<string>"', 'File "%s"' % file)
         else:
-            errmsg = "Sorry: %s: %s" % (exc_type_name,exc_value)
+            errmsg = "Sorry: %s: %s" % (exc_type_name, exc_value)
 
-        Exception.__init__(self,msg or errmsg,exc_type_name,exc_value,file)
+        Exception.__init__(self, msg or errmsg, exc_type_name, exc_value, file)
 
         self.exc_type_name = exc_type_name
         self.exc_value = exc_value
@@ -76,8 +76,13 @@ def _get_default_invalidation_mode():
         return PycInvalidationMode.TIMESTAMP
 
 
-def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1,
-            invalidation_mode=None, quiet=0):
+def compile(file,
+            cfile=None,
+            dfile=None,
+            doraise=False,
+            optimize=-1,
+            invalidation_mode=None,
+            quiet=0):
     """Byte-compile one Python source file to Python bytecode.
 
     :param file: The source file name.
@@ -141,7 +146,8 @@ def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1,
     loader = importlib.machinery.SourceFileLoader('<py_compile>', file)
     source_bytes = loader.get_data(file)
     try:
-        code = loader.source_to_code(source_bytes, dfile or file,
+        code = loader.source_to_code(source_bytes,
+                                     dfile or file,
                                      _optimize=optimize)
     except Exception as err:
         py_exc = PyCompileError(err.__class__, err, dfile or file)
@@ -179,7 +185,8 @@ def main():
     description = 'A simple command-line interface for py_compile module.'
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
-        '-q', '--quiet',
+        '-q',
+        '--quiet',
         action='store_true',
         help='Suppress error output',
     )

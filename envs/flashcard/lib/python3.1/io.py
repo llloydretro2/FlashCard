@@ -41,12 +41,12 @@ __author__ = ("Guido van Rossum <guido@python.org>, "
               "Amaury Forgeot d'Arc <amauryfa@gmail.com>, "
               "Benjamin Peterson <benjamin@python.org>")
 
-__all__ = ["BlockingIOError", "open", "open_code", "IOBase", "RawIOBase",
-           "FileIO", "BytesIO", "StringIO", "BufferedIOBase",
-           "BufferedReader", "BufferedWriter", "BufferedRWPair",
-           "BufferedRandom", "TextIOBase", "TextIOWrapper",
-           "UnsupportedOperation", "SEEK_SET", "SEEK_CUR", "SEEK_END"]
-
+__all__ = [
+    "BlockingIOError", "open", "open_code", "IOBase", "RawIOBase", "FileIO",
+    "BytesIO", "StringIO", "BufferedIOBase", "BufferedReader",
+    "BufferedWriter", "BufferedRWPair", "BufferedRandom", "TextIOBase",
+    "TextIOWrapper", "UnsupportedOperation", "SEEK_SET", "SEEK_CUR", "SEEK_END"
+]
 
 import _io
 import abc
@@ -66,7 +66,8 @@ def __getattr__(name):
         # a static method, and builtins.open() is now io.open().
         import warnings
         warnings.warn('OpenWrapper is deprecated, use open instead',
-                      DeprecationWarning, stacklevel=2)
+                      DeprecationWarning,
+                      stacklevel=2)
         global OpenWrapper
         OpenWrapper = open
         return OpenWrapper
@@ -81,20 +82,25 @@ SEEK_SET = 0
 SEEK_CUR = 1
 SEEK_END = 2
 
+
 # Declaring ABCs in C is tricky so we do it here.
 # Method descriptions and default implementations are inherited from the C
 # version however.
 class IOBase(_io._IOBase, metaclass=abc.ABCMeta):
     __doc__ = _io._IOBase.__doc__
 
+
 class RawIOBase(_io._RawIOBase, IOBase):
     __doc__ = _io._RawIOBase.__doc__
+
 
 class BufferedIOBase(_io._BufferedIOBase, IOBase):
     __doc__ = _io._BufferedIOBase.__doc__
 
+
 class TextIOBase(_io._TextIOBase, IOBase):
     __doc__ = _io._TextIOBase.__doc__
+
 
 RawIOBase.register(FileIO)
 

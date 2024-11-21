@@ -1,6 +1,5 @@
 # Copyright 2007 Google, Inc. All Rights Reserved.
 # Licensed to PSF under a Contributor Agreement.
-
 """Abstract Base Classes (ABCs) for numbers, according to PEP 3141.
 
 TODO: Fill out more detailed documentation on the operators."""
@@ -8,6 +7,7 @@ TODO: Fill out more detailed documentation on the operators."""
 from abc import ABCMeta, abstractmethod
 
 __all__ = ["Number", "Complex", "Real", "Rational", "Integral"]
+
 
 class Number(metaclass=ABCMeta):
     """All numbers inherit from this class.
@@ -28,6 +28,7 @@ class Number(metaclass=ABCMeta):
 ## binary floats (i.e.  Decimal('3.14') + 2.71828 is undefined).  But,
 ## abstract reals are expected to interoperate (i.e. R1 + R2 should be
 ## expected to work if R1 and R2 are both Reals).
+
 
 class Complex(Number):
     """Complex defines the operations that work on the builtin complex type.
@@ -140,6 +141,7 @@ class Complex(Number):
     def __eq__(self, other):
         """self == other"""
         raise NotImplementedError
+
 
 Complex.register(complex)
 
@@ -260,6 +262,7 @@ class Real(Complex):
     def conjugate(self):
         """Conjugate is a no-op for Reals."""
         return +self
+
 
 Real.register(float)
 
@@ -389,5 +392,6 @@ class Integral(Rational):
     def denominator(self):
         """Integers have a denominator of 1."""
         return 1
+
 
 Integral.register(int)

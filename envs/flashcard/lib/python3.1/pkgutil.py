@@ -12,12 +12,19 @@ from types import ModuleType
 import warnings
 
 __all__ = [
-    'get_importer', 'iter_importers', 'get_loader', 'find_loader',
-    'walk_packages', 'iter_modules', 'get_data',
-    'ImpImporter', 'ImpLoader', 'read_code', 'extend_path',
+    'get_importer',
+    'iter_importers',
+    'get_loader',
+    'find_loader',
+    'walk_packages',
+    'iter_modules',
+    'get_data',
+    'ImpImporter',
+    'ImpLoader',
+    'read_code',
+    'extend_path',
     'ModuleInfo',
 ]
-
 
 ModuleInfo = namedtuple('ModuleInfo', 'module_finder name ispkg')
 ModuleInfo.__doc__ = 'A namedtuple with minimal info about a module.'
@@ -46,7 +53,7 @@ def read_code(stream):
     if magic != importlib.util.MAGIC_NUMBER:
         return None
 
-    stream.read(12) # Skip rest of the header
+    stream.read(12)  # Skip rest of the header
     return marshal.load(stream)
 
 
@@ -104,7 +111,7 @@ def walk_packages(path=None, prefix='', onerror=None):
                 # don't traverse path items we've seen before
                 path = [p for p in path if not seen(p)]
 
-                yield from walk_packages(path, info.name+'.', onerror)
+                yield from walk_packages(path, info.name + '.', onerror)
 
 
 def iter_modules(path=None, prefix=''):
@@ -121,7 +128,7 @@ def iter_modules(path=None, prefix=''):
         importers = iter_importers()
     elif isinstance(path, str):
         raise ValueError("path must be None or list of paths to look for "
-                        "modules in")
+                         "modules in")
     else:
         importers = map(get_importer, path)
 
@@ -156,7 +163,7 @@ def _iter_file_finder_modules(importer, prefix=''):
 
     for fn in filenames:
         modname = inspect.getmodulename(fn)
-        if modname=='__init__' or modname in yielded:
+        if modname == '__init__' or modname in yielded:
             continue
 
         path = os.path.join(importer.path, fn)
@@ -171,18 +178,19 @@ def _iter_file_finder_modules(importer, prefix=''):
                 dircontents = []
             for fn in dircontents:
                 subname = inspect.getmodulename(fn)
-                if subname=='__init__':
+                if subname == '__init__':
                     ispkg = True
                     break
             else:
-                continue    # not a package
+                continue  # not a package
 
         if modname and '.' not in modname:
             yielded[modname] = 1
             yield prefix + modname, ispkg
 
-iter_importer_modules.register(
-    importlib.machinery.FileFinder, _iter_file_finder_modules)
+
+iter_importer_modules.register(importlib.machinery.FileFinder,
+                               _iter_file_finder_modules)
 
 
 def _import_imp():
@@ -190,6 +198,7 @@ def _import_imp():
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', DeprecationWarning)
         imp = importlib.import_module('imp')
+
 
 class ImpImporter:
     """PEP 302 Finder that wraps Python's "classic" import algorithm
@@ -204,9 +213,9 @@ class ImpImporter:
 
     def __init__(self, path=None):
         global imp
-        warnings.warn("This emulation is deprecated and slated for removal "
-                      "in Python 3.12; use 'importlib' instead",
-             DeprecationWarning)
+        warnings.warn(
+            "This emulation is deprecated and slated for removal "
+            "in Python 3.12; use 'importlib' instead", DeprecationWarning)
         _import_imp()
         self.path = path
 
@@ -240,7 +249,7 @@ class ImpImporter:
 
         for fn in filenames:
             modname = inspect.getmodulename(fn)
-            if modname=='__init__' or modname in yielded:
+            if modname == '__init__' or modname in yielded:
                 continue
 
             path = os.path.join(self.path, fn)
@@ -255,11 +264,11 @@ class ImpImporter:
                     dircontents = []
                 for fn in dircontents:
                     subname = inspect.getmodulename(fn)
-                    if subname=='__init__':
+                    if subname == '__init__':
                         ispkg = True
                         break
                 else:
-                    continue    # not a package
+                    continue  # not a package
 
             if modname and '.' not in modname:
                 yielded[modname] = 1
@@ -272,9 +281,9 @@ class ImpLoader:
     code = source = None
 
     def __init__(self, fullname, file, filename, etc):
-        warnings.warn("This emulation is deprecated and slated for removal in "
-                      "Python 3.12; use 'importlib' instead",
-                      DeprecationWarning)
+        warnings.warn(
+            "This emulation is deprecated and slated for removal in "
+            "Python 3.12; use 'importlib' instead", DeprecationWarning)
         _import_imp()
         self.file = file
         self.filename = filename
@@ -299,7 +308,7 @@ class ImpLoader:
     def _reopen(self):
         if self.file and self.file.closed:
             mod_type = self.etc[2]
-            if mod_type==imp.PY_SOURCE:
+            if mod_type == imp.PY_SOURCE:
                 self.file = open(self.filename, 'r')
             elif mod_type in (imp.PY_COMPILED, imp.C_EXTENSION):
                 self.file = open(self.filename, 'rb')
@@ -314,22 +323,22 @@ class ImpLoader:
 
     def is_package(self, fullname):
         fullname = self._fix_name(fullname)
-        return self.etc[2]==imp.PKG_DIRECTORY
+        return self.etc[2] == imp.PKG_DIRECTORY
 
     def get_code(self, fullname=None):
         fullname = self._fix_name(fullname)
         if self.code is None:
             mod_type = self.etc[2]
-            if mod_type==imp.PY_SOURCE:
+            if mod_type == imp.PY_SOURCE:
                 source = self.get_source(fullname)
                 self.code = compile(source, self.filename, 'exec')
-            elif mod_type==imp.PY_COMPILED:
+            elif mod_type == imp.PY_COMPILED:
                 self._reopen()
                 try:
                     self.code = read_code(self.file)
                 finally:
                     self.file.close()
-            elif mod_type==imp.PKG_DIRECTORY:
+            elif mod_type == imp.PKG_DIRECTORY:
                 self.code = self._get_delegate().get_code()
         return self.code
 
@@ -337,17 +346,17 @@ class ImpLoader:
         fullname = self._fix_name(fullname)
         if self.source is None:
             mod_type = self.etc[2]
-            if mod_type==imp.PY_SOURCE:
+            if mod_type == imp.PY_SOURCE:
                 self._reopen()
                 try:
                     self.source = self.file.read()
                 finally:
                     self.file.close()
-            elif mod_type==imp.PY_COMPILED:
+            elif mod_type == imp.PY_COMPILED:
                 if os.path.exists(self.filename[:-1]):
                     with open(self.filename[:-1], 'r') as f:
                         self.source = f.read()
-            elif mod_type==imp.PKG_DIRECTORY:
+            elif mod_type == imp.PKG_DIRECTORY:
                 self.source = self._get_delegate().get_source()
         return self.source
 
@@ -359,7 +368,7 @@ class ImpLoader:
     def get_filename(self, fullname=None):
         fullname = self._fix_name(fullname)
         mod_type = self.etc[2]
-        if mod_type==imp.PKG_DIRECTORY:
+        if mod_type == imp.PKG_DIRECTORY:
             return self._get_delegate().get_filename()
         elif mod_type in (imp.PY_SOURCE, imp.PY_COMPILED, imp.C_EXTENSION):
             return self.filename
@@ -382,16 +391,16 @@ try:
 
             fn = fn[plen:].split(os.sep)
 
-            if len(fn)==2 and fn[1].startswith('__init__.py'):
+            if len(fn) == 2 and fn[1].startswith('__init__.py'):
                 if fn[0] not in yielded:
                     yielded[fn[0]] = 1
                     yield prefix + fn[0], True
 
-            if len(fn)!=1:
+            if len(fn) != 1:
                 continue
 
             modname = inspect.getmodulename(fn[0])
-            if modname=='__init__':
+            if modname == '__init__':
                 continue
 
             if modname and '.' not in modname and modname not in yielded:
@@ -542,7 +551,7 @@ def extend_path(path, name):
 
     sname_pkg = name + ".pkg"
 
-    path = path[:] # Start with a copy of the existing path
+    path = path[:]  # Start with a copy of the existing path
 
     parent_package, _, final_name = name.rpartition('.')
     if parent_package:
@@ -583,15 +592,14 @@ def extend_path(path, name):
             try:
                 f = open(pkgfile)
             except OSError as msg:
-                sys.stderr.write("Can't open %s: %s\n" %
-                                 (pkgfile, msg))
+                sys.stderr.write("Can't open %s: %s\n" % (pkgfile, msg))
             else:
                 with f:
                     for line in f:
                         line = line.rstrip('\n')
                         if not line or line.startswith('#'):
                             continue
-                        path.append(line) # Don't check for existence!
+                        path.append(line)  # Don't check for existence!
 
     return path
 
@@ -625,8 +633,7 @@ def get_data(package, resource):
     if loader is None or not hasattr(loader, 'get_data'):
         return None
     # XXX needs test
-    mod = (sys.modules.get(package) or
-           importlib._bootstrap._load(spec))
+    mod = (sys.modules.get(package) or importlib._bootstrap._load(spec))
     if mod is None or not hasattr(mod, '__file__'):
         return None
 
@@ -640,6 +647,7 @@ def get_data(package, resource):
 
 
 _NAME_PATTERN = None
+
 
 def resolve_name(name):
     """
@@ -678,9 +686,9 @@ def resolve_name(name):
         # Lazy import to speedup Python startup time
         import re
         dotted_words = r'(?!\d)(\w+)(\.(?!\d)(\w+))*'
-        _NAME_PATTERN = re.compile(f'^(?P<pkg>{dotted_words})'
-                                   f'(?P<cln>:(?P<obj>{dotted_words})?)?$',
-                                   re.UNICODE)
+        _NAME_PATTERN = re.compile(
+            f'^(?P<pkg>{dotted_words})'
+            f'(?P<cln>:(?P<obj>{dotted_words})?)?$', re.UNICODE)
 
     m = _NAME_PATTERN.match(name)
     if not m:

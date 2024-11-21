@@ -79,11 +79,16 @@ else:
 from email.header import decode_header as _email_decode_header
 from socket import _GLOBAL_DEFAULT_TIMEOUT
 
-__all__ = ["NNTP",
-           "NNTPError", "NNTPReplyError", "NNTPTemporaryError",
-           "NNTPPermanentError", "NNTPProtocolError", "NNTPDataError",
-           "decode_header",
-           ]
+__all__ = [
+    "NNTP",
+    "NNTPError",
+    "NNTPReplyError",
+    "NNTPTemporaryError",
+    "NNTPPermanentError",
+    "NNTPProtocolError",
+    "NNTPDataError",
+    "decode_header",
+]
 
 # maximal line length when calling readline(). This is to prevent
 # reading arbitrary length lines. RFC 3977 limits NNTP line length to
@@ -95,6 +100,7 @@ _MAXLINE = 2048
 # Exceptions raised when an error or invalid response is received
 class NNTPError(Exception):
     """Base class for all nntplib exceptions"""
+
     def __init__(self, *args):
         Exception.__init__(self, *args)
         try:
@@ -102,21 +108,26 @@ class NNTPError(Exception):
         except IndexError:
             self.response = 'No response given'
 
+
 class NNTPReplyError(NNTPError):
     """Unexpected [123]xx reply"""
     pass
+
 
 class NNTPTemporaryError(NNTPError):
     """4xx errors"""
     pass
 
+
 class NNTPPermanentError(NNTPError):
     """5xx errors"""
     pass
 
+
 class NNTPProtocolError(NNTPError):
     """Response does not begin with [1-5]"""
     pass
+
 
 class NNTPDataError(NNTPError):
     """Error in response data"""
@@ -129,23 +140,24 @@ NNTP_SSL_PORT = 563
 
 # Response numbers that are followed by additional text (e.g. article)
 _LONGRESP = {
-    '100',   # HELP
-    '101',   # CAPABILITIES
-    '211',   # LISTGROUP   (also not multi-line with GROUP)
-    '215',   # LIST
-    '220',   # ARTICLE
-    '221',   # HEAD, XHDR
-    '222',   # BODY
-    '224',   # OVER, XOVER
-    '225',   # HDR
-    '230',   # NEWNEWS
-    '231',   # NEWGROUPS
-    '282',   # XGTITLE
+    '100',  # HELP
+    '101',  # CAPABILITIES
+    '211',  # LISTGROUP   (also not multi-line with GROUP)
+    '215',  # LIST
+    '220',  # ARTICLE
+    '221',  # HEAD, XHDR
+    '222',  # BODY
+    '224',  # OVER, XOVER
+    '225',  # HDR
+    '230',  # NEWNEWS
+    '231',  # NEWGROUPS
+    '282',  # XGTITLE
 }
 
 # Default decoded value for LIST OVERVIEW.FMT if not supported
 _DEFAULT_OVERVIEW_FMT = [
-    "subject", "from", "date", "message-id", "references", ":bytes", ":lines"]
+    "subject", "from", "date", "message-id", "references", ":bytes", ":lines"
+]
 
 # Alternative names allowed in LIST OVERVIEW.FMT response
 _OVERVIEW_FMT_ALTERNATIVES = {
@@ -175,6 +187,7 @@ def decode_header(header_str):
             parts.append(v)
     return ''.join(parts)
 
+
 def _parse_overview_fmt(lines):
     """Parse a list of string representing the response to LIST OVERVIEW.FMT
     and return a list of header/metadata names.
@@ -199,6 +212,7 @@ def _parse_overview_fmt(lines):
     if fmt[:len(defaults)] != defaults:
         raise NNTPDataError("LIST OVERVIEW.FMT redefines default fields")
     return fmt
+
 
 def _parse_overview(lines, fmt, data_process_func=None):
     """Parse the response to an OVER or XOVER command according to the
@@ -229,6 +243,7 @@ def _parse_overview(lines, fmt, data_process_func=None):
         overview.append((article_number, fields))
     return overview
 
+
 def _parse_datetime(date_str, time_str=None):
     """Parse a pair of (date, time) strings, and return a datetime object.
     If only the date is given, it is assumed to be date and time
@@ -250,6 +265,7 @@ def _parse_datetime(date_str, time_str=None):
     elif year < 100:
         year += 1900
     return datetime.datetime(year, month, day, hours, minutes, seconds)
+
 
 def _unparse_datetime(dt, legacy=False):
     """Format a date or datetime object as a pair of (date, time) strings
@@ -309,8 +325,13 @@ class NNTP:
     encoding = 'utf-8'
     errors = 'surrogateescape'
 
-    def __init__(self, host, port=NNTP_PORT, user=None, password=None,
-                 readermode=None, usenetrc=False,
+    def __init__(self,
+                 host,
+                 port=NNTP_PORT,
+                 user=None,
+                 password=None,
+                 readermode=None,
+                 usenetrc=False,
                  timeout=_GLOBAL_DEFAULT_TIMEOUT):
         """Initialize an instance.  Arguments:
         - host: hostname to connect to
@@ -394,7 +415,8 @@ class NNTP:
 
     def _create_socket(self, timeout):
         if timeout is not None and not timeout:
-            raise ValueError('Non-blocking socket (timeout=0) is not supported')
+            raise ValueError(
+                'Non-blocking socket (timeout=0) is not supported')
         sys.audit("nntplib.connect", self, self.host, self.port)
         return socket.create_connection((self.host, self.port), timeout)
 
@@ -436,6 +458,7 @@ class NNTP:
         2: also print raw lines read and sent before stripping CR/LF"""
 
         self.debugging = level
+
     debug = set_debuglevel
 
     def _putline(self, line):
@@ -458,7 +481,7 @@ class NNTP:
         """Internal: return one line from the server, stripping _CRLF.
         Raise EOFError if the connection is closed.
         Returns a bytes object."""
-        line = self.file.readline(_MAXLINE +1)
+        line = self.file.readline(_MAXLINE + 1)
         if len(line) > _MAXLINE:
             raise NNTPDataError('line too long')
         if self.debugging > 1:
@@ -552,8 +575,7 @@ class NNTP:
         """
         self._putcmd(line)
         resp, list = self._getlongresp(file)
-        return resp, [line.decode(self.encoding, self.errors)
-                      for line in list]
+        return resp, [line.decode(self.encoding, self.errors) for line in list]
 
     def _getoverviewfmt(self):
         """Internal: get the overview format. Queries the server if not
@@ -814,10 +836,13 @@ class NNTP:
         - list: list of (nr, value) strings
         """
         pat = re.compile('^([0-9]+) ?(.*)\n?')
-        resp, lines = self._longcmdstring('XHDR {0} {1}'.format(hdr, str), file)
+        resp, lines = self._longcmdstring('XHDR {0} {1}'.format(hdr, str),
+                                          file)
+
         def remove_number(line):
             m = pat.match(line)
             return m.group(1, 2) if m else line
+
         return resp, [remove_number(line) for line in lines]
 
     def xover(self, start, end, *, file=None):
@@ -987,6 +1012,7 @@ class NNTP:
                 raise
 
     if _have_ssl:
+
         def starttls(self, context=None):
             """Process a STARTTLS command. Arguments:
             - context: SSL context to use for the encrypted connection
@@ -1012,18 +1038,24 @@ class NNTP:
 
 
 if _have_ssl:
+
     class NNTP_SSL(NNTP):
 
-        def __init__(self, host, port=NNTP_SSL_PORT,
-                    user=None, password=None, ssl_context=None,
-                    readermode=None, usenetrc=False,
-                    timeout=_GLOBAL_DEFAULT_TIMEOUT):
+        def __init__(self,
+                     host,
+                     port=NNTP_SSL_PORT,
+                     user=None,
+                     password=None,
+                     ssl_context=None,
+                     readermode=None,
+                     usenetrc=False,
+                     timeout=_GLOBAL_DEFAULT_TIMEOUT):
             """This works identically to NNTP.__init__, except for the change
             in default port and the `ssl_context` argument for SSL connections.
             """
             self.ssl_context = ssl_context
-            super().__init__(host, port, user, password, readermode,
-                             usenetrc, timeout)
+            super().__init__(host, port, user, password, readermode, usenetrc,
+                             timeout)
 
         def _create_socket(self, timeout):
             sock = super()._create_socket(timeout)
@@ -1037,22 +1069,37 @@ if _have_ssl:
 
     __all__.append("NNTP_SSL")
 
-
 # Test retrieval when run as a script.
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description="""\
         nntplib built-in demo - display the latest articles in a newsgroup""")
-    parser.add_argument('-g', '--group', default='gmane.comp.python.general',
-                        help='group to fetch messages from (default: %(default)s)')
-    parser.add_argument('-s', '--server', default='news.gmane.io',
+    parser.add_argument(
+        '-g',
+        '--group',
+        default='gmane.comp.python.general',
+        help='group to fetch messages from (default: %(default)s)')
+    parser.add_argument('-s',
+                        '--server',
+                        default='news.gmane.io',
                         help='NNTP server hostname (default: %(default)s)')
-    parser.add_argument('-p', '--port', default=-1, type=int,
-                        help='NNTP port number (default: %s / %s)' % (NNTP_PORT, NNTP_SSL_PORT))
-    parser.add_argument('-n', '--nb-articles', default=10, type=int,
-                        help='number of articles to fetch (default: %(default)s)')
-    parser.add_argument('-S', '--ssl', action='store_true', default=False,
+    parser.add_argument('-p',
+                        '--port',
+                        default=-1,
+                        type=int,
+                        help='NNTP port number (default: %s / %s)' %
+                        (NNTP_PORT, NNTP_SSL_PORT))
+    parser.add_argument(
+        '-n',
+        '--nb-articles',
+        default=10,
+        type=int,
+        help='number of articles to fetch (default: %(default)s)')
+    parser.add_argument('-S',
+                        '--ssl',
+                        action='store_true',
+                        default=False,
                         help='use NNTP over SSL')
     args = parser.parse_args()
 
@@ -1083,8 +1130,7 @@ if __name__ == '__main__':
         author = decode_header(over['from']).split('<', 1)[0]
         subject = decode_header(over['subject'])
         lines = int(over[':lines'])
-        print("{:7} {:20} {:42} ({})".format(
-              artnum, cut(author, 20), cut(subject, 42), lines)
-              )
+        print("{:7} {:20} {:42} ({})".format(artnum, cut(author, 20),
+                                             cut(subject, 42), lines))
 
     s.quit()

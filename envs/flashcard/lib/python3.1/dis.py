@@ -8,9 +8,10 @@ import io
 from opcode import *
 from opcode import __all__ as _opcodes_all
 
-__all__ = ["code_info", "dis", "disassemble", "distb", "disco",
-           "findlinestarts", "findlabels", "show_code",
-           "get_instructions", "Instruction", "Bytecode"] + _opcodes_all
+__all__ = [
+    "code_info", "dis", "disassemble", "distb", "disco", "findlinestarts",
+    "findlabels", "show_code", "get_instructions", "Instruction", "Bytecode"
+] + _opcodes_all
 del _opcodes_all
 
 _have_code = (types.MethodType, types.FunctionType, types.CodeType,
@@ -39,6 +40,7 @@ def _try_compile(source, name):
     except SyntaxError:
         c = compile(source, name, 'exec')
     return c
+
 
 def dis(x=None, *, file=None, depth=None):
     """Disassemble classes, methods, functions, and other compiled objects.
@@ -75,15 +77,16 @@ def dis(x=None, *, file=None, depth=None):
                 except TypeError as msg:
                     print("Sorry:", msg, file=file)
                 print(file=file)
-    elif hasattr(x, 'co_code'): # Code object
+    elif hasattr(x, 'co_code'):  # Code object
         _disassemble_recursive(x, file=file, depth=depth)
-    elif isinstance(x, (bytes, bytearray)): # Raw bytecode
+    elif isinstance(x, (bytes, bytearray)):  # Raw bytecode
         _disassemble_bytes(x, file=file)
-    elif isinstance(x, str):    # Source code
+    elif isinstance(x, str):  # Source code
         _disassemble_str(x, file=file, depth=depth)
     else:
         raise TypeError("don't know how to disassemble %s objects" %
                         type(x).__name__)
+
 
 def distb(tb=None, *, file=None):
     """Disassemble a traceback (default: last traceback)."""
@@ -92,30 +95,33 @@ def distb(tb=None, *, file=None):
             tb = sys.last_traceback
         except AttributeError:
             raise RuntimeError("no last traceback to disassemble") from None
-        while tb.tb_next: tb = tb.tb_next
+        while tb.tb_next:
+            tb = tb.tb_next
     disassemble(tb.tb_frame.f_code, tb.tb_lasti, file=file)
+
 
 # The inspect module interrogates this dictionary to build its
 # list of CO_* constants. It is also used by pretty_flags to
 # turn the co_flags field into a human readable list.
 COMPILER_FLAG_NAMES = {
-     1: "OPTIMIZED",
-     2: "NEWLOCALS",
-     4: "VARARGS",
-     8: "VARKEYWORDS",
+    1: "OPTIMIZED",
+    2: "NEWLOCALS",
+    4: "VARARGS",
+    8: "VARKEYWORDS",
     16: "NESTED",
     32: "GENERATOR",
     64: "NOFREE",
-   128: "COROUTINE",
-   256: "ITERABLE_COROUTINE",
-   512: "ASYNC_GENERATOR",
+    128: "COROUTINE",
+    256: "ITERABLE_COROUTINE",
+    512: "ASYNC_GENERATOR",
 }
+
 
 def pretty_flags(flags):
     """Return pretty representation of code flags."""
     names = []
     for i in range(32):
-        flag = 1<<i
+        flag = 1 << i
         if flags & flag:
             names.append(COMPILER_FLAG_NAMES.get(flag, hex(flag)))
             flags ^= flag
@@ -124,6 +130,7 @@ def pretty_flags(flags):
     else:
         names.append(hex(flags))
     return ", ".join(names)
+
 
 def _get_code_object(x):
     """Helper to handle methods, compiled or raw code objects, and strings."""
@@ -148,9 +155,11 @@ def _get_code_object(x):
     raise TypeError("don't know how to disassemble %s objects" %
                     type(x).__name__)
 
+
 def code_info(x):
     """Formatted details of methods, functions, or code."""
     return _format_code_info(_get_code_object(x))
+
 
 def _format_code_info(co):
     lines = []
@@ -184,6 +193,7 @@ def _format_code_info(co):
             lines.append("%4d: %s" % i_n)
     return "\n".join(lines)
 
+
 def show_code(co, *, file=None):
     """Print details of methods, functions, or code to *file*.
 
@@ -191,8 +201,10 @@ def show_code(co, *, file=None):
     """
     print(code_info(co), file=file)
 
-_Instruction = collections.namedtuple("_Instruction",
-     "opname opcode arg argval argrepr offset starts_line is_jump_target")
+
+_Instruction = collections.namedtuple(
+    "_Instruction",
+    "opname opcode arg argval argrepr offset starts_line is_jump_target")
 
 _Instruction.opname.__doc__ = "Human readable name for operation"
 _Instruction.opcode.__doc__ = "Numeric code for operation"
@@ -205,6 +217,7 @@ _Instruction.is_jump_target.__doc__ = "True if other code jumps to here, otherwi
 
 _OPNAME_WIDTH = 20
 _OPARG_WIDTH = 5
+
 
 class Instruction(_Instruction):
     """Details for a bytecode operation
@@ -220,7 +233,10 @@ class Instruction(_Instruction):
          is_jump_target - True if other code jumps to here, otherwise False
     """
 
-    def _disassemble(self, lineno_width=3, mark_as_current=False, offset_width=4):
+    def _disassemble(self,
+                     lineno_width=3,
+                     mark_as_current=False,
+                     offset_width=4):
         """Format instruction details for inclusion in disassembly output
 
         *lineno_width* sets the width of the line number field (0 omits it)
@@ -280,6 +296,7 @@ def get_instructions(x, *, first_line=None):
                                    co.co_consts, cell_names, linestarts,
                                    line_offset)
 
+
 def _get_const_info(const_index, const_list):
     """Helper to get optional details about const references
 
@@ -291,6 +308,7 @@ def _get_const_info(const_index, const_list):
     if const_list is not None:
         argval = const_list[const_index]
     return argval, repr(argval)
+
 
 def _get_name_info(name_index, name_list):
     """Helper to get optional details about named references
@@ -308,8 +326,13 @@ def _get_name_info(name_index, name_list):
     return argval, argrepr
 
 
-def _get_instructions_bytes(code, varnames=None, names=None, constants=None,
-                      cells=None, linestarts=None, line_offset=0):
+def _get_instructions_bytes(code,
+                            varnames=None,
+                            names=None,
+                            constants=None,
+                            cells=None,
+                            linestarts=None,
+                            line_offset=0):
     """Iterate over the instructions in a bytecode string.
 
     Generates a sequence of Instruction namedtuples giving the details of each
@@ -339,10 +362,10 @@ def _get_instructions_bytes(code, varnames=None, names=None, constants=None,
             elif op in hasname:
                 argval, argrepr = _get_name_info(arg, names)
             elif op in hasjabs:
-                argval = arg*2
+                argval = arg * 2
                 argrepr = "to " + repr(argval)
             elif op in hasjrel:
-                argval = offset + 2 + arg*2
+                argval = offset + 2 + arg * 2
                 argrepr = "to " + repr(argval)
             elif op in haslocal:
                 argval, argrepr = _get_name_info(arg, varnames)
@@ -359,18 +382,26 @@ def _get_instructions_bytes(code, varnames=None, names=None, constants=None,
                         argrepr += ', '
                     argrepr += 'with format'
             elif op == MAKE_FUNCTION:
-                argrepr = ', '.join(s for i, s in enumerate(MAKE_FUNCTION_FLAGS)
-                                    if arg & (1<<i))
-        yield Instruction(opname[op], op,
-                          arg, argval, argrepr,
-                          offset, starts_line, is_jump_target)
+                argrepr = ', '.join(s
+                                    for i, s in enumerate(MAKE_FUNCTION_FLAGS)
+                                    if arg & (1 << i))
+        yield Instruction(opname[op], op, arg, argval, argrepr, offset,
+                          starts_line, is_jump_target)
+
 
 def disassemble(co, lasti=-1, *, file=None):
     """Disassemble a code object."""
     cell_names = co.co_cellvars + co.co_freevars
     linestarts = dict(findlinestarts(co))
-    _disassemble_bytes(co.co_code, lasti, co.co_varnames, co.co_names,
-                       co.co_consts, cell_names, linestarts, file=file)
+    _disassemble_bytes(co.co_code,
+                       lasti,
+                       co.co_varnames,
+                       co.co_names,
+                       co.co_consts,
+                       cell_names,
+                       linestarts,
+                       file=file)
+
 
 def _disassemble_recursive(co, *, file=None, depth=None):
     disassemble(co, file=file)
@@ -380,12 +411,20 @@ def _disassemble_recursive(co, *, file=None, depth=None):
         for x in co.co_consts:
             if hasattr(x, 'co_code'):
                 print(file=file)
-                print("Disassembly of %r:" % (x,), file=file)
+                print("Disassembly of %r:" % (x, ), file=file)
                 _disassemble_recursive(x, file=file, depth=depth)
 
-def _disassemble_bytes(code, lasti=-1, varnames=None, names=None,
-                       constants=None, cells=None, linestarts=None,
-                       *, file=None, line_offset=0):
+
+def _disassemble_bytes(code,
+                       lasti=-1,
+                       varnames=None,
+                       names=None,
+                       constants=None,
+                       cells=None,
+                       linestarts=None,
+                       *,
+                       file=None,
+                       line_offset=0):
     # Omit the line number column entirely if we have no line number info
     show_lineno = bool(linestarts)
     if show_lineno:
@@ -401,34 +440,41 @@ def _disassemble_bytes(code, lasti=-1, varnames=None, names=None,
         offset_width = len(str(maxoffset))
     else:
         offset_width = 4
-    for instr in _get_instructions_bytes(code, varnames, names,
-                                         constants, cells, linestarts,
+    for instr in _get_instructions_bytes(code,
+                                         varnames,
+                                         names,
+                                         constants,
+                                         cells,
+                                         linestarts,
                                          line_offset=line_offset):
-        new_source_line = (show_lineno and
-                           instr.starts_line is not None and
-                           instr.offset > 0)
+        new_source_line = (show_lineno and instr.starts_line is not None
+                           and instr.offset > 0)
         if new_source_line:
             print(file=file)
         is_current_instr = instr.offset == lasti
         print(instr._disassemble(lineno_width, is_current_instr, offset_width),
               file=file)
 
+
 def _disassemble_str(source, **kwargs):
     """Compile the source string, then disassemble the code object."""
     _disassemble_recursive(_try_compile(source, '<dis>'), **kwargs)
 
-disco = disassemble                     # XXX For backwards compatibility
+
+disco = disassemble  # XXX For backwards compatibility
+
 
 def _unpack_opargs(code):
     extended_arg = 0
     for i in range(0, len(code), 2):
         op = code[i]
         if op >= HAVE_ARGUMENT:
-            arg = code[i+1] | extended_arg
+            arg = code[i + 1] | extended_arg
             extended_arg = (arg << 8) if op == EXTENDED_ARG else 0
         else:
             arg = None
         yield (i, op, arg)
+
 
 def findlabels(code):
     """Detect all offsets in a byte code which are jump targets.
@@ -440,14 +486,15 @@ def findlabels(code):
     for offset, op, arg in _unpack_opargs(code):
         if arg is not None:
             if op in hasjrel:
-                label = offset + 2 + arg*2
+                label = offset + 2 + arg * 2
             elif op in hasjabs:
-                label = arg*2
+                label = arg * 2
             else:
                 continue
             if label not in labels:
                 labels.append(label)
     return labels
+
 
 def findlinestarts(code):
     """Find the offsets in a byte code which are start of lines in the source.
@@ -470,6 +517,7 @@ class Bytecode:
 
     Iterating over this yields the bytecode operations as Instruction instances.
     """
+
     def __init__(self, x, *, first_line=None, current_offset=None):
         self.codeobj = co = _get_code_object(x)
         if first_line is None:
@@ -485,8 +533,11 @@ class Bytecode:
 
     def __iter__(self):
         co = self.codeobj
-        return _get_instructions_bytes(co.co_code, co.co_varnames, co.co_names,
-                                       co.co_consts, self._cell_names,
+        return _get_instructions_bytes(co.co_code,
+                                       co.co_varnames,
+                                       co.co_names,
+                                       co.co_consts,
+                                       self._cell_names,
                                        self._linestarts,
                                        line_offset=self._line_offset)
 
@@ -513,8 +564,10 @@ class Bytecode:
         else:
             offset = -1
         with io.StringIO() as output:
-            _disassemble_bytes(co.co_code, varnames=co.co_varnames,
-                               names=co.co_names, constants=co.co_consts,
+            _disassemble_bytes(co.co_code,
+                               varnames=co.co_varnames,
+                               names=co.co_names,
+                               constants=co.co_consts,
                                cells=self._cell_names,
                                linestarts=self._linestarts,
                                line_offset=self._line_offset,
@@ -528,12 +581,16 @@ def _test():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('infile', type=argparse.FileType('rb'), nargs='?', default='-')
+    parser.add_argument('infile',
+                        type=argparse.FileType('rb'),
+                        nargs='?',
+                        default='-')
     args = parser.parse_args()
     with args.infile as infile:
         source = infile.read()
     code = compile(source, args.infile.name, "exec")
     dis(code)
+
 
 if __name__ == "__main__":
     _test()

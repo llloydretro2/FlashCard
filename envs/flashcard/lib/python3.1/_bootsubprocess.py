@@ -9,6 +9,7 @@ import os
 # distutils.spawn used by distutils.command.build_ext
 # calls subprocess.Popen().wait()
 class Popen:
+
     def __init__(self, cmd, env=None):
         self._cmd = cmd
         self._env = env

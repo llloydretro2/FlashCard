@@ -23,7 +23,6 @@
 #   between ascii and binary. This results in a 1000-fold speedup. The C
 #   version is still 5 times faster, though.
 # - Arguments more compliant with python standard
-
 """Implementation of the UUencode and UUdecode functions.
 
 encode(in_file, out_file [,name, mode], *, backtick=False)
@@ -36,8 +35,10 @@ import sys
 
 __all__ = ["Error", "encode", "decode"]
 
+
 class Error(Exception):
     pass
+
 
 def encode(in_file, out_file, name=None, mode=None, *, backtick=False):
     """Uuencode file"""
@@ -77,13 +78,14 @@ def encode(in_file, out_file, name=None, mode=None, *, backtick=False):
         #
         # Remove newline chars from name
         #
-        name = name.replace('\n','\\n')
-        name = name.replace('\r','\\r')
+        name = name.replace('\n', '\\n')
+        name = name.replace('\r', '\\r')
 
         #
         # Write the data
         #
-        out_file.write(('begin %o %s\n' % ((mode & 0o777), name)).encode("ascii"))
+        out_file.write(
+            ('begin %o %s\n' % ((mode & 0o777), name)).encode("ascii"))
         data = in_file.read(45)
         while len(data) > 0:
             out_file.write(binascii.b2a_uu(data, backtick=backtick))
@@ -152,7 +154,7 @@ def decode(in_file, out_file=None, mode=None, quiet=False):
                 data = binascii.a2b_uu(s)
             except binascii.Error as v:
                 # Workaround for broken uuencoders by /Fredrik Lundh
-                nbytes = (((s[0]-32) & 63) * 4 + 5) // 3
+                nbytes = (((s[0] - 32) & 63) * 4 + 5) // 3
                 data = binascii.a2b_uu(s[:nbytes])
                 if not quiet:
                     sys.stderr.write("Warning: %s\n" % v)
@@ -164,13 +166,26 @@ def decode(in_file, out_file=None, mode=None, quiet=False):
         for f in opened_files:
             f.close()
 
+
 def test():
     """uuencode/uudecode main program"""
 
     import optparse
-    parser = optparse.OptionParser(usage='usage: %prog [-d] [-t] [input [output]]')
-    parser.add_option('-d', '--decode', dest='decode', help='Decode (instead of encode)?', default=False, action='store_true')
-    parser.add_option('-t', '--text', dest='text', help='data is text, encoded format unix-compatible text?', default=False, action='store_true')
+    parser = optparse.OptionParser(
+        usage='usage: %prog [-d] [-t] [input [output]]')
+    parser.add_option('-d',
+                      '--decode',
+                      dest='decode',
+                      help='Decode (instead of encode)?',
+                      default=False,
+                      action='store_true')
+    parser.add_option(
+        '-t',
+        '--text',
+        dest='text',
+        help='data is text, encoded format unix-compatible text?',
+        default=False,
+        action='store_true')
 
     (options, args) = parser.parse_args()
     if len(args) > 2:
@@ -201,6 +216,7 @@ def test():
                 print(sys.argv[0], ': cannot do -t from stdin')
                 sys.exit(1)
         encode(input, output)
+
 
 if __name__ == '__main__':
     test()

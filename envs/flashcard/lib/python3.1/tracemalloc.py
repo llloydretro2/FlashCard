@@ -45,23 +45,20 @@ class Statistic:
     def __eq__(self, other):
         if not isinstance(other, Statistic):
             return NotImplemented
-        return (self.traceback == other.traceback
-                and self.size == other.size
+        return (self.traceback == other.traceback and self.size == other.size
                 and self.count == other.count)
 
     def __str__(self):
-        text = ("%s: size=%s, count=%i"
-                 % (self.traceback,
-                    _format_size(self.size, False),
-                    self.count))
+        text = ("%s: size=%s, count=%i" %
+                (self.traceback, _format_size(self.size, False), self.count))
         if self.count:
             average = self.size / self.count
             text += ", average=%s" % _format_size(average, False)
         return text
 
     def __repr__(self):
-        return ('<Statistic traceback=%r size=%i count=%i>'
-                % (self.traceback, self.size, self.count))
+        return ('<Statistic traceback=%r size=%i count=%i>' %
+                (self.traceback, self.size, self.count))
 
     def _sort_key(self):
         return (self.size, self.count, self.traceback)
@@ -82,39 +79,35 @@ class StatisticDiff:
         self.count_diff = count_diff
 
     def __hash__(self):
-        return hash((self.traceback, self.size, self.size_diff,
-                     self.count, self.count_diff))
+        return hash((self.traceback, self.size, self.size_diff, self.count,
+                     self.count_diff))
 
     def __eq__(self, other):
         if not isinstance(other, StatisticDiff):
             return NotImplemented
-        return (self.traceback == other.traceback
-                and self.size == other.size
+        return (self.traceback == other.traceback and self.size == other.size
                 and self.size_diff == other.size_diff
                 and self.count == other.count
                 and self.count_diff == other.count_diff)
 
     def __str__(self):
-        text = ("%s: size=%s (%s), count=%i (%+i)"
-                % (self.traceback,
-                   _format_size(self.size, False),
-                   _format_size(self.size_diff, True),
-                   self.count,
-                   self.count_diff))
+        text = (
+            "%s: size=%s (%s), count=%i (%+i)" %
+            (self.traceback, _format_size(self.size, False),
+             _format_size(self.size_diff, True), self.count, self.count_diff))
         if self.count:
             average = self.size / self.count
             text += ", average=%s" % _format_size(average, False)
         return text
 
     def __repr__(self):
-        return ('<StatisticDiff traceback=%r size=%i (%+i) count=%i (%+i)>'
-                % (self.traceback, self.size, self.size_diff,
-                   self.count, self.count_diff))
+        return ('<StatisticDiff traceback=%r size=%i (%+i) count=%i (%+i)>' %
+                (self.traceback, self.size, self.size_diff, self.count,
+                 self.count_diff))
 
     def _sort_key(self):
-        return (abs(self.size_diff), self.size,
-                abs(self.count_diff), self.count,
-                self.traceback)
+        return (abs(self.size_diff), self.size, abs(self.count_diff),
+                self.count, self.traceback)
 
 
 def _compare_grouped_stats(old_group, new_group):
@@ -122,13 +115,12 @@ def _compare_grouped_stats(old_group, new_group):
     for traceback, stat in new_group.items():
         previous = old_group.pop(traceback, None)
         if previous is not None:
-            stat = StatisticDiff(traceback,
-                                 stat.size, stat.size - previous.size,
-                                 stat.count, stat.count - previous.count)
+            stat = StatisticDiff(traceback, stat.size,
+                                 stat.size - previous.size, stat.count,
+                                 stat.count - previous.count)
         else:
-            stat = StatisticDiff(traceback,
-                                 stat.size, stat.size,
-                                 stat.count, stat.count)
+            stat = StatisticDiff(traceback, stat.size, stat.size, stat.count,
+                                 stat.count)
         statistics.append(stat)
 
     for traceback, stat in old_group.items():
@@ -142,7 +134,7 @@ class Frame:
     """
     Frame of a traceback.
     """
-    __slots__ = ("_frame",)
+    __slots__ = ("_frame", )
 
     def __init__(self, frame):
         # frame is a tuple: (filename: str, lineno: int)
@@ -246,8 +238,8 @@ class Traceback(Sequence):
         if most_recent_first:
             frame_slice = reversed(frame_slice)
         for frame in frame_slice:
-            lines.append('  File "%s", line %s'
-                         % (frame.filename, frame.lineno))
+            lines.append('  File "%s", line %s' %
+                         (frame.filename, frame.lineno))
             line = linecache.getline(frame.filename, frame.lineno).strip()
             if line:
                 lines.append('    %s' % line)
@@ -273,7 +265,7 @@ class Trace:
     """
     Trace of a memory block.
     """
-    __slots__ = ("_trace",)
+    __slots__ = ("_trace", )
 
     def __init__(self, trace):
         # trace is a tuple: (domain: int, size: int, traceback: tuple).
@@ -304,11 +296,12 @@ class Trace:
         return "%s: %s" % (self.traceback, _format_size(self.size, False))
 
     def __repr__(self):
-        return ("<Trace domain=%s size=%s, traceback=%r>"
-                % (self.domain, _format_size(self.size, False), self.traceback))
+        return ("<Trace domain=%s size=%s, traceback=%r>" %
+                (self.domain, _format_size(self.size, False), self.traceback))
 
 
 class _Traces(Sequence):
+
     def __init__(self, traces):
         Sequence.__init__(self)
         # traces is a tuple of trace tuples: see Trace constructor
@@ -343,6 +336,7 @@ def _normalize_filename(filename):
 
 
 class BaseFilter:
+
     def __init__(self, inclusive):
         self.inclusive = inclusive
 
@@ -351,8 +345,13 @@ class BaseFilter:
 
 
 class Filter(BaseFilter):
-    def __init__(self, inclusive, filename_pattern,
-                 lineno=None, all_frames=False, domain=None):
+
+    def __init__(self,
+                 inclusive,
+                 filename_pattern,
+                 lineno=None,
+                 all_frames=False,
+                 domain=None):
         super().__init__(inclusive)
         self.inclusive = inclusive
         self._filename_pattern = _normalize_filename(filename_pattern)
@@ -378,8 +377,9 @@ class Filter(BaseFilter):
 
     def _match_traceback(self, traceback):
         if self.all_frames:
-            if any(self._match_frame_impl(filename, lineno)
-                   for filename, lineno in traceback):
+            if any(
+                    self._match_frame_impl(filename, lineno)
+                    for filename, lineno in traceback):
                 return self.inclusive
             else:
                 return (not self.inclusive)
@@ -399,6 +399,7 @@ class Filter(BaseFilter):
 
 
 class DomainFilter(BaseFilter):
+
     def __init__(self, inclusive, domain):
         super().__init__(inclusive)
         self._domain = domain
@@ -440,8 +441,9 @@ class Snapshot:
 
     def _filter_trace(self, include_filters, exclude_filters, trace):
         if include_filters:
-            if not any(trace_filter._match(trace)
-                       for trace_filter in include_filters):
+            if not any(
+                    trace_filter._match(trace)
+                    for trace_filter in include_filters):
                 return False
         if exclude_filters:
             if any(not trace_filter._match(trace)
@@ -456,8 +458,8 @@ class Snapshot:
         list, return a new Snapshot instance with a copy of the traces.
         """
         if not isinstance(filters, Iterable):
-            raise TypeError("filters must be a list of filters, not %s"
-                            % type(filters).__name__)
+            raise TypeError("filters must be a list of filters, not %s" %
+                            type(filters).__name__)
         if filters:
             include_filters = []
             exclude_filters = []
@@ -466,17 +468,17 @@ class Snapshot:
                     include_filters.append(trace_filter)
                 else:
                     exclude_filters.append(trace_filter)
-            new_traces = [trace for trace in self.traces._traces
-                          if self._filter_trace(include_filters,
-                                                exclude_filters,
-                                                trace)]
+            new_traces = [
+                trace for trace in self.traces._traces
+                if self._filter_trace(include_filters, exclude_filters, trace)
+            ]
         else:
             new_traces = self.traces._traces.copy()
         return Snapshot(new_traces, self.traceback_limit)
 
     def _group_by(self, key_type, cumulative):
         if key_type not in ('traceback', 'filename', 'lineno'):
-            raise ValueError("unknown key_type: %r" % (key_type,))
+            raise ValueError("unknown key_type: %r" % (key_type, ))
         if cumulative and key_type not in ('lineno', 'filename'):
             raise ValueError("cumulative mode cannot by used "
                              "with key type %r" % key_type)
@@ -493,8 +495,8 @@ class Snapshot:
                         frames = trace_traceback
                     elif key_type == 'lineno':
                         frames = trace_traceback[:1]
-                    else: # key_type == 'filename':
-                        frames = ((trace_traceback[0][0], 0),)
+                    else:  # key_type == 'filename':
+                        frames = ((trace_traceback[0][0], 0), )
                     traceback = Traceback(frames)
                     tracebacks[trace_traceback] = traceback
                 try:
@@ -512,9 +514,9 @@ class Snapshot:
                         traceback = tracebacks[frame]
                     except KeyError:
                         if key_type == 'lineno':
-                            frames = (frame,)
-                        else: # key_type == 'filename':
-                            frames = ((frame[0], 0),)
+                            frames = (frame, )
+                        else:  # key_type == 'filename':
+                            frames = ((frame[0], 0), )
                         traceback = Traceback(frames)
                         tracebacks[frame] = traceback
                     try:

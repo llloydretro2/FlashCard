@@ -10,15 +10,18 @@ try:
 except ImportError:
     SimpleQueue = None
 
-__all__ = ['Empty', 'Full', 'Queue', 'PriorityQueue', 'LifoQueue', 'SimpleQueue']
-
+__all__ = [
+    'Empty', 'Full', 'Queue', 'PriorityQueue', 'LifoQueue', 'SimpleQueue'
+]
 
 try:
     from _queue import Empty
 except ImportError:
+
     class Empty(Exception):
         'Exception raised by Queue.get(block=0)/get_nowait().'
         pass
+
 
 class Full(Exception):
     'Exception raised by Queue.put(block=0)/put_nowait().'
@@ -260,6 +263,7 @@ class _PySimpleQueue:
 
     This pure Python implementation is not reentrant.
     '''
+
     # Note: while this pure Python version provides fairness
     # (by using a threading.Semaphore which is itself fair, being based
     #  on threading.Condition), fairness is not part of the API contract.

@@ -9,6 +9,7 @@ __all__ = ["netrc", "NetrcParseError"]
 
 class NetrcParseError(Exception):
     """Exception raised on syntax errors in the .netrc file."""
+
     def __init__(self, msg, filename=None, lineno=None):
         self.filename = filename
         self.lineno = lineno
@@ -20,6 +21,7 @@ class NetrcParseError(Exception):
 
 
 class netrc:
+
     def __init__(self, file=None):
         default_netrc = file is None
         if file is None:
@@ -51,7 +53,7 @@ class netrc:
                 entryname = lexer.get_token()
             elif tt == 'default':
                 entryname = 'default'
-            elif tt == 'macdef':                # Just skip to end of macdefs
+            elif tt == 'macdef':  # Just skip to end of macdefs
                 entryname = lexer.get_token()
                 self.macros[entryname] = []
                 lexer.whitespace = ' \t'
@@ -63,8 +65,8 @@ class netrc:
                     self.macros[entryname].append(line)
                 continue
             else:
-                raise NetrcParseError(
-                    "bad toplevel token %r" % tt, file, lexer.lineno)
+                raise NetrcParseError("bad toplevel token %r" % tt, file,
+                                      lexer.lineno)
 
             # We're looking at start of an entry for a named machine or default.
             login = ''
@@ -72,17 +74,17 @@ class netrc:
             self.hosts[entryname] = {}
             while 1:
                 tt = lexer.get_token()
-                if (tt.startswith('#') or
-                    tt in {'', 'machine', 'default', 'macdef'}):
+                if (tt.startswith('#')
+                        or tt in {'', 'machine', 'default', 'macdef'}):
                     if password:
                         self.hosts[entryname] = (login, account, password)
                         lexer.push_token(tt)
                         break
                     else:
                         raise NetrcParseError(
-                            "malformed %s entry %s terminated by %s"
-                            % (toplevel, entryname, repr(tt)),
-                            file, lexer.lineno)
+                            "malformed %s entry %s terminated by %s" %
+                            (toplevel, entryname, repr(tt)), file,
+                            lexer.lineno)
                 elif tt == 'login' or tt == 'user':
                     login = lexer.get_token()
                 elif tt == 'account':
@@ -102,17 +104,17 @@ class netrc:
                                 user = 'uid %s' % os.getuid()
                             raise NetrcParseError(
                                 ("~/.netrc file owner (%s) does not match"
-                                 " current user (%s)") % (fowner, user),
-                                file, lexer.lineno)
+                                 " current user (%s)") % (fowner, user), file,
+                                lexer.lineno)
                         if (prop.st_mode & (stat.S_IRWXG | stat.S_IRWXO)):
                             raise NetrcParseError(
-                               "~/.netrc access too permissive: access"
-                               " permissions must restrict access to only"
-                               " the owner", file, lexer.lineno)
+                                "~/.netrc access too permissive: access"
+                                " permissions must restrict access to only"
+                                " the owner", file, lexer.lineno)
                     password = lexer.get_token()
                 else:
-                    raise NetrcParseError("bad follower token %r" % tt,
-                                          file, lexer.lineno)
+                    raise NetrcParseError("bad follower token %r" % tt, file,
+                                          lexer.lineno)
 
     def authenticators(self, host):
         """Return a (user, account, password) tuple for given host."""
@@ -138,6 +140,7 @@ class netrc:
                 rep += line
             rep += "\n"
         return rep
+
 
 if __name__ == '__main__':
     print(netrc())

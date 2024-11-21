@@ -16,9 +16,14 @@ from io import StringIO
 
 __all__ = ["shlex", "split", "quote", "join"]
 
+
 class shlex:
     "A lexical analyzer class for simple shell-like syntaxes."
-    def __init__(self, instream=None, infile=None, posix=False,
+
+    def __init__(self,
+                 instream=None,
+                 infile=None,
+                 posix=False,
                  punctuation_chars=False):
         if isinstance(instream, str):
             instream = StringIO(instream)
@@ -85,9 +90,9 @@ class shlex:
         self.lineno = 1
         if self.debug:
             if newfile is not None:
-                print('shlex: pushing to file %s' % (self.infile,))
+                print('shlex: pushing to file %s' % (self.infile, ))
             else:
-                print('shlex: pushing to stream %s' % (self.instream,))
+                print('shlex: pushing to stream %s' % (self.instream, ))
 
     def pop_source(self):
         "Pop the input source stack."
@@ -141,10 +146,10 @@ class shlex:
             if nextchar == '\n':
                 self.lineno += 1
             if self.debug >= 3:
-                print("shlex: in state %r I see character: %r" % (self.state,
-                                                                  nextchar))
+                print("shlex: in state %r I see character: %r" %
+                      (self.state, nextchar))
             if self.state is None:
-                self.token = ''        # past end of file
+                self.token = ''  # past end of file
                 break
             elif self.state == ' ':
                 if not nextchar:
@@ -154,7 +159,7 @@ class shlex:
                     if self.debug >= 2:
                         print("shlex: I see whitespace in whitespace state")
                     if self.token or (self.posix and quoted):
-                        break   # emit current token
+                        break  # emit current token
                     else:
                         continue
                 elif nextchar in self.commenters:
@@ -179,12 +184,12 @@ class shlex:
                 else:
                     self.token = nextchar
                     if self.token or (self.posix and quoted):
-                        break   # emit current token
+                        break  # emit current token
                     else:
                         continue
             elif self.state in self.quotes:
                 quoted = True
-                if not nextchar:      # end of file
+                if not nextchar:  # end of file
                     if self.debug >= 2:
                         print("shlex: I see EOF in quotes state")
                     # XXX what error should be raised here?
@@ -196,35 +201,35 @@ class shlex:
                         break
                     else:
                         self.state = 'a'
-                elif (self.posix and nextchar in self.escape and self.state
-                      in self.escapedquotes):
+                elif (self.posix and nextchar in self.escape
+                      and self.state in self.escapedquotes):
                     escapedstate = self.state
                     self.state = nextchar
                 else:
                     self.token += nextchar
             elif self.state in self.escape:
-                if not nextchar:      # end of file
+                if not nextchar:  # end of file
                     if self.debug >= 2:
                         print("shlex: I see EOF in escape state")
                     # XXX what error should be raised here?
                     raise ValueError("No escaped character")
                 # In posix shells, only the quote itself or the escape
                 # character may be escaped within quotes.
-                if (escapedstate in self.quotes and
-                        nextchar != self.state and nextchar != escapedstate):
+                if (escapedstate in self.quotes and nextchar != self.state
+                        and nextchar != escapedstate):
                     self.token += self.state
                 self.token += nextchar
                 self.state = escapedstate
             elif self.state in ('a', 'c'):
                 if not nextchar:
-                    self.state = None   # end of file
+                    self.state = None  # end of file
                     break
                 elif nextchar in self.whitespace:
                     if self.debug >= 2:
                         print("shlex: I see whitespace in word state")
                     self.state = ' '
                     if self.token or (self.posix and quoted):
-                        break   # emit current token
+                        break  # emit current token
                     else:
                         continue
                 elif nextchar in self.commenters:
@@ -233,7 +238,7 @@ class shlex:
                     if self.posix:
                         self.state = ' '
                         if self.token or (self.posix and quoted):
-                            break   # emit current token
+                            break  # emit current token
                         else:
                             continue
                 elif self.state == 'c':
@@ -250,8 +255,8 @@ class shlex:
                     escapedstate = 'a'
                     self.state = nextchar
                 elif (nextchar in self.wordchars or nextchar in self.quotes
-                      or (self.whitespace_split and
-                          nextchar not in self.punctuation_chars)):
+                      or (self.whitespace_split
+                          and nextchar not in self.punctuation_chars)):
                     self.token += nextchar
                 else:
                     if self.punctuation_chars:
@@ -262,7 +267,7 @@ class shlex:
                         print("shlex: I see punctuation in word state")
                     self.state = ' '
                     if self.token or (self.posix and quoted):
-                        break   # emit current token
+                        break  # emit current token
                     else:
                         continue
         result = self.token
@@ -302,12 +307,14 @@ class shlex:
             raise StopIteration
         return token
 
+
 def split(s, comments=False, posix=True):
     """Split the string *s* using shell-like syntax."""
     if s is None:
         import warnings
         warnings.warn("Passing None for 's' to shlex.split() is deprecated.",
-                      DeprecationWarning, stacklevel=2)
+                      DeprecationWarning,
+                      stacklevel=2)
     lex = shlex(s, posix=posix)
     lex.whitespace_split = True
     if not comments:
@@ -321,6 +328,7 @@ def join(split_command):
 
 
 _find_unsafe = re.compile(r'[^\w@%+=:,./-]', re.ASCII).search
+
 
 def quote(s):
     """Return a shell-escaped version of the string *s*."""
@@ -340,6 +348,7 @@ def _print_tokens(lexer):
         if not tt:
             break
         print("Token: " + repr(tt))
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:

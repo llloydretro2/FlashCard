@@ -113,8 +113,10 @@ def abs_paths():
                 loader_module = m.__spec__.loader.__module__
             except AttributeError:
                 pass
-        if loader_module not in {'_frozen_importlib', '_frozen_importlib_external'}:
-            continue   # don't mess with a PEP 302-supplied __file__
+        if loader_module not in {
+                '_frozen_importlib', '_frozen_importlib_external'
+        }:
+            continue  # don't mess with a PEP 302-supplied __file__
         try:
             m.__file__ = os.path.abspath(m.__file__)
         except (AttributeError, OSError, TypeError):
@@ -191,12 +193,13 @@ def addpackage(sitedir, name, known_paths):
                     sys.path.append(dir)
                     known_paths.add(dircase)
             except Exception:
-                print("Error processing line {:d} of {}:\n".format(n+1, fullname),
+                print("Error processing line {:d} of {}:\n".format(
+                    n + 1, fullname),
                       file=sys.stderr)
                 import traceback
                 for record in traceback.format_exception(*sys.exc_info()):
                     for line in record.splitlines():
-                        print('  '+line, file=sys.stderr)
+                        print('  ' + line, file=sys.stderr)
                 print("\nRemainder of file ignored", file=sys.stderr)
                 break
     if reset:
@@ -215,7 +218,7 @@ def addsitedir(sitedir, known_paths=None):
         reset = False
     sitedir, sitedircase = makepath(sitedir)
     if not sitedircase in known_paths:
-        sys.path.append(sitedir)        # Add path component
+        sys.path.append(sitedir)  # Add path component
         known_paths.add(sitedircase)
     try:
         names = os.listdir(sitedir)
@@ -259,6 +262,7 @@ def check_enableusersite():
 # To speedup startup time, we have copy of them.
 #
 # See https://bugs.python.org/issue29585
+
 
 # Copy of sysconfig._getuserbase()
 def _getuserbase():
@@ -318,15 +322,16 @@ def getusersitepackages():
     function will also set it.
     """
     global USER_SITE, ENABLE_USER_SITE
-    userbase = getuserbase() # this will also set USER_BASE
+    userbase = getuserbase()  # this will also set USER_BASE
 
     if USER_SITE is None:
         if userbase is None:
-            ENABLE_USER_SITE = False # disable user site and return None
+            ENABLE_USER_SITE = False  # disable user site and return None
         else:
             USER_SITE = _get_path(userbase)
 
     return USER_SITE
+
 
 def addusersitepackages(known_paths):
     """Add a per user site-package to sys.path
@@ -342,6 +347,7 @@ def addusersitepackages(known_paths):
     if ENABLE_USER_SITE and os.path.isdir(user_site):
         addsitedir(user_site, known_paths)
     return known_paths
+
 
 def getsitepackages(prefixes=None):
     """Returns a list containing all global site-packages directories.
@@ -379,6 +385,7 @@ def getsitepackages(prefixes=None):
                 sitepackages.append(path)
     return sitepackages
 
+
 def addsitepackages(known_paths, prefixes=None):
     """Add site-packages to sys.path"""
     _trace("Processing global site-packages")
@@ -387,6 +394,7 @@ def addsitepackages(known_paths, prefixes=None):
             addsitedir(sitedir, known_paths)
 
     return known_paths
+
 
 def setquit():
     """Define new builtins 'quit' and 'exit'.
@@ -412,9 +420,11 @@ def setcopyright():
             "credits",
             "Jython is maintained by the Jython developers (www.jython.org).")
     else:
-        builtins.credits = _sitebuiltins._Printer("credits", """\
+        builtins.credits = _sitebuiltins._Printer(
+            "credits", """\
     Thanks to CWI, CNRI, BeOpen.com, Zope Corporation and a cast of thousands
-    for supporting Python development.  See www.python.org for more information.""")
+    for supporting Python development.  See www.python.org for more information."""
+        )
     files, dirs = [], []
     # Not all modules are required to have a __file__ attribute.  See
     # PEP 420 for more details.
@@ -423,13 +433,12 @@ def setcopyright():
         files.extend(["LICENSE.txt", "LICENSE"])
         dirs.extend([os.path.join(here, os.pardir), here, os.curdir])
     builtins.license = _sitebuiltins._Printer(
-        "license",
-        "See https://www.python.org/psf/license/",
-        files, dirs)
+        "license", "See https://www.python.org/psf/license/", files, dirs)
 
 
 def sethelper():
     builtins.help = _sitebuiltins._Helper()
+
 
 def enablerlcompleter():
     """Enable default readline configuration on interactive prompts, by
@@ -440,6 +449,7 @@ def enablerlcompleter():
     This can be overridden in the sitecustomize or usercustomize module,
     or in a PYTHONSTARTUP file.
     """
+
     def register_readline():
         import atexit
         try:
@@ -471,8 +481,7 @@ def enablerlcompleter():
             # each interpreter exit when readline was already configured
             # through a PYTHONSTARTUP hook, see:
             # http://bugs.python.org/issue5845#msg198636
-            history = os.path.join(os.path.expanduser('~'),
-                                   '.python_history')
+            history = os.path.join(os.path.expanduser('~'), '.python_history')
             try:
                 readline.read_history_file(history)
             except OSError:
@@ -490,6 +499,7 @@ def enablerlcompleter():
 
     sys.__interactivehook__ = register_readline
 
+
 def venv(known_paths):
     global PREFIXES, ENABLE_USER_SITE
 
@@ -503,12 +513,10 @@ def venv(known_paths):
     sys._home = None
     conf_basename = 'pyvenv.cfg'
     candidate_confs = [
-        conffile for conffile in (
-            os.path.join(exe_dir, conf_basename),
-            os.path.join(site_prefix, conf_basename)
-            )
+        conffile for conffile in (os.path.join(exe_dir, conf_basename),
+                                  os.path.join(site_prefix, conf_basename))
         if os.path.isfile(conffile)
-        ]
+    ]
 
     if candidate_confs:
         virtual_conf = candidate_confs[0]
@@ -558,8 +566,7 @@ def execsitecustomize():
         else:
             sys.stderr.write(
                 "Error in sitecustomize; set PYTHONVERBOSE for traceback:\n"
-                "%s: %s\n" %
-                (err.__class__.__name__, err))
+                "%s: %s\n" % (err.__class__.__name__, err))
 
 
 def execusercustomize():
@@ -578,8 +585,7 @@ def execusercustomize():
         else:
             sys.stderr.write(
                 "Error in usercustomize; set PYTHONVERBOSE for traceback:\n"
-                "%s: %s\n" %
-                (err.__class__.__name__, err))
+                "%s: %s\n" % (err.__class__.__name__, err))
 
 
 def main():
@@ -611,10 +617,12 @@ def main():
     if ENABLE_USER_SITE:
         execusercustomize()
 
+
 # Prevent extending of sys.path when python was started with -S and
 # site is imported later.
 if not sys.flags.no_site:
     main()
+
 
 def _script():
     help = """\
@@ -637,13 +645,15 @@ def _script():
         user_site = getusersitepackages()
         print("sys.path = [")
         for dir in sys.path:
-            print("    %r," % (dir,))
+            print("    %r," % (dir, ))
         print("]")
+
         def exists(path):
             if path is not None and os.path.isdir(path):
                 return "exists"
             else:
                 return "doesn't exist"
+
         print(f"USER_BASE: {user_base!r} ({exists(user_base)})")
         print(f"USER_SITE: {user_site!r} ({exists(user_site)})")
         print(f"ENABLE_USER_SITE: {ENABLE_USER_SITE!r}")
@@ -669,6 +679,7 @@ def _script():
         import textwrap
         print(textwrap.dedent(help % (sys.argv[0], os.pathsep)))
         sys.exit(10)
+
 
 if __name__ == '__main__':
     _script()

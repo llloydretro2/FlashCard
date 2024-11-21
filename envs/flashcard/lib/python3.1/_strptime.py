@@ -16,16 +16,17 @@ import calendar
 from re import compile as re_compile
 from re import IGNORECASE
 from re import escape as re_escape
-from datetime import (date as datetime_date,
-                      timedelta as datetime_timedelta,
+from datetime import (date as datetime_date, timedelta as datetime_timedelta,
                       timezone as datetime_timezone)
 from _thread import allocate_lock as _thread_allocate_lock
 
 __all__ = []
 
+
 def _getlang():
     # Figure out what the current language is set to.
     return locale.getlocale(locale.LC_TIME)
+
 
 class LocaleTime(object):
     """Stores and handles locale-specific information related to time.
@@ -100,7 +101,8 @@ class LocaleTime(object):
         # static date was needed.
         am_pm = []
         for hour in (1, 22):
-            time_tuple = time.struct_time((1999,3,17,hour,44,55,2,76,0))
+            time_tuple = time.struct_time(
+                (1999, 3, 17, hour, 44, 55, 2, 76, 0))
             am_pm.append(time.strftime("%p", time_tuple).lower())
         self.am_pm = am_pm
 
@@ -112,22 +114,34 @@ class LocaleTime(object):
         # overloaded numbers is minimized.  The order in which searches for
         # values within the format string is very important; it eliminates
         # possible ambiguity for what something represents.
-        time_tuple = time.struct_time((1999,3,17,22,44,55,2,76,0))
+        time_tuple = time.struct_time((1999, 3, 17, 22, 44, 55, 2, 76, 0))
         date_time = [None, None, None]
         date_time[0] = time.strftime("%c", time_tuple).lower()
         date_time[1] = time.strftime("%x", time_tuple).lower()
         date_time[2] = time.strftime("%X", time_tuple).lower()
-        replacement_pairs = [('%', '%%'), (self.f_weekday[2], '%A'),
-                    (self.f_month[3], '%B'), (self.a_weekday[2], '%a'),
-                    (self.a_month[3], '%b'), (self.am_pm[1], '%p'),
-                    ('1999', '%Y'), ('99', '%y'), ('22', '%H'),
-                    ('44', '%M'), ('55', '%S'), ('76', '%j'),
-                    ('17', '%d'), ('03', '%m'), ('3', '%m'),
-                    # '3' needed for when no leading zero.
-                    ('2', '%w'), ('10', '%I')]
+        replacement_pairs = [
+            ('%', '%%'),
+            (self.f_weekday[2], '%A'),
+            (self.f_month[3], '%B'),
+            (self.a_weekday[2], '%a'),
+            (self.a_month[3], '%b'),
+            (self.am_pm[1], '%p'),
+            ('1999', '%Y'),
+            ('99', '%y'),
+            ('22', '%H'),
+            ('44', '%M'),
+            ('55', '%S'),
+            ('76', '%j'),
+            ('17', '%d'),
+            ('03', '%m'),
+            ('3', '%m'),
+            # '3' needed for when no leading zero.
+            ('2', '%w'),
+            ('10', '%I')
+        ]
         replacement_pairs.extend([(tz, "%Z") for tz_values in self.timezone
-                                                for tz in tz_values])
-        for offset,directive in ((0,'%c'), (1,'%x'), (2,'%X')):
+                                  for tz in tz_values])
+        for offset, directive in ((0, '%c'), (1, '%x'), (2, '%X')):
             current_format = date_time[offset]
             for old, new in replacement_pairs:
                 # Must deal with possible lack of locale info
@@ -139,7 +153,7 @@ class LocaleTime(object):
             # If %W is used, then Sunday, 2005-01-03 will fall on week 0 since
             # 2005-01-03 occurs before the first Monday of the year.  Otherwise
             # %U is used.
-            time_tuple = time.struct_time((1999,1,3,1,1,1,6,3,0))
+            time_tuple = time.struct_time((1999, 1, 3, 1, 1, 1, 6, 3, 0))
             if '00' in time.strftime(directive, time_tuple):
                 U_W = '%W'
             else:
@@ -183,34 +197,57 @@ class TimeRE(dict):
         base = super()
         base.__init__({
             # The " [1-9]" part of the regex is to make %c from ANSI C work
-            'd': r"(?P<d>3[0-1]|[1-2]\d|0[1-9]|[1-9]| [1-9])",
-            'f': r"(?P<f>[0-9]{1,6})",
-            'H': r"(?P<H>2[0-3]|[0-1]\d|\d)",
-            'I': r"(?P<I>1[0-2]|0[1-9]|[1-9])",
-            'G': r"(?P<G>\d\d\d\d)",
-            'j': r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|0[1-9]|[1-9])",
-            'm': r"(?P<m>1[0-2]|0[1-9]|[1-9])",
-            'M': r"(?P<M>[0-5]\d|\d)",
-            'S': r"(?P<S>6[0-1]|[0-5]\d|\d)",
-            'U': r"(?P<U>5[0-3]|[0-4]\d|\d)",
-            'w': r"(?P<w>[0-6])",
-            'u': r"(?P<u>[1-7])",
-            'V': r"(?P<V>5[0-3]|0[1-9]|[1-4]\d|\d)",
+            'd':
+            r"(?P<d>3[0-1]|[1-2]\d|0[1-9]|[1-9]| [1-9])",
+            'f':
+            r"(?P<f>[0-9]{1,6})",
+            'H':
+            r"(?P<H>2[0-3]|[0-1]\d|\d)",
+            'I':
+            r"(?P<I>1[0-2]|0[1-9]|[1-9])",
+            'G':
+            r"(?P<G>\d\d\d\d)",
+            'j':
+            r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|0[1-9]|[1-9])",
+            'm':
+            r"(?P<m>1[0-2]|0[1-9]|[1-9])",
+            'M':
+            r"(?P<M>[0-5]\d|\d)",
+            'S':
+            r"(?P<S>6[0-1]|[0-5]\d|\d)",
+            'U':
+            r"(?P<U>5[0-3]|[0-4]\d|\d)",
+            'w':
+            r"(?P<w>[0-6])",
+            'u':
+            r"(?P<u>[1-7])",
+            'V':
+            r"(?P<V>5[0-3]|0[1-9]|[1-4]\d|\d)",
             # W is set below by using 'U'
-            'y': r"(?P<y>\d\d)",
+            'y':
+            r"(?P<y>\d\d)",
             #XXX: Does 'Y' need to worry about having less or more than
             #     4 digits?
-            'Y': r"(?P<Y>\d\d\d\d)",
-            'z': r"(?P<z>[+-]\d\d:?[0-5]\d(:?[0-5]\d(\.\d{1,6})?)?|(?-i:Z))",
-            'A': self.__seqToRE(self.locale_time.f_weekday, 'A'),
-            'a': self.__seqToRE(self.locale_time.a_weekday, 'a'),
-            'B': self.__seqToRE(self.locale_time.f_month[1:], 'B'),
-            'b': self.__seqToRE(self.locale_time.a_month[1:], 'b'),
-            'p': self.__seqToRE(self.locale_time.am_pm, 'p'),
-            'Z': self.__seqToRE((tz for tz_names in self.locale_time.timezone
-                                        for tz in tz_names),
-                                'Z'),
-            '%': '%'})
+            'Y':
+            r"(?P<Y>\d\d\d\d)",
+            'z':
+            r"(?P<z>[+-]\d\d:?[0-5]\d(:?[0-5]\d(\.\d{1,6})?)?|(?-i:Z))",
+            'A':
+            self.__seqToRE(self.locale_time.f_weekday, 'A'),
+            'a':
+            self.__seqToRE(self.locale_time.a_weekday, 'a'),
+            'B':
+            self.__seqToRE(self.locale_time.f_month[1:], 'B'),
+            'b':
+            self.__seqToRE(self.locale_time.a_month[1:], 'b'),
+            'p':
+            self.__seqToRE(self.locale_time.am_pm, 'p'),
+            'Z':
+            self.__seqToRE((tz for tz_names in self.locale_time.timezone
+                            for tz in tz_names), 'Z'),
+            '%':
+            '%'
+        })
         base.__setitem__('W', base.__getitem__('U').replace('U', 'W'))
         base.__setitem__('c', self.pattern(self.locale_time.LC_date_time))
         base.__setitem__('x', self.pattern(self.locale_time.LC_date))
@@ -251,23 +288,25 @@ class TimeRE(dict):
         whitespace_replacement = re_compile(r'\s+')
         format = whitespace_replacement.sub(r'\\s+', format)
         while '%' in format:
-            directive_index = format.index('%')+1
+            directive_index = format.index('%') + 1
             processed_format = "%s%s%s" % (processed_format,
-                                           format[:directive_index-1],
+                                           format[:directive_index - 1],
                                            self[format[directive_index]])
-            format = format[directive_index+1:]
+            format = format[directive_index + 1:]
         return "%s%s" % (processed_format, format)
 
     def compile(self, format):
         """Return a compiled re object for the format string."""
         return re_compile(self.pattern(format), IGNORECASE)
 
+
 _cache_lock = _thread_allocate_lock()
 # DO NOT modify _TimeRE_cache or _regex_cache without acquiring the cache lock
 # first!
 _TimeRE_cache = TimeRE()
-_CACHE_MAX_SIZE = 5 # Max number of regexes stored in _regex_cache
+_CACHE_MAX_SIZE = 5  # Max number of regexes stored in _regex_cache
 _regex_cache = {}
+
 
 def _calc_julian_from_U_or_W(year, week_of_year, day_of_week, week_starts_Mon):
     """Calculate the Julian day based on the year, week of the year, and day of
@@ -319,9 +358,8 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
     global _TimeRE_cache, _regex_cache
     with _cache_lock:
         locale_time = _TimeRE_cache.locale_time
-        if (_getlang() != locale_time.lang or
-            time.tzname != locale_time.tzname or
-            time.daylight != locale_time.daylight):
+        if (_getlang() != locale_time.lang or time.tzname != locale_time.tzname
+                or time.daylight != locale_time.daylight):
             _TimeRE_cache = TimeRE()
             _regex_cache.clear()
             locale_time = _TimeRE_cache.locale_time
@@ -339,7 +377,7 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
                     bad_directive = "%"
                 del err
                 raise ValueError("'%s' is a bad directive in format '%s'" %
-                                    (bad_directive, format)) from None
+                                 (bad_directive, format)) from None
             # IndexError only occurs when the format string is "%"
             except IndexError:
                 raise ValueError("stray %% in format '%s'" % format) from None
@@ -350,7 +388,7 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
                          (data_string, format))
     if len(data_string) != found.end():
         raise ValueError("unconverted data remains: %s" %
-                          data_string[found.end():])
+                         data_string[found.end():])
 
     iso_year = year = None
     month = day = 1
@@ -464,7 +502,8 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
                 gmtoff_remainder = z[8:]
                 # Pad to always return microseconds.
                 gmtoff_remainder_padding = "0" * (6 - len(gmtoff_remainder))
-                gmtoff_fraction = int(gmtoff_remainder + gmtoff_remainder_padding)
+                gmtoff_fraction = int(gmtoff_remainder +
+                                      gmtoff_remainder_padding)
                 if z.startswith("-"):
                     gmtoff = -gmtoff
                     gmtoff_fraction = -gmtoff_fraction
@@ -477,8 +516,8 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
                     # Deal with bad locale setup where timezone names are the
                     # same and yet time.daylight is true; too ambiguous to
                     # be able to tell what timezone has daylight savings
-                    if (time.tzname[0] == time.tzname[1] and
-                       time.daylight and found_zone not in ("utc", "gmt")):
+                    if (time.tzname[0] == time.tzname[1] and time.daylight
+                            and found_zone not in ("utc", "gmt")):
                         break
                     else:
                         tz = value
@@ -511,14 +550,13 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
     elif year is None:
         year = 1900
 
-
     # If we know the week of the year and what day of that week, we can figure
     # out the Julian day of the year.
     if julian is None and weekday is not None:
         if week_of_year is not None:
             week_starts_Mon = True if week_of_year_start == 0 else False
             julian = _calc_julian_from_U_or_W(year, week_of_year, weekday,
-                                                week_starts_Mon)
+                                              week_starts_Mon)
         elif iso_year is not None and iso_week is not None:
             year, julian = _calc_julian_from_V(iso_year, iso_week, weekday + 1)
         if julian is not None and julian <= 0:
@@ -534,10 +572,9 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
         julian = datetime_date(year, month, day).toordinal() - \
                   datetime_date(year, 1, 1).toordinal() + 1
     else:  # Assume that if they bothered to include Julian day (or if it was
-           # calculated above with year/week/weekday) it will be accurate.
+        # calculated above with year/week/weekday) it will be accurate.
         datetime_result = datetime_date.fromordinal(
-                            (julian - 1) +
-                            datetime_date(year, 1, 1).toordinal())
+            (julian - 1) + datetime_date(year, 1, 1).toordinal())
         year = datetime_result.year
         month = datetime_result.month
         day = datetime_result.day
@@ -552,9 +589,9 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
         # that February 29th is smaller than March 1st.
         year = 1900
 
-    return (year, month, day,
-            hour, minute, second,
-            weekday, julian, tz, tzname, gmtoff), fraction, gmtoff_fraction
+    return (year, month, day, hour, minute, second, weekday, julian, tz,
+            tzname, gmtoff), fraction, gmtoff_fraction
+
 
 def _strptime_time(data_string, format="%a %b %d %H:%M:%S %Y"):
     """Return a time struct based on the input string and the
@@ -562,18 +599,20 @@ def _strptime_time(data_string, format="%a %b %d %H:%M:%S %Y"):
     tt = _strptime(data_string, format)[0]
     return time.struct_time(tt[:time._STRUCT_TM_ITEMS])
 
+
 def _strptime_datetime(cls, data_string, format="%a %b %d %H:%M:%S %Y"):
     """Return a class cls instance based on the input string and the
     format string."""
     tt, fraction, gmtoff_fraction = _strptime(data_string, format)
     tzname, gmtoff = tt[-2:]
-    args = tt[:6] + (fraction,)
+    args = tt[:6] + (fraction, )
     if gmtoff is not None:
-        tzdelta = datetime_timedelta(seconds=gmtoff, microseconds=gmtoff_fraction)
+        tzdelta = datetime_timedelta(seconds=gmtoff,
+                                     microseconds=gmtoff_fraction)
         if tzname:
             tz = datetime_timezone(tzdelta, tzname)
         else:
             tz = datetime_timezone(tzdelta)
-        args += (tz,)
+        args += (tz, )
 
     return cls(*args)

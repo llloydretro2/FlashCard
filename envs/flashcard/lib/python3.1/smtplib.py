@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 '''SMTP/ESMTP client class.
 
 This should follow RFC 821 (SMTP), RFC 1869 (ESMTP), RFC 2554 (SMTP
@@ -54,23 +53,27 @@ import datetime
 import sys
 from email.base64mime import body_encode as encode_base64
 
-__all__ = ["SMTPException", "SMTPNotSupportedError", "SMTPServerDisconnected", "SMTPResponseException",
-           "SMTPSenderRefused", "SMTPRecipientsRefused", "SMTPDataError",
-           "SMTPConnectError", "SMTPHeloError", "SMTPAuthenticationError",
-           "quoteaddr", "quotedata", "SMTP"]
+__all__ = [
+    "SMTPException", "SMTPNotSupportedError", "SMTPServerDisconnected",
+    "SMTPResponseException", "SMTPSenderRefused", "SMTPRecipientsRefused",
+    "SMTPDataError", "SMTPConnectError", "SMTPHeloError",
+    "SMTPAuthenticationError", "quoteaddr", "quotedata", "SMTP"
+]
 
 SMTP_PORT = 25
 SMTP_SSL_PORT = 465
 CRLF = "\r\n"
 bCRLF = b"\r\n"
-_MAXLINE = 8192 # more than 8 times larger than RFC 821, 4.5.3
+_MAXLINE = 8192  # more than 8 times larger than RFC 821, 4.5.3
 _MAXCHALLENGE = 5  # Maximum number of AUTH challenges sent
 
 OLDSTYLE_AUTH = re.compile(r"auth=(.*)", re.I)
 
+
 # Exception classes used by this module.
 class SMTPException(OSError):
     """Base class for all exceptions raised by this module."""
+
 
 class SMTPNotSupportedError(SMTPException):
     """The command or option is not supported by the SMTP server.
@@ -79,6 +82,7 @@ class SMTPNotSupportedError(SMTPException):
     command with an option which is not supported by the server.
     """
 
+
 class SMTPServerDisconnected(SMTPException):
     """Not connected to any SMTP server.
 
@@ -86,6 +90,7 @@ class SMTPServerDisconnected(SMTPException):
     or when an attempt is made to use the SMTP instance before
     connecting it to a server.
     """
+
 
 class SMTPResponseException(SMTPException):
     """Base class for all exceptions that include an SMTP error code.
@@ -101,6 +106,7 @@ class SMTPResponseException(SMTPException):
         self.smtp_error = msg
         self.args = (code, msg)
 
+
 class SMTPSenderRefused(SMTPResponseException):
     """Sender address refused.
 
@@ -114,6 +120,7 @@ class SMTPSenderRefused(SMTPResponseException):
         self.sender = sender
         self.args = (code, msg, sender)
 
+
 class SMTPRecipientsRefused(SMTPException):
     """All recipient addresses refused.
 
@@ -124,17 +131,20 @@ class SMTPRecipientsRefused(SMTPException):
 
     def __init__(self, recipients):
         self.recipients = recipients
-        self.args = (recipients,)
+        self.args = (recipients, )
 
 
 class SMTPDataError(SMTPResponseException):
     """The SMTP server didn't accept the data."""
 
+
 class SMTPConnectError(SMTPResponseException):
     """Error during connection establishment."""
 
+
 class SMTPHeloError(SMTPResponseException):
     """The server refused our HELO reply."""
+
 
 class SMTPAuthenticationError(SMTPResponseException):
     """Authentication error.
@@ -142,6 +152,7 @@ class SMTPAuthenticationError(SMTPResponseException):
     Most probably the server didn't accept the username/password
     combination provided.
     """
+
 
 def quoteaddr(addrstring):
     """Quote a subset of the email addresses defined by RFC 821.
@@ -156,12 +167,14 @@ def quoteaddr(addrstring):
         return "<%s>" % addrstring
     return "<%s>" % addr
 
+
 def _addr_only(addrstring):
     displayname, addr = email.utils.parseaddr(addrstring)
     if (displayname, addr) == ('', ''):
         # parseaddr couldn't parse it, so use it as is.
         return addrstring
     return addr
+
 
 # Legacy method kept for backward compatibility.
 def quotedata(data):
@@ -170,14 +183,17 @@ def quotedata(data):
     Double leading '.', and change Unix newline '\\n', or Mac '\\r' into
     internet CRLF end-of-line.
     """
-    return re.sub(r'(?m)^\.', '..',
-        re.sub(r'(?:\r\n|\n|\r(?!\n))', CRLF, data))
+    return re.sub(r'(?m)^\.', '..', re.sub(r'(?:\r\n|\n|\r(?!\n))', CRLF,
+                                           data))
+
 
 def _quote_periods(bindata):
     return re.sub(br'(?m)^\.', b'..', bindata)
 
+
 def _fix_eols(data):
-    return  re.sub(r'(?:\r\n|\n|\r(?!\n))', CRLF, data)
+    return re.sub(r'(?:\r\n|\n|\r(?!\n))', CRLF, data)
+
 
 try:
     import ssl
@@ -226,7 +242,10 @@ class SMTP:
     does_esmtp = False
     default_port = SMTP_PORT
 
-    def __init__(self, host='', port=0, local_hostname=None,
+    def __init__(self,
+                 host='',
+                 port=0,
+                 local_hostname=None,
                  timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
                  source_address=None):
         """Initialize a new instance.
@@ -306,7 +325,8 @@ class SMTP:
         # This makes it simpler for SMTP_SSL to use the SMTP connect code
         # and just alter the socket connection bit.
         if timeout is not None and not timeout:
-            raise ValueError('Non-blocking socket (timeout=0) is not supported')
+            raise ValueError(
+                'Non-blocking socket (timeout=0) is not supported')
         if self.debuglevel > 0:
             self._print_debug('connect: to', (host, port), self.source_address)
         return socket.create_connection((host, port), timeout,
@@ -398,8 +418,8 @@ class SMTP:
                 line = self.file.readline(_MAXLINE + 1)
             except OSError as e:
                 self.close()
-                raise SMTPServerDisconnected("Connection unexpectedly closed: "
-                                             + str(e))
+                raise SMTPServerDisconnected(
+                    "Connection unexpectedly closed: " + str(e))
             if not line:
                 self.close()
                 raise SMTPServerDisconnected("Connection unexpectedly closed")
@@ -423,7 +443,8 @@ class SMTP:
 
         errmsg = b"\n".join(resp)
         if self.debuglevel > 0:
-            self._print_debug('reply: retcode (%s); Msg: %a' % (errcode, errmsg))
+            self._print_debug('reply: retcode (%s); Msg: %a' %
+                              (errcode, errmsg))
         return errcode, errmsg
 
     def docmd(self, cmd, args=""):
@@ -535,7 +556,7 @@ class SMTP:
         """
         optionlist = ''
         if options and self.does_esmtp:
-            if any(x.lower()=='smtputf8' for x in options):
+            if any(x.lower() == 'smtputf8' for x in options):
                 if self.has_extn('smtputf8'):
                     self.command_encoding = 'utf-8'
                 else:
@@ -586,6 +607,7 @@ class SMTP:
         """SMTP 'verify' command -- checks for address validity."""
         self.putcmd("vrfy", _addr_only(address))
         return self.getreply()
+
     # a.k.a.
     vrfy = verify
 
@@ -648,15 +670,14 @@ class SMTP:
         while code == 334:
             self._auth_challenge_count += 1
             challenge = base64.decodebytes(resp)
-            response = encode_base64(
-                authobject(challenge).encode('ascii'), eol='')
+            response = encode_base64(authobject(challenge).encode('ascii'),
+                                     eol='')
             (code, resp) = self.docmd(response)
             # If server keeps sending challenges, something is wrong.
             if self._auth_challenge_count > _MAXCHALLENGE:
                 raise SMTPException(
-                    "Server AUTH mechanism infinite loop. Last response: "
-                    + repr((code, resp))
-                )
+                    "Server AUTH mechanism infinite loop. Last response: " +
+                    repr((code, resp)))
         if code in (235, 503):
             return (code, resp)
         raise SMTPAuthenticationError(code, resp)
@@ -667,8 +688,8 @@ class SMTP:
         # CRAM-MD5 does not support initial-response.
         if challenge is None:
             return None
-        return self.user + " " + hmac.HMAC(
-            self.password.encode('ascii'), challenge, 'md5').hexdigest()
+        return self.user + " " + hmac.HMAC(self.password.encode('ascii'),
+                                           challenge, 'md5').hexdigest()
 
     def auth_plain(self, challenge=None):
         """ Authobject to use with PLAIN authentication. Requires self.user and
@@ -724,8 +745,9 @@ class SMTP:
 
         # We try the supported authentications in our preferred order, if
         # the server supports them.
-        authlist = [auth for auth in preferred_auths
-                    if auth in advertised_authlist]
+        authlist = [
+            auth for auth in preferred_auths if auth in advertised_authlist
+        ]
         if not authlist:
             raise SMTPException("No suitable authentication method found.")
 
@@ -736,9 +758,10 @@ class SMTP:
         for authmethod in authlist:
             method_name = 'auth_' + authmethod.lower().replace('-', '_')
             try:
-                (code, resp) = self.auth(
-                    authmethod, getattr(self, method_name),
-                    initial_response_ok=initial_response_ok)
+                (code,
+                 resp) = self.auth(authmethod,
+                                   getattr(self, method_name),
+                                   initial_response_ok=initial_response_ok)
                 # 235 == 'Authentication successful'
                 # 503 == 'Error: already authenticated'
                 if code in (235, 503):
@@ -782,8 +805,9 @@ class SMTP:
                                  "exclusive")
             if keyfile is not None or certfile is not None:
                 import warnings
-                warnings.warn("keyfile and certfile are deprecated, use a "
-                              "custom context instead", DeprecationWarning, 2)
+                warnings.warn(
+                    "keyfile and certfile are deprecated, use a "
+                    "custom context instead", DeprecationWarning, 2)
             if context is None:
                 context = ssl._create_stdlib_context(certfile=certfile,
                                                      keyfile=keyfile)
@@ -805,7 +829,11 @@ class SMTP:
             raise SMTPResponseException(resp, reply)
         return (resp, reply)
 
-    def sendmail(self, from_addr, to_addrs, msg, mail_options=(),
+    def sendmail(self,
+                 from_addr,
+                 to_addrs,
+                 msg,
+                 mail_options=(),
                  rcpt_options=()):
         """This command performs an entire mail transaction.
 
@@ -909,8 +937,12 @@ class SMTP:
         #if we got here then somebody got our mail
         return senderrs
 
-    def send_message(self, msg, from_addr=None, to_addrs=None,
-                     mail_options=(), rcpt_options=()):
+    def send_message(self,
+                     msg,
+                     from_addr=None,
+                     to_addrs=None,
+                     mail_options=(),
+                     rcpt_options=()):
         """Converts message to a bytestring and passes it to sendmail.
 
         The arguments are as for sendmail, except that msg is an
@@ -947,18 +979,20 @@ class SMTP:
         elif len(resent) == 1:
             header_prefix = 'Resent-'
         else:
-            raise ValueError("message has more than one 'Resent-' header block")
+            raise ValueError(
+                "message has more than one 'Resent-' header block")
         if from_addr is None:
             # Prefer the sender field per RFC 2822:3.6.2.
-            from_addr = (msg[header_prefix + 'Sender']
-                           if (header_prefix + 'Sender') in msg
-                           else msg[header_prefix + 'From'])
+            from_addr = (msg[header_prefix + 'Sender'] if
+                         (header_prefix +
+                          'Sender') in msg else msg[header_prefix + 'From'])
             from_addr = email.utils.getaddresses([from_addr])[0][1]
         if to_addrs is None:
-            addr_fields = [f for f in (msg[header_prefix + 'To'],
-                                       msg[header_prefix + 'Bcc'],
-                                       msg[header_prefix + 'Cc'])
-                           if f is not None]
+            addr_fields = [
+                f for f in (msg[header_prefix + 'To'],
+                            msg[header_prefix + 'Bcc'],
+                            msg[header_prefix + 'Cc']) if f is not None
+            ]
             to_addrs = [a[1] for a in email.utils.getaddresses(addr_fields)]
         # Make a local copy so we can delete the bcc headers.
         msg_copy = copy.copy(msg)
@@ -1009,6 +1043,7 @@ class SMTP:
         self.close()
         return res
 
+
 if _have_ssl:
 
     class SMTP_SSL(SMTP):
@@ -1027,10 +1062,15 @@ if _have_ssl:
 
         default_port = SMTP_SSL_PORT
 
-        def __init__(self, host='', port=0, local_hostname=None,
-                     keyfile=None, certfile=None,
+        def __init__(self,
+                     host='',
+                     port=0,
+                     local_hostname=None,
+                     keyfile=None,
+                     certfile=None,
                      timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-                     source_address=None, context=None):
+                     source_address=None,
+                     context=None):
             if context is not None and keyfile is not None:
                 raise ValueError("context and keyfile arguments are mutually "
                                  "exclusive")
@@ -1039,8 +1079,9 @@ if _have_ssl:
                                  "exclusive")
             if keyfile is not None or certfile is not None:
                 import warnings
-                warnings.warn("keyfile and certfile are deprecated, use a "
-                              "custom context instead", DeprecationWarning, 2)
+                warnings.warn(
+                    "keyfile and certfile are deprecated, use a "
+                    "custom context instead", DeprecationWarning, 2)
             self.keyfile = keyfile
             self.certfile = certfile
             if context is None:
@@ -1065,6 +1106,7 @@ if _have_ssl:
 #
 LMTP_PORT = 2003
 
+
 class LMTP(SMTP):
     """LMTP - Local Mail Transfer Protocol
 
@@ -1081,11 +1123,18 @@ class LMTP(SMTP):
 
     ehlo_msg = "lhlo"
 
-    def __init__(self, host='', port=LMTP_PORT, local_hostname=None,
-                 source_address=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+    def __init__(self,
+                 host='',
+                 port=LMTP_PORT,
+                 local_hostname=None,
+                 source_address=None,
+                 timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         """Initialize a new instance."""
-        super().__init__(host, port, local_hostname=local_hostname,
-                         source_address=source_address, timeout=timeout)
+        super().__init__(host,
+                         port,
+                         local_hostname=local_hostname,
+                         source_address=source_address,
+                         timeout=timeout)
 
     def connect(self, host='localhost', port=0, source_address=None):
         """Connect to the LMTP daemon, on either a Unix or a TCP socket."""
@@ -1093,7 +1142,8 @@ class LMTP(SMTP):
             return super().connect(host, port, source_address=source_address)
 
         if self.timeout is not None and not self.timeout:
-            raise ValueError('Non-blocking socket (timeout=0) is not supported')
+            raise ValueError(
+                'Non-blocking socket (timeout=0) is not supported')
 
         # Handle Unix-domain sockets.
         try:
@@ -1118,6 +1168,7 @@ class LMTP(SMTP):
 # Test the sendmail method, which tests most of the others.
 # Note: This always sends to localhost.
 if __name__ == '__main__':
+
     def prompt(prompt):
         sys.stdout.write(prompt + ": ")
         sys.stdout.flush()

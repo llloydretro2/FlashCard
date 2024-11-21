@@ -4,13 +4,15 @@
 
 # Inspired by similar code by Jeff Epler and Fredrik Lundh.
 
-
 import sys
 import traceback
 from codeop import CommandCompiler, compile_command
 
-__all__ = ["InteractiveInterpreter", "InteractiveConsole", "interact",
-           "compile_command"]
+__all__ = [
+    "InteractiveInterpreter", "InteractiveConsole", "interact",
+    "compile_command"
+]
+
 
 class InteractiveInterpreter:
     """Base class for InteractiveConsole.
@@ -211,9 +213,9 @@ class InteractiveConsole(InteractiveInterpreter):
             sys.ps2 = "... "
         cprt = 'Type "help", "copyright", "credits" or "license" for more information.'
         if banner is None:
-            self.write("Python %s on %s\n%s\n(%s)\n" %
-                       (sys.version, sys.platform, cprt,
-                        self.__class__.__name__))
+            self.write(
+                "Python %s on %s\n%s\n(%s)\n" %
+                (sys.version, sys.platform, cprt, self.__class__.__name__))
         elif banner:
             self.write("%s\n" % str(banner))
         more = 0
@@ -274,7 +276,6 @@ class InteractiveConsole(InteractiveInterpreter):
         return input(prompt)
 
 
-
 def interact(banner=None, readfunc=None, local=None, exitmsg=None):
     """Closely emulate the interactive Python interpreter.
 
@@ -305,8 +306,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-q', action='store_true',
-                       help="don't print version and copyright messages")
+    parser.add_argument('-q',
+                        action='store_true',
+                        help="don't print version and copyright messages")
     args = parser.parse_args()
     if args.q or sys.flags.quiet:
         banner = ''

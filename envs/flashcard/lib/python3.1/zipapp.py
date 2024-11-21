@@ -8,7 +8,6 @@ import zipfile
 
 __all__ = ['ZipAppError', 'create_archive', 'get_interpreter']
 
-
 # The __main__.py used if the users specifies "-m module:fn".
 # Note that this will always be written as UTF-8 (module and
 # function names can be non-ASCII in Python 3).
@@ -19,7 +18,6 @@ MAIN_TEMPLATE = """\
 import {module}
 {module}.{fn}()
 """
-
 
 # The Windows launcher defaults to UTF-8 when parsing shebang lines if the
 # file has no BOM. So use UTF-8 on Windows.
@@ -73,8 +71,12 @@ def _copy_archive(archive, new_archive, interpreter=None):
         os.chmod(new_archive, os.stat(new_archive).st_mode | stat.S_IEXEC)
 
 
-def create_archive(source, target=None, interpreter=None, main=None,
-                   filter=None, compressed=False):
+def create_archive(source,
+                   target=None,
+                   interpreter=None,
+                   main=None,
+                   filter=None,
+                   compressed=False):
     """Create an application archive from SOURCE.
 
     The SOURCE can be the name of a directory, or a filename or a file-like
@@ -133,8 +135,8 @@ def create_archive(source, target=None, interpreter=None, main=None,
 
     with _maybe_open(target, 'wb') as fd:
         _write_file_prefix(fd, interpreter)
-        compression = (zipfile.ZIP_DEFLATED if compressed else
-                       zipfile.ZIP_STORED)
+        compression = (zipfile.ZIP_DEFLATED
+                       if compressed else zipfile.ZIP_STORED)
         with zipfile.ZipFile(fd, 'w', compression=compression) as z:
             for child in source.rglob('*'):
                 arcname = child.relative_to(source)
@@ -163,22 +165,32 @@ def main(args=None):
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', '-o', default=None,
-            help="The name of the output archive. "
-                 "Required if SOURCE is an archive.")
-    parser.add_argument('--python', '-p', default=None,
-            help="The name of the Python interpreter to use "
-                 "(default: no shebang line).")
-    parser.add_argument('--main', '-m', default=None,
-            help="The main function of the application "
-                 "(default: use an existing __main__.py).")
-    parser.add_argument('--compress', '-c', action='store_true',
-            help="Compress files with the deflate method. "
-                 "Files are stored uncompressed by default.")
-    parser.add_argument('--info', default=False, action='store_true',
-            help="Display the interpreter from the archive.")
+    parser.add_argument('--output',
+                        '-o',
+                        default=None,
+                        help="The name of the output archive. "
+                        "Required if SOURCE is an archive.")
+    parser.add_argument('--python',
+                        '-p',
+                        default=None,
+                        help="The name of the Python interpreter to use "
+                        "(default: no shebang line).")
+    parser.add_argument('--main',
+                        '-m',
+                        default=None,
+                        help="The main function of the application "
+                        "(default: use an existing __main__.py).")
+    parser.add_argument('--compress',
+                        '-c',
+                        action='store_true',
+                        help="Compress files with the deflate method. "
+                        "Files are stored uncompressed by default.")
+    parser.add_argument('--info',
+                        default=False,
+                        action='store_true',
+                        help="Display the interpreter from the archive.")
     parser.add_argument('source',
-            help="Source directory (or existing archive).")
+                        help="Source directory (or existing archive).")
 
     args = parser.parse_args(args)
 
@@ -197,8 +209,10 @@ def main(args=None):
         if args.main:
             raise SystemExit("Cannot change the main function when copying")
 
-    create_archive(args.source, args.output,
-                   interpreter=args.python, main=args.main,
+    create_archive(args.source,
+                   args.output,
+                   interpreter=args.python,
+                   main=args.main,
                    compressed=args.compress)
 
 

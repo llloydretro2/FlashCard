@@ -7,7 +7,6 @@
 #  tuples with fairly non-descriptive content.  This is modeled very much
 #  after Lisp/Scheme - style pretty-printing of lists.  If you find it
 #  useful, thank small children who sleep at night.
-
 """Support to pretty-print lists, tuples, & dictionaries recursively.
 
 Very simple, but useful, especially in debugging data structures.
@@ -41,40 +40,68 @@ import sys as _sys
 import types as _types
 from io import StringIO as _StringIO
 
-__all__ = ["pprint","pformat","isreadable","isrecursive","saferepr",
-           "PrettyPrinter", "pp"]
+__all__ = [
+    "pprint", "pformat", "isreadable", "isrecursive", "saferepr",
+    "PrettyPrinter", "pp"
+]
 
 
-def pprint(object, stream=None, indent=1, width=80, depth=None, *,
-           compact=False, sort_dicts=True, underscore_numbers=False):
+def pprint(object,
+           stream=None,
+           indent=1,
+           width=80,
+           depth=None,
+           *,
+           compact=False,
+           sort_dicts=True,
+           underscore_numbers=False):
     """Pretty-print a Python object to a stream [default is sys.stdout]."""
-    printer = PrettyPrinter(
-        stream=stream, indent=indent, width=width, depth=depth,
-        compact=compact, sort_dicts=sort_dicts, underscore_numbers=False)
+    printer = PrettyPrinter(stream=stream,
+                            indent=indent,
+                            width=width,
+                            depth=depth,
+                            compact=compact,
+                            sort_dicts=sort_dicts,
+                            underscore_numbers=False)
     printer.pprint(object)
 
-def pformat(object, indent=1, width=80, depth=None, *,
-            compact=False, sort_dicts=True, underscore_numbers=False):
+
+def pformat(object,
+            indent=1,
+            width=80,
+            depth=None,
+            *,
+            compact=False,
+            sort_dicts=True,
+            underscore_numbers=False):
     """Format a Python object into a pretty-printed representation."""
-    return PrettyPrinter(indent=indent, width=width, depth=depth,
-                         compact=compact, sort_dicts=sort_dicts,
+    return PrettyPrinter(indent=indent,
+                         width=width,
+                         depth=depth,
+                         compact=compact,
+                         sort_dicts=sort_dicts,
                          underscore_numbers=underscore_numbers).pformat(object)
+
 
 def pp(object, *args, sort_dicts=False, **kwargs):
     """Pretty-print a Python object"""
     pprint(object, *args, sort_dicts=sort_dicts, **kwargs)
 
+
 def saferepr(object):
     """Version of repr() which can handle recursive data structures."""
     return PrettyPrinter()._safe_repr(object, {}, None, 0)[0]
+
 
 def isreadable(object):
     """Determine if saferepr(object) is readable by eval()."""
     return PrettyPrinter()._safe_repr(object, {}, None, 0)[1]
 
+
 def isrecursive(object):
     """Determine if object requires a recursive representation."""
     return PrettyPrinter()._safe_repr(object, {}, None, 0)[2]
+
 
 class _safe_key:
     """Helper function for key functions when sorting unorderable objects.
@@ -98,13 +125,23 @@ class _safe_key:
             return ((str(type(self.obj)), id(self.obj)) < \
                     (str(type(other.obj)), id(other.obj)))
 
+
 def _safe_tuple(t):
     "Helper function for comparing 2-tuples"
     return _safe_key(t[0]), _safe_key(t[1])
 
+
 class PrettyPrinter:
-    def __init__(self, indent=1, width=80, depth=None, stream=None, *,
-                 compact=False, sort_dicts=True, underscore_numbers=False):
+
+    def __init__(self,
+                 indent=1,
+                 width=80,
+                 depth=None,
+                 stream=None,
+                 *,
+                 compact=False,
+                 sort_dicts=True,
+                 underscore_numbers=False):
         """Handle pretty printing operations onto a stream using a set of
         configured parameters.
 
@@ -179,24 +216,28 @@ class PrettyPrinter:
                 p(self, object, stream, indent, allowance, context, level + 1)
                 del context[objid]
                 return
-            elif (_dataclasses.is_dataclass(object) and
-                  not isinstance(object, type) and
-                  object.__dataclass_params__.repr and
+            elif (_dataclasses.is_dataclass(object)
+                  and not isinstance(object, type)
+                  and object.__dataclass_params__.repr and
                   # Check dataclass has generated repr method.
-                  hasattr(object.__repr__, "__wrapped__") and
-                  "__create_fn__" in object.__repr__.__wrapped__.__qualname__):
+                  hasattr(object.__repr__, "__wrapped__") and "__create_fn__"
+                  in object.__repr__.__wrapped__.__qualname__):
                 context[objid] = 1
-                self._pprint_dataclass(object, stream, indent, allowance, context, level + 1)
+                self._pprint_dataclass(object, stream, indent, allowance,
+                                       context, level + 1)
                 del context[objid]
                 return
         stream.write(rep)
 
-    def _pprint_dataclass(self, object, stream, indent, allowance, context, level):
+    def _pprint_dataclass(self, object, stream, indent, allowance, context,
+                          level):
         cls_name = object.__class__.__name__
         indent += len(cls_name) + 1
-        items = [(f.name, getattr(object, f.name)) for f in _dataclasses.fields(object) if f.repr]
+        items = [(f.name, getattr(object, f.name))
+                 for f in _dataclasses.fields(object) if f.repr]
         stream.write(cls_name + '(')
-        self._format_namespace_items(items, stream, indent, allowance, context, level)
+        self._format_namespace_items(items, stream, indent, allowance, context,
+                                     level)
         stream.write(')')
 
     _dispatch = {}
@@ -218,23 +259,24 @@ class PrettyPrinter:
 
     _dispatch[dict.__repr__] = _pprint_dict
 
-    def _pprint_ordered_dict(self, object, stream, indent, allowance, context, level):
+    def _pprint_ordered_dict(self, object, stream, indent, allowance, context,
+                             level):
         if not len(object):
             stream.write(repr(object))
             return
         cls = object.__class__
         stream.write(cls.__name__ + '(')
         self._format(list(object.items()), stream,
-                     indent + len(cls.__name__) + 1, allowance + 1,
-                     context, level)
+                     indent + len(cls.__name__) + 1, allowance + 1, context,
+                     level)
         stream.write(')')
 
     _dispatch[_collections.OrderedDict.__repr__] = _pprint_ordered_dict
 
     def _pprint_list(self, object, stream, indent, allowance, context, level):
         stream.write('[')
-        self._format_items(object, stream, indent, allowance + 1,
-                           context, level)
+        self._format_items(object, stream, indent, allowance + 1, context,
+                           level)
         stream.write(']')
 
     _dispatch[list.__repr__] = _pprint_list
@@ -312,7 +354,7 @@ class PrettyPrinter:
             write('(')
         for i, rep in enumerate(chunks):
             if i > 0:
-                write('\n' + ' '*indent)
+                write('\n' + ' ' * indent)
             write(rep)
         if level == 1:
             write(')')
@@ -334,22 +376,24 @@ class PrettyPrinter:
             write(delim)
             write(rep)
             if not delim:
-                delim = '\n' + ' '*indent
+                delim = '\n' + ' ' * indent
         if parens:
             write(')')
 
     _dispatch[bytes.__repr__] = _pprint_bytes
 
-    def _pprint_bytearray(self, object, stream, indent, allowance, context, level):
+    def _pprint_bytearray(self, object, stream, indent, allowance, context,
+                          level):
         write = stream.write
         write('bytearray(')
-        self._pprint_bytes(bytes(object), stream, indent + 10,
-                           allowance + 1, context, level + 1)
+        self._pprint_bytes(bytes(object), stream, indent + 10, allowance + 1,
+                           context, level + 1)
         write(')')
 
     _dispatch[bytearray.__repr__] = _pprint_bytearray
 
-    def _pprint_mappingproxy(self, object, stream, indent, allowance, context, level):
+    def _pprint_mappingproxy(self, object, stream, indent, allowance, context,
+                             level):
         stream.write('mappingproxy(')
         self._format(object.copy(), stream, indent + 13, allowance + 1,
                      context, level)
@@ -357,7 +401,8 @@ class PrettyPrinter:
 
     _dispatch[_types.MappingProxyType.__repr__] = _pprint_mappingproxy
 
-    def _pprint_simplenamespace(self, object, stream, indent, allowance, context, level):
+    def _pprint_simplenamespace(self, object, stream, indent, allowance,
+                                context, level):
         if type(object) is _types.SimpleNamespace:
             # The SimpleNamespace repr is "namespace" instead of the class
             # name, so we do the same here. For subclasses; use the class name.
@@ -367,7 +412,8 @@ class PrettyPrinter:
         indent += len(cls_name) + 1
         items = object.__dict__.items()
         stream.write(cls_name + '(')
-        self._format_namespace_items(items, stream, indent, allowance, context, level)
+        self._format_namespace_items(items, stream, indent, allowance, context,
+                                     level)
         stream.write(')')
 
     _dispatch[_types.SimpleNamespace.__repr__] = _pprint_simplenamespace
@@ -384,12 +430,12 @@ class PrettyPrinter:
             write(rep)
             write(': ')
             self._format(ent, stream, indent + len(rep) + 2,
-                         allowance if last else 1,
-                         context, level)
+                         allowance if last else 1, context, level)
             if not last:
                 write(delimnl)
 
-    def _format_namespace_items(self, items, stream, indent, allowance, context, level):
+    def _format_namespace_items(self, items, stream, indent, allowance,
+                                context, level):
         write = stream.write
         delimnl = ',\n' + ' ' * indent
         last_index = len(items) - 1
@@ -403,8 +449,7 @@ class PrettyPrinter:
                 write("...")
             else:
                 self._format(ent, stream, indent + len(key) + 1,
-                             allowance if last else 1,
-                             context, level)
+                             allowance if last else 1, context, level)
             if not last:
                 write(delimnl)
 
@@ -445,8 +490,7 @@ class PrettyPrinter:
                     continue
             write(delim)
             delim = delimnl
-            self._format(ent, stream, indent,
-                         allowance if last else 1,
+            self._format(ent, stream, indent, allowance if last else 1,
                          context, level)
 
     def _repr(self, object, context, level):
@@ -465,7 +509,8 @@ class PrettyPrinter:
         """
         return self._safe_repr(object, context, maxlevels, level)
 
-    def _pprint_default_dict(self, object, stream, indent, allowance, context, level):
+    def _pprint_default_dict(self, object, stream, indent, allowance, context,
+                             level):
         if not len(object):
             stream.write(repr(object))
             return
@@ -473,12 +518,14 @@ class PrettyPrinter:
         cls = object.__class__
         indent += len(cls.__name__) + 1
         stream.write('%s(%s,\n%s' % (cls.__name__, rdf, ' ' * indent))
-        self._pprint_dict(object, stream, indent, allowance + 1, context, level)
+        self._pprint_dict(object, stream, indent, allowance + 1, context,
+                          level)
         stream.write(')')
 
     _dispatch[_collections.defaultdict.__repr__] = _pprint_default_dict
 
-    def _pprint_counter(self, object, stream, indent, allowance, context, level):
+    def _pprint_counter(self, object, stream, indent, allowance, context,
+                        level):
         if not len(object):
             stream.write(repr(object))
             return
@@ -487,14 +534,14 @@ class PrettyPrinter:
         if self._indent_per_level > 1:
             stream.write((self._indent_per_level - 1) * ' ')
         items = object.most_common()
-        self._format_dict_items(items, stream,
-                                indent + len(cls.__name__) + 1, allowance + 2,
-                                context, level)
+        self._format_dict_items(items, stream, indent + len(cls.__name__) + 1,
+                                allowance + 2, context, level)
         stream.write('})')
 
     _dispatch[_collections.Counter.__repr__] = _pprint_counter
 
-    def _pprint_chain_map(self, object, stream, indent, allowance, context, level):
+    def _pprint_chain_map(self, object, stream, indent, allowance, context,
+                          level):
         if not len(object.maps):
             stream.write(repr(object))
             return
@@ -520,29 +567,34 @@ class PrettyPrinter:
         indent += len(cls.__name__) + 1
         stream.write('[')
         if object.maxlen is None:
-            self._format_items(object, stream, indent, allowance + 2,
-                               context, level)
+            self._format_items(object, stream, indent, allowance + 2, context,
+                               level)
             stream.write('])')
         else:
-            self._format_items(object, stream, indent, 2,
-                               context, level)
+            self._format_items(object, stream, indent, 2, context, level)
             rml = self._repr(object.maxlen, context, level)
             stream.write('],\n%smaxlen=%s)' % (' ' * indent, rml))
 
     _dispatch[_collections.deque.__repr__] = _pprint_deque
 
-    def _pprint_user_dict(self, object, stream, indent, allowance, context, level):
-        self._format(object.data, stream, indent, allowance, context, level - 1)
+    def _pprint_user_dict(self, object, stream, indent, allowance, context,
+                          level):
+        self._format(object.data, stream, indent, allowance, context,
+                     level - 1)
 
     _dispatch[_collections.UserDict.__repr__] = _pprint_user_dict
 
-    def _pprint_user_list(self, object, stream, indent, allowance, context, level):
-        self._format(object.data, stream, indent, allowance, context, level - 1)
+    def _pprint_user_list(self, object, stream, indent, allowance, context,
+                          level):
+        self._format(object.data, stream, indent, allowance, context,
+                     level - 1)
 
     _dispatch[_collections.UserList.__repr__] = _pprint_user_list
 
-    def _pprint_user_string(self, object, stream, indent, allowance, context, level):
-        self._format(object.data, stream, indent, allowance, context, level - 1)
+    def _pprint_user_string(self, object, stream, indent, allowance, context,
+                            level):
+        self._format(object.data, stream, indent, allowance, context,
+                     level - 1)
 
     _dispatch[_collections.UserString.__repr__] = _pprint_user_string
 
@@ -579,10 +631,10 @@ class PrettyPrinter:
             else:
                 items = object.items()
             for k, v in items:
-                krepr, kreadable, krecur = self.format(
-                    k, context, maxlevels, level)
-                vrepr, vreadable, vrecur = self.format(
-                    v, context, maxlevels, level)
+                krepr, kreadable, krecur = self.format(k, context, maxlevels,
+                                                       level)
+                vrepr, vreadable, vrecur = self.format(v, context, maxlevels,
+                                                       level)
                 append("%s: %s" % (krepr, vrepr))
                 readable = readable and kreadable and vreadable
                 if krecur or vrecur:
@@ -614,8 +666,8 @@ class PrettyPrinter:
             append = components.append
             level += 1
             for o in object:
-                orepr, oreadable, orecur = self.format(
-                    o, context, maxlevels, level)
+                orepr, oreadable, orecur = self.format(o, context, maxlevels,
+                                                       level)
                 append(orepr)
                 if not oreadable:
                     readable = False
@@ -627,12 +679,15 @@ class PrettyPrinter:
         rep = repr(object)
         return rep, (rep and not rep.startswith('<')), False
 
-_builtin_scalars = frozenset({str, bytes, bytearray, float, complex,
-                              bool, type(None)})
+
+_builtin_scalars = frozenset(
+    {str, bytes, bytearray, float, complex, bool,
+     type(None)})
+
 
 def _recursion(object):
-    return ("<Recursion on %s with id=%s>"
-            % (type(object).__name__, id(object)))
+    return ("<Recursion on %s with id=%s>" %
+            (type(object).__name__, id(object)))
 
 
 def _perfcheck(object=None):
@@ -648,11 +703,12 @@ def _perfcheck(object=None):
     print("_safe_repr:", t2 - t1)
     print("pformat:", t3 - t2)
 
+
 def _wrap_bytes_repr(object, width, allowance):
     current = b''
     last = len(object) // 4 * 4
     for i in range(0, len(object), 4):
-        part = object[i: i+4]
+        part = object[i:i + 4]
         candidate = current + part
         if i == last:
             width -= allowance
@@ -664,6 +720,7 @@ def _wrap_bytes_repr(object, width, allowance):
             current = candidate
     if current:
         yield repr(current)
+
 
 if __name__ == "__main__":
     _perfcheck()

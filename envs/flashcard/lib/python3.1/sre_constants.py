@@ -8,7 +8,6 @@
 #
 # See the sre.py file for information on usage and redistribution.
 #
-
 """Internal support module for sre"""
 
 # update when constants are added or removed
@@ -19,6 +18,7 @@ from _sre import MAXREPEAT, MAXGROUPS
 
 # SRE standard exception (access as sre.error)
 # should this really be here?
+
 
 class error(Exception):
     """Exception raised for invalid regular expressions.
@@ -47,13 +47,15 @@ class error(Exception):
             self.lineno = pattern.count(newline, 0, pos) + 1
             self.colno = pos - pattern.rfind(newline, 0, pos)
             if newline in pattern:
-                msg = '%s (line %d, column %d)' % (msg, self.lineno, self.colno)
+                msg = '%s (line %d, column %d)' % (msg, self.lineno,
+                                                   self.colno)
         else:
             self.lineno = self.colno = None
         super().__init__(msg)
 
 
 class _NamedIntConstant(int):
+
     def __new__(cls, value, name):
         self = super(_NamedIntConstant, cls).__new__(cls, value)
         self.name = name
@@ -62,13 +64,16 @@ class _NamedIntConstant(int):
     def __repr__(self):
         return self.name
 
+
 MAXREPEAT = _NamedIntConstant(MAXREPEAT, 'MAXREPEAT')
+
 
 def _makecodes(names):
     names = names.strip().split()
     items = [_NamedIntConstant(i, name) for i, name in enumerate(names)]
     globals().update({item.name: item for item in items})
     return items
+
 
 # operators
 # failure=0 success=1 (just because it looks better that way :-)
@@ -116,7 +121,7 @@ OPCODES = _makecodes("""
 
     MIN_REPEAT MAX_REPEAT
 """)
-del OPCODES[-2:] # remove MIN_REPEAT and MAX_REPEAT
+del OPCODES[-2:]  # remove MIN_REPEAT and MAX_REPEAT
 
 # positions
 ATCODES = _makecodes("""
@@ -144,7 +149,6 @@ CHCODES = _makecodes("""
     CATEGORY_UNI_LINEBREAK CATEGORY_UNI_NOT_LINEBREAK
 """)
 
-
 # replacement operations for "ignore case" mode
 OP_IGNORE = {
     LITERAL: LITERAL_IGNORE,
@@ -161,10 +165,7 @@ OP_UNICODE_IGNORE = {
     NOT_LITERAL: NOT_LITERAL_UNI_IGNORE,
 }
 
-AT_MULTILINE = {
-    AT_BEGINNING: AT_BEGINNING_LINE,
-    AT_END: AT_END_LINE
-}
+AT_MULTILINE = {AT_BEGINNING: AT_BEGINNING_LINE, AT_END: AT_END_LINE}
 
 AT_LOCALE = {
     AT_BOUNDARY: AT_LOC_BOUNDARY,
@@ -199,26 +200,28 @@ CH_UNICODE = {
 }
 
 # flags
-SRE_FLAG_TEMPLATE = 1 # template mode (disable backtracking)
-SRE_FLAG_IGNORECASE = 2 # case insensitive
-SRE_FLAG_LOCALE = 4 # honour system locale
-SRE_FLAG_MULTILINE = 8 # treat target as multiline string
-SRE_FLAG_DOTALL = 16 # treat target as a single string
-SRE_FLAG_UNICODE = 32 # use unicode "locale"
-SRE_FLAG_VERBOSE = 64 # ignore whitespace and comments
-SRE_FLAG_DEBUG = 128 # debugging
-SRE_FLAG_ASCII = 256 # use ascii "locale"
+SRE_FLAG_TEMPLATE = 1  # template mode (disable backtracking)
+SRE_FLAG_IGNORECASE = 2  # case insensitive
+SRE_FLAG_LOCALE = 4  # honour system locale
+SRE_FLAG_MULTILINE = 8  # treat target as multiline string
+SRE_FLAG_DOTALL = 16  # treat target as a single string
+SRE_FLAG_UNICODE = 32  # use unicode "locale"
+SRE_FLAG_VERBOSE = 64  # ignore whitespace and comments
+SRE_FLAG_DEBUG = 128  # debugging
+SRE_FLAG_ASCII = 256  # use ascii "locale"
 
 # flags for INFO primitive
-SRE_INFO_PREFIX = 1 # has prefix
-SRE_INFO_LITERAL = 2 # entire pattern is literal (given by prefix)
-SRE_INFO_CHARSET = 4 # pattern starts with character from given set
+SRE_INFO_PREFIX = 1  # has prefix
+SRE_INFO_LITERAL = 2  # entire pattern is literal (given by prefix)
+SRE_INFO_CHARSET = 4  # pattern starts with character from given set
 
 if __name__ == "__main__":
+
     def dump(f, d, prefix):
         items = sorted(d)
         for item in items:
             f.write("#define %s_%s %d\n" % (prefix, item, item))
+
     with open("sre_constants.h", "w") as f:
         f.write("""\
 /*

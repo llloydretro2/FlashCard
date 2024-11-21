@@ -148,20 +148,21 @@ import re
 import sys
 import warnings
 
-__all__ = ["NoSectionError", "DuplicateOptionError", "DuplicateSectionError",
-           "NoOptionError", "InterpolationError", "InterpolationDepthError",
-           "InterpolationMissingOptionError", "InterpolationSyntaxError",
-           "ParsingError", "MissingSectionHeaderError",
-           "ConfigParser", "SafeConfigParser", "RawConfigParser",
-           "Interpolation", "BasicInterpolation",  "ExtendedInterpolation",
-           "LegacyInterpolation", "SectionProxy", "ConverterMapping",
-           "DEFAULTSECT", "MAX_INTERPOLATION_DEPTH"]
+__all__ = [
+    "NoSectionError", "DuplicateOptionError", "DuplicateSectionError",
+    "NoOptionError", "InterpolationError", "InterpolationDepthError",
+    "InterpolationMissingOptionError", "InterpolationSyntaxError",
+    "ParsingError", "MissingSectionHeaderError", "ConfigParser",
+    "SafeConfigParser", "RawConfigParser", "Interpolation",
+    "BasicInterpolation", "ExtendedInterpolation", "LegacyInterpolation",
+    "SectionProxy", "ConverterMapping", "DEFAULTSECT",
+    "MAX_INTERPOLATION_DEPTH"
+]
 
 _default_dict = dict
 DEFAULTSECT = "DEFAULT"
 
 MAX_INTERPOLATION_DEPTH = 10
-
 
 
 # exception classes
@@ -182,7 +183,7 @@ class NoSectionError(Error):
     """Raised when no section matches a requested option."""
 
     def __init__(self, section):
-        Error.__init__(self, 'No section: %r' % (section,))
+        Error.__init__(self, 'No section: %r' % (section, ))
         self.section = section
         self.args = (section, )
 
@@ -221,8 +222,7 @@ class DuplicateOptionError(Error):
     """
 
     def __init__(self, section, option, source=None, lineno=None):
-        msg = [repr(option), " in section ", repr(section),
-               " already exists"]
+        msg = [repr(option), " in section ", repr(section), " already exists"]
         if source is not None:
             message = ["While reading from ", repr(source)]
             if lineno is not None:
@@ -244,8 +244,7 @@ class NoOptionError(Error):
     """A requested option was not found."""
 
     def __init__(self, option, section):
-        Error.__init__(self, "No option %r in section: %r" %
-                       (option, section))
+        Error.__init__(self, "No option %r in section: %r" % (option, section))
         self.option = option
         self.section = section
         self.args = (option, section)
@@ -288,8 +287,7 @@ class InterpolationDepthError(InterpolationError):
         msg = ("Recursion limit exceeded in value substitution: option {!r} "
                "in section {!r} contains an interpolation key which "
                "cannot be substituted in {} steps. Raw value: {!r}"
-               "".format(option, section, MAX_INTERPOLATION_DEPTH,
-                         rawval))
+               "".format(option, section, MAX_INTERPOLATION_DEPTH, rawval))
         InterpolationError.__init__(self, option, section, msg)
         self.args = (option, section, rawval)
 
@@ -318,8 +316,8 @@ class ParsingError(Error):
         warnings.warn(
             "The 'filename' attribute will be removed in future versions.  "
             "Use 'source' instead.",
-            DeprecationWarning, stacklevel=2
-        )
+            DeprecationWarning,
+            stacklevel=2)
         return self.source
 
     @filename.setter
@@ -328,8 +326,8 @@ class ParsingError(Error):
         warnings.warn(
             "The 'filename' attribute will be removed in future versions.  "
             "Use 'source' instead.",
-            DeprecationWarning, stacklevel=2
-        )
+            DeprecationWarning,
+            stacklevel=2)
         self.source = value
 
     def append(self, lineno, line):
@@ -342,8 +340,7 @@ class MissingSectionHeaderError(ParsingError):
 
     def __init__(self, filename, lineno, line):
         Error.__init__(
-            self,
-            'File contains no section headers.\nfile: %r, line: %d\n%r' %
+            self, 'File contains no section headers.\nfile: %r, line: %d\n%r' %
             (filename, lineno, line))
         self.source = filename
         self.lineno = lineno
@@ -396,8 +393,8 @@ class BasicInterpolation(Interpolation):
         return ''.join(L)
 
     def before_set(self, parser, section, option, value):
-        tmp_value = value.replace('%%', '') # escaped percent signs
-        tmp_value = self._KEYCRE.sub('', tmp_value) # valid syntax
+        tmp_value = value.replace('%%', '')  # escaped percent signs
+        tmp_value = self._KEYCRE.sub('', tmp_value)  # valid syntax
         if '%' in tmp_value:
             raise ValueError("invalid interpolation syntax in %r at "
                              "position %d" % (value, tmp_value.find('%')))
@@ -424,7 +421,8 @@ class BasicInterpolation(Interpolation):
             elif c == "(":
                 m = self._KEYCRE.match(rest)
                 if m is None:
-                    raise InterpolationSyntaxError(option, section,
+                    raise InterpolationSyntaxError(
+                        option, section,
                         "bad interpolation variable reference %r" % rest)
                 var = parser.optionxform(m.group(1))
                 rest = rest[m.end():]
@@ -434,15 +432,14 @@ class BasicInterpolation(Interpolation):
                     raise InterpolationMissingOptionError(
                         option, section, rawval, var) from None
                 if "%" in v:
-                    self._interpolate_some(parser, option, accum, v,
-                                           section, map, depth + 1)
+                    self._interpolate_some(parser, option, accum, v, section,
+                                           map, depth + 1)
                 else:
                     accum.append(v)
             else:
                 raise InterpolationSyntaxError(
-                    option, section,
-                    "'%%' must be followed by '%%' or '(', "
-                    "found: %r" % (rest,))
+                    option, section, "'%%' must be followed by '%%' or '(', "
+                    "found: %r" % (rest, ))
 
 
 class ExtendedInterpolation(Interpolation):
@@ -457,8 +454,8 @@ class ExtendedInterpolation(Interpolation):
         return ''.join(L)
 
     def before_set(self, parser, section, option, value):
-        tmp_value = value.replace('$$', '') # escaped dollar signs
-        tmp_value = self._KEYCRE.sub('', tmp_value) # valid syntax
+        tmp_value = value.replace('$$', '')  # escaped dollar signs
+        tmp_value = self._KEYCRE.sub('', tmp_value)  # valid syntax
         if '$' in tmp_value:
             raise ValueError("invalid interpolation syntax in %r at "
                              "position %d" % (value, tmp_value.find('$')))
@@ -485,7 +482,8 @@ class ExtendedInterpolation(Interpolation):
             elif c == "{":
                 m = self._KEYCRE.match(rest)
                 if m is None:
-                    raise InterpolationSyntaxError(option, section,
+                    raise InterpolationSyntaxError(
+                        option, section,
                         "bad interpolation variable reference %r" % rest)
                 path = m.group(1).split(':')
                 rest = rest[m.end():]
@@ -502,7 +500,7 @@ class ExtendedInterpolation(Interpolation):
                     else:
                         raise InterpolationSyntaxError(
                             option, section,
-                            "More than one ':' found: %r" % (rest,))
+                            "More than one ':' found: %r" % (rest, ))
                 except (KeyError, NoSectionError, NoOptionError):
                     raise InterpolationMissingOptionError(
                         option, section, rawval, ":".join(path)) from None
@@ -514,9 +512,8 @@ class ExtendedInterpolation(Interpolation):
                     accum.append(v)
             else:
                 raise InterpolationSyntaxError(
-                    option, section,
-                    "'$' must be followed by '$' or '{', "
-                    "found: %r" % (rest,))
+                    option, section, "'$' must be followed by '$' or '{', "
+                    "found: %r" % (rest, ))
 
 
 class LegacyInterpolation(Interpolation):
@@ -528,7 +525,7 @@ class LegacyInterpolation(Interpolation):
     def before_get(self, parser, section, option, value, vars):
         rawval = value
         depth = MAX_INTERPOLATION_DEPTH
-        while depth:                    # Loop through this until it's done
+        while depth:  # Loop through this until it's done
             depth -= 1
             if value and "%(" in value:
                 replace = functools.partial(self._interpolation_replace,
@@ -595,15 +592,30 @@ class RawConfigParser(MutableMapping):
     # Compiled regular expression for matching leading whitespace in a line
     NONSPACECRE = re.compile(r"\S")
     # Possible boolean values in the configuration.
-    BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
-                      '0': False, 'no': False, 'false': False, 'off': False}
+    BOOLEAN_STATES = {
+        '1': True,
+        'yes': True,
+        'true': True,
+        'on': True,
+        '0': False,
+        'no': False,
+        'false': False,
+        'off': False
+    }
 
-    def __init__(self, defaults=None, dict_type=_default_dict,
-                 allow_no_value=False, *, delimiters=('=', ':'),
-                 comment_prefixes=('#', ';'), inline_comment_prefixes=None,
-                 strict=True, empty_lines_in_values=True,
+    def __init__(self,
+                 defaults=None,
+                 dict_type=_default_dict,
+                 allow_no_value=False,
+                 *,
+                 delimiters=('=', ':'),
+                 comment_prefixes=('#', ';'),
+                 inline_comment_prefixes=None,
+                 strict=True,
+                 empty_lines_in_values=True,
                  default_section=DEFAULTSECT,
-                 interpolation=_UNSET, converters=_UNSET):
+                 interpolation=_UNSET,
+                 converters=_UNSET):
 
         self._dict = dict_type
         self._sections = self._dict()
@@ -627,7 +639,7 @@ class RawConfigParser(MutableMapping):
         self._strict = strict
         self._allow_no_value = allow_no_value
         self._empty_lines_in_values = empty_lines_in_values
-        self.default_section=default_section
+        self.default_section = default_section
         self._interpolation = interpolation
         if self._interpolation is _UNSET:
             self._interpolation = self._DEFAULT_INTERPOLATION
@@ -759,8 +771,8 @@ class RawConfigParser(MutableMapping):
         warnings.warn(
             "This method will be removed in future versions.  "
             "Use 'parser.read_file()' instead.",
-            DeprecationWarning, stacklevel=2
-        )
+            DeprecationWarning,
+            stacklevel=2)
         self.read_file(fp, source=filename)
 
     def get(self, section, option, *, raw=False, vars=None, fallback=_UNSET):
@@ -803,10 +815,21 @@ class RawConfigParser(MutableMapping):
     def _get(self, section, conv, option, **kwargs):
         return conv(self.get(section, option, **kwargs))
 
-    def _get_conv(self, section, option, conv, *, raw=False, vars=None,
-                  fallback=_UNSET, **kwargs):
+    def _get_conv(self,
+                  section,
+                  option,
+                  conv,
+                  *,
+                  raw=False,
+                  vars=None,
+                  fallback=_UNSET,
+                  **kwargs):
         try:
-            return self._get(section, conv, option, raw=raw, vars=vars,
+            return self._get(section,
+                             conv,
+                             option,
+                             raw=raw,
+                             vars=vars,
                              **kwargs)
         except (NoSectionError, NoOptionError):
             if fallback is _UNSET:
@@ -814,20 +837,53 @@ class RawConfigParser(MutableMapping):
             return fallback
 
     # getint, getfloat and getboolean provided directly for backwards compat
-    def getint(self, section, option, *, raw=False, vars=None,
-               fallback=_UNSET, **kwargs):
-        return self._get_conv(section, option, int, raw=raw, vars=vars,
-                              fallback=fallback, **kwargs)
+    def getint(self,
+               section,
+               option,
+               *,
+               raw=False,
+               vars=None,
+               fallback=_UNSET,
+               **kwargs):
+        return self._get_conv(section,
+                              option,
+                              int,
+                              raw=raw,
+                              vars=vars,
+                              fallback=fallback,
+                              **kwargs)
 
-    def getfloat(self, section, option, *, raw=False, vars=None,
-                 fallback=_UNSET, **kwargs):
-        return self._get_conv(section, option, float, raw=raw, vars=vars,
-                              fallback=fallback, **kwargs)
+    def getfloat(self,
+                 section,
+                 option,
+                 *,
+                 raw=False,
+                 vars=None,
+                 fallback=_UNSET,
+                 **kwargs):
+        return self._get_conv(section,
+                              option,
+                              float,
+                              raw=raw,
+                              vars=vars,
+                              fallback=fallback,
+                              **kwargs)
 
-    def getboolean(self, section, option, *, raw=False, vars=None,
-                   fallback=_UNSET, **kwargs):
-        return self._get_conv(section, option, self._convert_to_boolean,
-                              raw=raw, vars=vars, fallback=fallback, **kwargs)
+    def getboolean(self,
+                   section,
+                   option,
+                   *,
+                   raw=False,
+                   vars=None,
+                   fallback=_UNSET,
+                   **kwargs):
+        return self._get_conv(section,
+                              option,
+                              self._convert_to_boolean,
+                              raw=raw,
+                              vars=vars,
+                              fallback=fallback,
+                              **kwargs)
 
     def items(self, section=_UNSET, raw=False, vars=None):
         """Return a list of (name, value) tuples for each option in a section.
@@ -853,8 +909,8 @@ class RawConfigParser(MutableMapping):
         if vars:
             for key, value in vars.items():
                 d[self.optionxform(key)] = value
-        value_getter = lambda option: self._interpolation.before_get(self,
-            section, option, d[option], d)
+        value_getter = lambda option: self._interpolation.before_get(
+            self, section, option, d[option], d)
         if raw:
             value_getter = lambda option: d[option]
         return [(option, value_getter(option)) for option in orig_keys]
@@ -918,10 +974,10 @@ class RawConfigParser(MutableMapping):
             d = self._delimiters[0]
         if self._defaults:
             self._write_section(fp, self.default_section,
-                                    self._defaults.items(), d)
+                                self._defaults.items(), d)
         for section in self._sections:
-            self._write_section(fp, section,
-                                self._sections[section].items(), d)
+            self._write_section(fp, section, self._sections[section].items(),
+                                d)
 
     def _write_section(self, fp, section_name, section_items, delimiter):
         """Write a single section to the specified `fp'."""
@@ -988,11 +1044,11 @@ class RawConfigParser(MutableMapping):
         return key == self.default_section or self.has_section(key)
 
     def __len__(self):
-        return len(self._sections) + 1 # the default section
+        return len(self._sections) + 1  # the default section
 
     def __iter__(self):
         # XXX does it break when underlying container state changed?
-        return itertools.chain((self.default_section,), self._sections.keys())
+        return itertools.chain((self.default_section, ), self._sections.keys())
 
     def _read(self, fp, fpname):
         """Parse a sectioned configuration file.
@@ -1012,12 +1068,12 @@ class RawConfigParser(MutableMapping):
         section names. Please note that comments get stripped off when reading configuration files.
         """
         elements_added = set()
-        cursect = None                        # None, or a dictionary
+        cursect = None  # None, or a dictionary
         sectname = None
         optname = None
         lineno = 0
         indent_level = 0
-        e = None                              # None, or an exception
+        e = None  # None, or an exception
         for lineno, line in enumerate(fp, start=1):
             comment_start = sys.maxsize
             # strip inline comments
@@ -1025,11 +1081,11 @@ class RawConfigParser(MutableMapping):
             while comment_start == sys.maxsize and inline_prefixes:
                 next_prefixes = {}
                 for prefix, index in inline_prefixes.items():
-                    index = line.find(prefix, index+1)
+                    index = line.find(prefix, index + 1)
                     if index == -1:
                         continue
                     next_prefixes[prefix] = index
-                    if index == 0 or (index > 0 and line[index-1].isspace()):
+                    if index == 0 or (index > 0 and line[index - 1].isspace()):
                         comment_start = min(comment_start, index)
                 inline_prefixes = next_prefixes
             # strip full line comments
@@ -1044,11 +1100,9 @@ class RawConfigParser(MutableMapping):
                 if self._empty_lines_in_values:
                     # add empty line to the value, but only if there was no
                     # comment on the line
-                    if (comment_start is None and
-                        cursect is not None and
-                        optname and
-                        cursect[optname] is not None):
-                        cursect[optname].append('') # newlines added at join
+                    if (comment_start is None and cursect is not None
+                            and optname and cursect[optname] is not None):
+                        cursect[optname].append('')  # newlines added at join
                 else:
                     # empty line marks end of value
                     indent_level = sys.maxsize
@@ -1056,8 +1110,8 @@ class RawConfigParser(MutableMapping):
             # continuation line?
             first_nonspace = self.NONSPACECRE.search(line)
             cur_indent_level = first_nonspace.start() if first_nonspace else 0
-            if (cursect is not None and optname and
-                cur_indent_level > indent_level):
+            if (cursect is not None and optname
+                    and cur_indent_level > indent_level):
                 cursect[optname].append(value)
             # a section header or option header?
             else:
@@ -1068,8 +1122,8 @@ class RawConfigParser(MutableMapping):
                     sectname = mo.group('header')
                     if sectname in self._sections:
                         if self._strict and sectname in elements_added:
-                            raise DuplicateSectionError(sectname, fpname,
-                                                        lineno)
+                            raise DuplicateSectionError(
+                                sectname, fpname, lineno)
                         cursect = self._sections[sectname]
                         elements_added.add(sectname)
                     elif sectname == self.default_section:
@@ -1092,8 +1146,8 @@ class RawConfigParser(MutableMapping):
                         if not optname:
                             e = self._handle_error(e, fpname, lineno, line)
                         optname = self.optionxform(optname.rstrip())
-                        if (self._strict and
-                            (sectname, optname) in elements_added):
+                        if (self._strict
+                                and (sectname, optname) in elements_added):
                             raise DuplicateOptionError(sectname, optname,
                                                        fpname, lineno)
                         elements_added.add((sectname, optname))
@@ -1118,15 +1172,13 @@ class RawConfigParser(MutableMapping):
 
     def _join_multiline_values(self):
         defaults = self.default_section, self._defaults
-        all_sections = itertools.chain((defaults,),
-                                       self._sections.items())
+        all_sections = itertools.chain((defaults, ), self._sections.items())
         for section, options in all_sections:
             for name, val in options.items():
                 if isinstance(val, list):
                     val = '\n'.join(val).rstrip()
-                options[name] = self._interpolation.before_read(self,
-                                                                section,
-                                                                name, val)
+                options[name] = self._interpolation.before_read(
+                    self, section, name, val)
 
     def _read_defaults(self, defaults):
         """Read the defaults passed in the initializer.
@@ -1234,8 +1286,8 @@ class SafeConfigParser(ConfigParser):
             "The SafeConfigParser class has been renamed to ConfigParser "
             "in Python 3.2. This alias will be removed in future versions."
             " Use ConfigParser directly instead.",
-            DeprecationWarning, stacklevel=2
-        )
+            DeprecationWarning,
+            stacklevel=2)
 
 
 class SectionProxy(MutableMapping):
@@ -1263,8 +1315,8 @@ class SectionProxy(MutableMapping):
         return self._parser.set(self._name, key, value)
 
     def __delitem__(self, key):
-        if not (self._parser.has_option(self._name, key) and
-                self._parser.remove_option(self._name, key)):
+        if not (self._parser.has_option(self._name, key)
+                and self._parser.remove_option(self._name, key)):
             raise KeyError(key)
 
     def __contains__(self, key):
@@ -1292,8 +1344,14 @@ class SectionProxy(MutableMapping):
         # The name of the section on a proxy is read-only.
         return self._name
 
-    def get(self, option, fallback=None, *, raw=False, vars=None,
-            _impl=None, **kwargs):
+    def get(self,
+            option,
+            fallback=None,
+            *,
+            raw=False,
+            vars=None,
+            _impl=None,
+            **kwargs):
         """Get an option value.
 
         Unless `fallback` is provided, `None` will be returned if the option
@@ -1304,8 +1362,12 @@ class SectionProxy(MutableMapping):
         # object that provides the desired type conversion.
         if not _impl:
             _impl = self._parser.get
-        return _impl(self._name, option, raw=raw, vars=vars,
-                     fallback=fallback, **kwargs)
+        return _impl(self._name,
+                     option,
+                     raw=raw,
+                     vars=vars,
+                     fallback=fallback,
+                     **kwargs)
 
 
 class ConverterMapping(MutableMapping):
@@ -1325,7 +1387,7 @@ class ConverterMapping(MutableMapping):
             m = self.GETTERCRE.match(getter)
             if not m or not callable(getattr(self._parser, getter)):
                 continue
-            self._data[m.group('name')] = None   # See class docstring.
+            self._data[m.group('name')] = None  # See class docstring.
 
     def __getitem__(self, key):
         return self._data[key]
@@ -1352,7 +1414,7 @@ class ConverterMapping(MutableMapping):
         except TypeError:
             raise KeyError(key)
         del self._data[key]
-        for inst in itertools.chain((self._parser,), self._parser.values()):
+        for inst in itertools.chain((self._parser, ), self._parser.values()):
             try:
                 delattr(inst, k)
             except AttributeError:

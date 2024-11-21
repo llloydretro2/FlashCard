@@ -2,12 +2,13 @@
 
 import _symtable
 from _symtable import (USE, DEF_GLOBAL, DEF_NONLOCAL, DEF_LOCAL, DEF_PARAM,
-     DEF_IMPORT, DEF_BOUND, DEF_ANNOT, SCOPE_OFF, SCOPE_MASK, FREE,
-     LOCAL, GLOBAL_IMPLICIT, GLOBAL_EXPLICIT, CELL)
+                       DEF_IMPORT, DEF_BOUND, DEF_ANNOT, SCOPE_OFF, SCOPE_MASK,
+                       FREE, LOCAL, GLOBAL_IMPLICIT, GLOBAL_EXPLICIT, CELL)
 
 import weakref
 
 __all__ = ["symtable", "SymbolTable", "Class", "Function", "Symbol"]
+
 
 def symtable(code, filename, compile_type):
     """ Return the toplevel *SymbolTable* for the source code.
@@ -18,7 +19,9 @@ def symtable(code, filename, compile_type):
     top = _symtable.symtable(code, filename, compile_type)
     return _newSymbolTable(top, filename)
 
+
 class SymbolTableFactory:
+
     def __init__(self):
         self.__memo = weakref.WeakValueDictionary()
 
@@ -35,6 +38,7 @@ class SymbolTableFactory:
         if obj is None:
             obj = self.__memo[key] = self.new(table, filename)
         return obj
+
 
 _newSymbolTable = SymbolTableFactory()
 
@@ -53,11 +57,11 @@ class SymbolTable:
             kind = "%s " % self.__class__.__name__
 
         if self._table.name == "top":
-            return "<{0}SymbolTable for module {1}>".format(kind, self._filename)
+            return "<{0}SymbolTable for module {1}>".format(
+                kind, self._filename)
         else:
-            return "<{0}SymbolTable for {1} in {2}>".format(kind,
-                                                            self._table.name,
-                                                            self._filename)
+            return "<{0}SymbolTable for {1} in {2}>".format(
+                kind, self._table.name, self._filename)
 
     def get_type(self):
         """Return the type of the symbol table.
@@ -125,7 +129,9 @@ class SymbolTable:
             flags = self._table.symbols[name]
             namespaces = self.__check_children(name)
             module_scope = (self._table.name == "top")
-            sym = self._symbols[name] = Symbol(name, flags, namespaces,
+            sym = self._symbols[name] = Symbol(name,
+                                               flags,
+                                               namespaces,
                                                module_scope=module_scope)
         return sym
 
@@ -136,15 +142,17 @@ class SymbolTable:
         return [self.lookup(ident) for ident in self.get_identifiers()]
 
     def __check_children(self, name):
-        return [_newSymbolTable(st, self._filename)
-                for st in self._table.children
-                if st.name == name]
+        return [
+            _newSymbolTable(st, self._filename) for st in self._table.children
+            if st.name == name
+        ]
 
     def get_children(self):
         """Return a list of the nested symbol tables.
         """
-        return [_newSymbolTable(st, self._filename)
-                for st in self._table.children]
+        return [
+            _newSymbolTable(st, self._filename) for st in self._table.children
+        ]
 
 
 class Function(SymbolTable):
@@ -164,7 +172,7 @@ class Function(SymbolTable):
         """Return a tuple of parameters to the function.
         """
         if self.__params is None:
-            self.__params = self.__idents_matching(lambda x:x & DEF_PARAM)
+            self.__params = self.__idents_matching(lambda x: x & DEF_PARAM)
         return self.__params
 
     def get_locals(self):
@@ -181,7 +189,7 @@ class Function(SymbolTable):
         """
         if self.__globals is None:
             glob = (GLOBAL_IMPLICIT, GLOBAL_EXPLICIT)
-            test = lambda x:((x >> SCOPE_OFF) & SCOPE_MASK) in glob
+            test = lambda x: ((x >> SCOPE_OFF) & SCOPE_MASK) in glob
             self.__globals = self.__idents_matching(test)
         return self.__globals
 
@@ -189,14 +197,15 @@ class Function(SymbolTable):
         """Return a tuple of nonlocals in the function.
         """
         if self.__nonlocals is None:
-            self.__nonlocals = self.__idents_matching(lambda x:x & DEF_NONLOCAL)
+            self.__nonlocals = self.__idents_matching(
+                lambda x: x & DEF_NONLOCAL)
         return self.__nonlocals
 
     def get_frees(self):
         """Return a tuple of free variables in the function.
         """
         if self.__frees is None:
-            is_free = lambda x:((x >> SCOPE_OFF) & SCOPE_MASK) == FREE
+            is_free = lambda x: ((x >> SCOPE_OFF) & SCOPE_MASK) == FREE
             self.__frees = self.__idents_matching(is_free)
         return self.__frees
 
@@ -221,7 +230,8 @@ class Symbol:
     def __init__(self, name, flags, namespaces=None, *, module_scope=False):
         self.__name = name
         self.__flags = flags
-        self.__scope = (flags >> SCOPE_OFF) & SCOPE_MASK # like PyST_GetScope()
+        self.__scope = (
+            flags >> SCOPE_OFF) & SCOPE_MASK  # like PyST_GetScope()
         self.__namespaces = namespaces or ()
         self.__module_scope = module_scope
 
@@ -311,6 +321,7 @@ class Symbol:
         if len(self.__namespaces) != 1:
             raise ValueError("name is bound to multiple namespaces")
         return self.__namespaces[0]
+
 
 if __name__ == "__main__":
     import os, sys

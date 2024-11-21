@@ -14,9 +14,11 @@ printable -- a string containing all ASCII characters considered printable
 
 """
 
-__all__ = ["ascii_letters", "ascii_lowercase", "ascii_uppercase", "capwords",
-           "digits", "hexdigits", "octdigits", "printable", "punctuation",
-           "whitespace", "Formatter", "Template"]
+__all__ = [
+    "ascii_letters", "ascii_lowercase", "ascii_uppercase", "capwords",
+    "digits", "hexdigits", "octdigits", "printable", "punctuation",
+    "whitespace", "Formatter", "Template"
+]
 
 import _string
 
@@ -32,6 +34,7 @@ punctuation = r"""!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
 printable = digits + ascii_letters + punctuation + whitespace
 
 # Functions which aren't available as string methods.
+
 
 # Capitalize the words in a string, e.g. " aBc  dEf " -> "Abc Def".
 def capwords(s, sep=None):
@@ -53,6 +56,7 @@ import re as _re
 from collections import ChainMap as _ChainMap
 
 _sentinel_dict = {}
+
 
 class Template:
     """A string class for supporting $-substitutions."""
@@ -118,6 +122,7 @@ class Template:
                 self._invalid(mo)
             raise ValueError('Unrecognized named group in pattern',
                              self.pattern)
+
         return self.pattern.sub(convert, self.template)
 
     def safe_substitute(self, mapping=_sentinel_dict, /, **kws):
@@ -139,12 +144,13 @@ class Template:
                 return mo.group()
             raise ValueError('Unrecognized named group in pattern',
                              self.pattern)
+
         return self.pattern.sub(convert, self.template)
+
 
 # Initialize Template.pattern.  __init_subclass__() is automatically called
 # only for subclasses, not for the Template class itself.
 Template.__init_subclass__()
-
 
 ########################################################################
 # the Formatter class
@@ -156,7 +162,9 @@ Template.__init_subclass__()
 # The overall parser is implemented in _string.formatter_parser.
 # The field name parser is implemented in _string.formatter_field_name_split
 
+
 class Formatter:
+
     def format(self, format_string, /, *args, **kwargs):
         return self.vformat(format_string, args, kwargs)
 
@@ -166,7 +174,12 @@ class Formatter:
         self.check_unused_args(used_args, args, kwargs)
         return result
 
-    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth,
+    def _vformat(self,
+                 format_string,
+                 args,
+                 kwargs,
+                 used_args,
+                 recursion_depth,
                  auto_arg_index=0):
         if recursion_depth < 0:
             raise ValueError('Max string recursion exceeded')
@@ -210,8 +223,11 @@ class Formatter:
 
                 # expand the format spec, if needed
                 format_spec, auto_arg_index = self._vformat(
-                    format_spec, args, kwargs,
-                    used_args, recursion_depth-1,
+                    format_spec,
+                    args,
+                    kwargs,
+                    used_args,
+                    recursion_depth - 1,
                     auto_arg_index=auto_arg_index)
 
                 # format the object and append to the result
@@ -219,21 +235,17 @@ class Formatter:
 
         return ''.join(result), auto_arg_index
 
-
     def get_value(self, key, args, kwargs):
         if isinstance(key, int):
             return args[key]
         else:
             return kwargs[key]
 
-
     def check_unused_args(self, used_args, args, kwargs):
         pass
 
-
     def format_field(self, value, format_spec):
         return format(value, format_spec)
-
 
     def convert_field(self, value, conversion):
         # do any conversion on the resulting object
@@ -245,8 +257,8 @@ class Formatter:
             return repr(value)
         elif conversion == 'a':
             return ascii(value)
-        raise ValueError("Unknown conversion specifier {0!s}".format(conversion))
-
+        raise ValueError(
+            "Unknown conversion specifier {0!s}".format(conversion))
 
     # returns an iterable that contains tuples of the form:
     # (literal_text, field_name, format_spec, conversion)
@@ -257,7 +269,6 @@ class Formatter:
     #  with format_spec and conversion and then used
     def parse(self, format_string):
         return _string.formatter_parser(format_string)
-
 
     # given a field_name, find the object it references.
     #  field_name:   the field being looked up, e.g. "0.name"

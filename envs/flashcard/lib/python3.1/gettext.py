@@ -45,19 +45,33 @@ internationalized, to the local language and cultural habits.
 # - Support Solaris .mo file formats.  Unfortunately, we've been unable to
 #   find this format documented anywhere.
 
-
 import os
 import re
 import sys
 
-
-__all__ = ['NullTranslations', 'GNUTranslations', 'Catalog',
-           'find', 'translation', 'install', 'textdomain', 'bindtextdomain',
-           'bind_textdomain_codeset',
-           'dgettext', 'dngettext', 'gettext', 'lgettext', 'ldgettext',
-           'ldngettext', 'lngettext', 'ngettext',
-           'pgettext', 'dpgettext', 'npgettext', 'dnpgettext',
-           ]
+__all__ = [
+    'NullTranslations',
+    'GNUTranslations',
+    'Catalog',
+    'find',
+    'translation',
+    'install',
+    'textdomain',
+    'bindtextdomain',
+    'bind_textdomain_codeset',
+    'dgettext',
+    'dngettext',
+    'gettext',
+    'lgettext',
+    'ldgettext',
+    'ldngettext',
+    'lngettext',
+    'ngettext',
+    'pgettext',
+    'dpgettext',
+    'npgettext',
+    'dnpgettext',
+]
 
 _default_localedir = os.path.join(sys.base_prefix, 'share', 'locale')
 
@@ -70,7 +84,8 @@ _default_localedir = os.path.join(sys.base_prefix, 'share', 'locale')
 # https://www.gnu.org/software/gettext/manual/gettext.html#Plural-forms
 # http://git.savannah.gnu.org/cgit/gettext.git/tree/gettext-runtime/intl/plural.y
 
-_token_pattern = re.compile(r"""
+_token_pattern = re.compile(
+    r"""
         (?P<WHITESPACES>[ \t]+)                    | # spaces and horizontal tabs
         (?P<NUMBER>[0-9]+\b)                       | # decimal integer
         (?P<NAME>n\b)                              | # only n is allowed
@@ -81,7 +96,8 @@ _token_pattern = re.compile(r"""
                                                      # unary and bitwise ops
                                                      # not allowed
         (?P<INVALID>\w+|.)                           # invalid token
-    """, re.VERBOSE|re.DOTALL)
+    """, re.VERBOSE | re.DOTALL)
+
 
 def _tokenize(plural):
     for mo in re.finditer(_token_pattern, plural):
@@ -94,15 +110,17 @@ def _tokenize(plural):
         yield value
     yield ''
 
+
 def _error(value):
     if value:
         return ValueError('unexpected token in plural form: %s' % value)
     else:
         return ValueError('unexpected end of plural form')
 
+
 _binary_ops = (
-    ('||',),
-    ('&&',),
+    ('||', ),
+    ('&&', ),
     ('==', '!='),
     ('<', '>', '<=', '>='),
     ('+', '-'),
@@ -110,6 +128,7 @@ _binary_ops = (
 )
 _binary_ops = {op: i for i, ops in enumerate(_binary_ops, 1) for op in ops}
 _c2py_ops = {'||': 'or', '&&': 'and', '/': '//'}
+
 
 def _parse(tokens, priority=-1):
     result = ''
@@ -160,17 +179,19 @@ def _parse(tokens, priority=-1):
 
     return result, nexttok
 
+
 def _as_int(n):
     try:
         i = round(n)
     except TypeError:
         raise TypeError('Plural value must be an integer, got %s' %
-                        (n.__class__.__name__,)) from None
+                        (n.__class__.__name__, )) from None
     import warnings
-    warnings.warn('Plural value must be an integer, got %s' %
-                  (n.__class__.__name__,),
-                  DeprecationWarning, 4)
+    warnings.warn(
+        'Plural value must be an integer, got %s' % (n.__class__.__name__, ),
+        DeprecationWarning, 4)
     return n
+
 
 def c2py(plural):
     """Gets a C expression as used in PO files for plural forms and returns a
@@ -196,7 +217,8 @@ def c2py(plural):
                 depth -= 1
 
         ns = {'_as_int': _as_int}
-        exec('''if True:
+        exec(
+            '''if True:
             def func(n):
                 if not isinstance(n, int):
                     n = _as_int(n)
@@ -211,9 +233,9 @@ def c2py(plural):
 def _expand_lang(loc):
     import locale
     loc = locale.normalize(loc)
-    COMPONENT_CODESET   = 1 << 0
+    COMPONENT_CODESET = 1 << 0
     COMPONENT_TERRITORY = 1 << 1
-    COMPONENT_MODIFIER  = 1 << 2
+    COMPONENT_MODIFIER = 1 << 2
     # split up the locale into its base components
     mask = 0
     pos = loc.find('@')
@@ -239,19 +261,19 @@ def _expand_lang(loc):
         territory = ''
     language = loc
     ret = []
-    for i in range(mask+1):
+    for i in range(mask + 1):
         if not (i & ~mask):  # if all components for this combo exist ...
             val = language
             if i & COMPONENT_TERRITORY: val += territory
-            if i & COMPONENT_CODESET:   val += codeset
-            if i & COMPONENT_MODIFIER:  val += modifier
+            if i & COMPONENT_CODESET: val += codeset
+            if i & COMPONENT_MODIFIER: val += modifier
             ret.append(val)
     ret.reverse()
     return ret
 
 
-
 class NullTranslations:
+
     def __init__(self, fp=None):
         self._info = {}
         self._charset = None
@@ -335,22 +357,23 @@ class NullTranslations:
 
     def output_charset(self):
         import warnings
-        warnings.warn('output_charset() is deprecated',
-                      DeprecationWarning, 2)
+        warnings.warn('output_charset() is deprecated', DeprecationWarning, 2)
         return self._output_charset
 
     def set_output_charset(self, charset):
         import warnings
-        warnings.warn('set_output_charset() is deprecated',
-                      DeprecationWarning, 2)
+        warnings.warn('set_output_charset() is deprecated', DeprecationWarning,
+                      2)
         self._output_charset = charset
 
     def install(self, names=None):
         import builtins
         builtins.__dict__['_'] = self.gettext
         if names is not None:
-            allowed = {'gettext', 'lgettext', 'lngettext',
-                       'ngettext', 'npgettext', 'pgettext'}
+            allowed = {
+                'gettext', 'lgettext', 'lngettext', 'ngettext', 'npgettext',
+                'pgettext'
+            }
             for name in allowed & set(names):
                 builtins.__dict__[name] = getattr(self, name)
 
@@ -380,7 +403,7 @@ class GNUTranslations(NullTranslations):
         # Parse the .mo file header, which consists of 5 little endian 32
         # bit words.
         self._catalog = catalog = {}
-        self.plural = lambda n: int(n != 1) # germanic plural by default
+        self.plural = lambda n: int(n != 1)  # germanic plural by default
         buf = fp.read()
         buflen = len(buf)
         # Are we big endian or little endian?
@@ -397,14 +420,15 @@ class GNUTranslations(NullTranslations):
         major_version, minor_version = self._get_versions(version)
 
         if major_version not in self.VERSIONS:
-            raise OSError(0, 'Bad version number ' + str(major_version), filename)
+            raise OSError(0, 'Bad version number ' + str(major_version),
+                          filename)
 
         # Now put all messages from the .mo file buffer into the catalog
         # dictionary.
         for i in range(0, msgcount):
-            mlen, moff = unpack(ii, buf[masteridx:masteridx+8])
+            mlen, moff = unpack(ii, buf[masteridx:masteridx + 8])
             mend = moff + mlen
-            tlen, toff = unpack(ii, buf[transidx:transidx+8])
+            tlen, toff = unpack(ii, buf[transidx:transidx + 8])
             tend = toff + tlen
             if mend < buflen and tend < buflen:
                 msg = buf[moff:mend]
@@ -420,7 +444,8 @@ class GNUTranslations(NullTranslations):
                     if not item:
                         continue
                     # Skip over comment lines:
-                    if item.startswith('#-#-#-#-#') and item.endswith('#-#-#-#-#'):
+                    if item.startswith('#-#-#-#-#') and item.endswith(
+                            '#-#-#-#-#'):
                         continue
                     k = v = None
                     if ':' in item:
@@ -575,13 +600,17 @@ def find(domain, localedir=None, languages=None, all=False):
     return result
 
 
-
 # a mapping between absolute .mo file path and Translation object
 _translations = {}
 _unspecified = ['unspecified']
 
-def translation(domain, localedir=None, languages=None,
-                class_=None, fallback=False, codeset=_unspecified):
+
+def translation(domain,
+                localedir=None,
+                languages=None,
+                class_=None,
+                fallback=False,
+                codeset=_unspecified):
     if class_ is None:
         class_ = GNUTranslations
     mofiles = find(domain, localedir, languages, all=True)
@@ -589,8 +618,8 @@ def translation(domain, localedir=None, languages=None,
         if fallback:
             return NullTranslations()
         from errno import ENOENT
-        raise FileNotFoundError(ENOENT,
-                                'No translation file found for domain', domain)
+        raise FileNotFoundError(ENOENT, 'No translation file found for domain',
+                                domain)
     # Avoid opening, reading, and parsing the .mo file after it's been done
     # once.
     result = None
@@ -613,7 +642,8 @@ def translation(domain, localedir=None, languages=None,
                           DeprecationWarning, 2)
             if codeset:
                 with warnings.catch_warnings():
-                    warnings.filterwarnings('ignore', r'.*\bset_output_charset\b.*',
+                    warnings.filterwarnings('ignore',
+                                            r'.*\bset_output_charset\b.*',
                                             DeprecationWarning)
                     t.set_output_charset(codeset)
         if result is None:
@@ -626,7 +656,6 @@ def translation(domain, localedir=None, languages=None,
 def install(domain, localedir=None, codeset=_unspecified, names=None):
     t = translation(domain, localedir, fallback=True, codeset=codeset)
     t.install(names)
-
 
 
 # a mapping b/w domains and locale directories
@@ -668,6 +697,7 @@ def dgettext(domain, message):
         return message
     return t.gettext(message)
 
+
 def ldgettext(domain, message):
     import warnings
     warnings.warn('ldgettext() is deprecated, use dgettext() instead',
@@ -678,13 +708,16 @@ def ldgettext(domain, message):
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', r'.*\bparameter codeset\b.*',
                                     DeprecationWarning)
-            t = translation(domain, _localedirs.get(domain, None), codeset=codeset)
+            t = translation(domain,
+                            _localedirs.get(domain, None),
+                            codeset=codeset)
     except OSError:
         return message.encode(codeset or locale.getpreferredencoding())
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', r'.*\blgettext\b.*',
                                 DeprecationWarning)
         return t.lgettext(message)
+
 
 def dngettext(domain, msgid1, msgid2, n):
     try:
@@ -696,6 +729,7 @@ def dngettext(domain, msgid1, msgid2, n):
             return msgid2
     return t.ngettext(msgid1, msgid2, n)
 
+
 def ldngettext(domain, msgid1, msgid2, n):
     import warnings
     warnings.warn('ldngettext() is deprecated, use dngettext() instead',
@@ -706,7 +740,9 @@ def ldngettext(domain, msgid1, msgid2, n):
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', r'.*\bparameter codeset\b.*',
                                     DeprecationWarning)
-            t = translation(domain, _localedirs.get(domain, None), codeset=codeset)
+            t = translation(domain,
+                            _localedirs.get(domain, None),
+                            codeset=codeset)
     except OSError:
         if n == 1:
             tmsg = msgid1
@@ -741,6 +777,7 @@ def dnpgettext(domain, context, msgid1, msgid2, n):
 def gettext(message):
     return dgettext(_current_domain, message)
 
+
 def lgettext(message):
     import warnings
     warnings.warn('lgettext() is deprecated, use gettext() instead',
@@ -750,8 +787,10 @@ def lgettext(message):
                                 DeprecationWarning)
         return ldgettext(_current_domain, message)
 
+
 def ngettext(msgid1, msgid2, n):
     return dngettext(_current_domain, msgid1, msgid2, n)
+
 
 def lngettext(msgid1, msgid2, n):
     import warnings

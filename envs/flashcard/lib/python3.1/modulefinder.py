@@ -8,7 +8,6 @@ import os
 import io
 import sys
 
-
 LOAD_CONST = dis.opmap['LOAD_CONST']
 IMPORT_NAME = dis.opmap['IMPORT_NAME']
 STORE_NAME = dis.opmap['STORE_NAME']
@@ -34,9 +33,11 @@ _PY_FROZEN = 7
 # Note this is a mapping is lists of paths.
 packagePathMap = {}
 
+
 # A Public interface
 def AddPackagePath(packagename, path):
     packagePathMap.setdefault(packagename, []).append(path)
+
 
 replacePackageMap = {}
 
@@ -45,6 +46,7 @@ replacePackageMap = {}
 # of another package into sys.modules at runtime by calling
 # ReplacePackage("real_package_name", "faked_package_name")
 # before running ModuleFinder.
+
 
 def ReplacePackage(oldname, newname):
     replacePackageMap[oldname] = newname
@@ -62,7 +64,8 @@ def _find_module(name, path=None):
     spec = importlib.machinery.PathFinder.find_spec(name, path)
 
     if spec is None:
-        raise ImportError("No module named {name!r}".format(name=name), name=name)
+        raise ImportError("No module named {name!r}".format(name=name),
+                          name=name)
 
     # Some special cases:
 
@@ -111,13 +114,14 @@ class Module:
         self.starimports = {}
 
     def __repr__(self):
-        s = "Module(%r" % (self.__name__,)
+        s = "Module(%r" % (self.__name__, )
         if self.__file__ is not None:
-            s = s + ", %r" % (self.__file__,)
+            s = s + ", %r" % (self.__file__, )
         if self.__path__ is not None:
-            s = s + ", %r" % (self.__path__,)
+            s = s + ", %r" % (self.__path__, )
         s = s + ")"
         return s
+
 
 class ModuleFinder:
 
@@ -131,7 +135,7 @@ class ModuleFinder:
         self.indent = 0
         self.excludes = excludes if excludes is not None else []
         self.replace_paths = replace_paths if replace_paths is not None else []
-        self.processed_paths = []   # Used in debugging only
+        self.processed_paths = []  # Used in debugging only
 
     def msg(self, level, str, *args):
         if level <= self.debug:
@@ -184,7 +188,7 @@ class ModuleFinder:
             self.msgout(4, "determine_parent -> None")
             return None
         pname = caller.__name__
-        if level >= 1: # relative import
+        if level >= 1:  # relative import
             if caller.__path__:
                 level -= 1
             if level == 0:
@@ -218,7 +222,7 @@ class ModuleFinder:
         if '.' in name:
             i = name.find('.')
             head = name[:i]
-            tail = name[i+1:]
+            tail = name[i + 1:]
         else:
             head = name
             tail = ""
@@ -246,7 +250,7 @@ class ModuleFinder:
         while tail:
             i = tail.find('.')
             if i < 0: i = len(tail)
-            head, tail = tail[:i], tail[i+1:]
+            head, tail = tail[:i], tail[i + 1:]
             mname = "%s.%s" % (m.__name__, head)
             m = self.import_module(head, mname, m)
             if not m:
@@ -313,8 +317,8 @@ class ModuleFinder:
             self.msgout(3, "import_module -> None")
             return None
         try:
-            fp, pathname, stuff = self.find_module(partname,
-                                                   parent and parent.__path__, parent)
+            fp, pathname, stuff = self.find_module(partname, parent
+                                                   and parent.__path__, parent)
         except ImportError:
             self.msgout(3, "import_module ->", None)
             return None
@@ -401,15 +405,15 @@ class ModuleFinder:
                   if op != EXTENDED_ARG]
         for i, (op, oparg) in enumerate(opargs):
             if op in STORE_OPS:
-                yield "store", (names[oparg],)
+                yield "store", (names[oparg], )
                 continue
             if (op == IMPORT_NAME and i >= 2
-                    and opargs[i-1][0] == opargs[i-2][0] == LOAD_CONST):
-                level = consts[opargs[i-2][1]]
-                fromlist = consts[opargs[i-1][1]]
-                if level == 0: # absolute import
+                    and opargs[i - 1][0] == opargs[i - 2][0] == LOAD_CONST):
+                level = consts[opargs[i - 2][1]]
+                fromlist = consts[opargs[i - 1][1]]
+                if level == 0:  # absolute import
                     yield "absolute_import", (fromlist, names[oparg])
-                else: # relative import
+                else:  # relative import
                     yield "relative_import", (level, fromlist, names[oparg])
                 continue
 
@@ -453,7 +457,10 @@ class ModuleFinder:
                     self._safe_import_hook(name, m, fromlist, level=level)
                 else:
                     parent = self.determine_parent(m, level=level)
-                    self._safe_import_hook(parent.__name__, None, fromlist, level=0)
+                    self._safe_import_hook(parent.__name__,
+                                           None,
+                                           fromlist,
+                                           level=0)
             else:
                 # We don't expect anything else from the generator.
                 raise RuntimeError(what)
@@ -492,7 +499,7 @@ class ModuleFinder:
     def find_module(self, name, path, parent=None):
         if parent is not None:
             # assert path is not None
-            fullname = parent.__name__+'.'+name
+            fullname = parent.__name__ + '.' + name
         else:
             fullname = name
         if fullname in self.excludes:
@@ -535,7 +542,8 @@ class ModuleFinder:
         # Print modules that may be missing, but then again, maybe not...
         if maybe:
             print()
-            print("Submodules that appear to be missing, but could also be", end=' ')
+            print("Submodules that appear to be missing, but could also be",
+                  end=' ')
             print("global names in the parent package:")
             for name in maybe:
                 mods = sorted(self.badmodules[name].keys())
@@ -567,7 +575,7 @@ class ModuleFinder:
             if i < 0:
                 missing.append(name)
                 continue
-            subname = name[i+1:]
+            subname = name[i + 1:]
             pkgname = name[:i]
             pkg = self.modules.get(pkgname)
             if pkg is not None:

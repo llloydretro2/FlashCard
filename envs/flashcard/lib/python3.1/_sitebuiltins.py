@@ -10,12 +10,16 @@ The objects used by the site module to add custom builtins.
 
 import sys
 
+
 class Quitter(object):
+
     def __init__(self, name, eof):
         self.name = name
         self.eof = eof
+
     def __repr__(self):
         return 'Use %s() or %s to exit' % (self.name, self.eof)
+
     def __call__(self, code=None):
         # Shells like IDLE catch the SystemExit, but listen when their
         # stdin wrapper is closed.
@@ -37,9 +41,9 @@ class _Printer(object):
         self.__name = name
         self.__data = data
         self.__lines = None
-        self.__filenames = [os.path.join(dir, filename)
-                            for dir in dirs
-                            for filename in files]
+        self.__filenames = [
+            os.path.join(dir, filename) for dir in dirs for filename in files
+        ]
 
     def __setup(self):
         if self.__lines:
@@ -62,7 +66,7 @@ class _Printer(object):
         if len(self.__lines) <= self.MAXLINES:
             return "\n".join(self.__lines)
         else:
-            return "Type %s() to see the full %s text" % ((self.__name,)*2)
+            return "Type %s() to see the full %s text" % ((self.__name, ) * 2)
 
     def __call__(self):
         self.__setup()
@@ -98,6 +102,7 @@ class _Helper(object):
     def __repr__(self):
         return "Type help() for interactive help, " \
                "or help(object) for help about object."
+
     def __call__(self, *args, **kwds):
         import pydoc
         return pydoc.help(*args, **kwds)

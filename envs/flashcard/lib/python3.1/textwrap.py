@@ -14,6 +14,7 @@ __all__ = ['TextWrapper', 'wrap', 'fill', 'dedent', 'indent', 'shorten']
 # some Unicode spaces (like \u00a0) are non-breaking whitespaces.
 _whitespace = '\t\n\x0b\x0c\r '
 
+
 class TextWrapper:
     """
     Object for wrapping/filling text.  The public interface consists of
@@ -78,7 +79,8 @@ class TextWrapper:
     letter = r'[^\d\W]'
     whitespace = r'[%s]' % re.escape(_whitespace)
     nowhitespace = '[^' + whitespace[1:]
-    wordsep_re = re.compile(r'''
+    wordsep_re = re.compile(
+        r'''
         ( # any whitespace
           %(ws)s+
         | # em-dash between words
@@ -93,9 +95,12 @@ class TextWrapper:
             | # em-dash
               (?<=%(wp)s) (?=-{2,}\w)
             )
-        )''' % {'wp': word_punct, 'lt': letter,
-                'ws': whitespace, 'nws': nowhitespace},
-        re.VERBOSE)
+        )''' % {
+            'wp': word_punct,
+            'lt': letter,
+            'ws': whitespace,
+            'nws': nowhitespace
+        }, re.VERBOSE)
     del word_punct, letter, nowhitespace
 
     # This less funky little regex just split on recognized spaces. E.g.
@@ -107,10 +112,10 @@ class TextWrapper:
 
     # XXX this is not locale- or charset-aware -- string.lowercase
     # is US-ASCII only (and therefore English-only)
-    sentence_end_re = re.compile(r'[a-z]'             # lowercase letter
-                                 r'[\.\!\?]'          # sentence-ending punct.
-                                 r'[\"\']?'           # optional end-of-quote
-                                 r'\Z')               # end of chunk
+    sentence_end_re = re.compile(r'[a-z]'  # lowercase letter
+                                 r'[\.\!\?]'  # sentence-ending punct.
+                                 r'[\"\']?'  # optional end-of-quote
+                                 r'\Z')  # end of chunk
 
     def __init__(self,
                  width=70,
@@ -139,7 +144,6 @@ class TextWrapper:
         self.max_lines = max_lines
         self.placeholder = placeholder
 
-
     # -- Private methods -----------------------------------------------
     # (possibly useful for subclasses to override)
 
@@ -155,7 +159,6 @@ class TextWrapper:
         if self.replace_whitespace:
             text = text.translate(self.unicode_whitespace_trans)
         return text
-
 
     def _split(self, text):
         """_split(text : string) -> [string]
@@ -190,9 +193,9 @@ class TextWrapper:
         """
         i = 0
         patsearch = self.sentence_end_re.search
-        while i < len(chunks)-1:
-            if chunks[i+1] == " " and patsearch(chunks[i]):
-                chunks[i+1] = "  "
+        while i < len(chunks) - 1:
+            if chunks[i + 1] == " " and patsearch(chunks[i]):
+                chunks[i + 1] = "  "
                 i += 2
             else:
                 i += 1
@@ -306,24 +309,23 @@ class TextWrapper:
                 cur_len = sum(map(len, cur_line))
 
             # If the last chunk on this line is all whitespace, drop it.
-            if self.drop_whitespace and cur_line and cur_line[-1].strip() == '':
+            if self.drop_whitespace and cur_line and cur_line[-1].strip(
+            ) == '':
                 cur_len -= len(cur_line[-1])
                 del cur_line[-1]
 
             if cur_line:
-                if (self.max_lines is None or
-                    len(lines) + 1 < self.max_lines or
-                    (not chunks or
-                     self.drop_whitespace and
-                     len(chunks) == 1 and
-                     not chunks[0].strip()) and cur_len <= width):
+                if (self.max_lines is None or len(lines) + 1 < self.max_lines
+                        or
+                    (not chunks or self.drop_whitespace and len(chunks) == 1
+                     and not chunks[0].strip()) and cur_len <= width):
                     # Convert current line back to a string and store it in
                     # list of all lines (return value).
                     lines.append(indent + ''.join(cur_line))
                 else:
                     while cur_line:
-                        if (cur_line[-1].strip() and
-                            cur_len + len(self.placeholder) <= width):
+                        if (cur_line[-1].strip()
+                                and cur_len + len(self.placeholder) <= width):
                             cur_line.append(self.placeholder)
                             lines.append(indent + ''.join(cur_line))
                             break
@@ -332,8 +334,8 @@ class TextWrapper:
                     else:
                         if lines:
                             prev_line = lines[-1].rstrip()
-                            if (len(prev_line) + len(self.placeholder) <=
-                                    self.width):
+                            if (len(prev_line) + len(self.placeholder)
+                                    <= self.width):
                                 lines[-1] = prev_line + self.placeholder
                                 break
                         lines.append(indent + self.placeholder.lstrip())
@@ -373,6 +375,7 @@ class TextWrapper:
 
 # -- Convenience interface ---------------------------------------------
 
+
 def wrap(text, width=70, **kwargs):
     """Wrap a single paragraph of text, returning a list of wrapped lines.
 
@@ -386,6 +389,7 @@ def wrap(text, width=70, **kwargs):
     w = TextWrapper(width=width, **kwargs)
     return w.wrap(text)
 
+
 def fill(text, width=70, **kwargs):
     """Fill a single paragraph of text, returning a new string.
 
@@ -397,6 +401,7 @@ def fill(text, width=70, **kwargs):
     """
     w = TextWrapper(width=width, **kwargs)
     return w.fill(text)
+
 
 def shorten(text, width, **kwargs):
     """Collapse and truncate the given text to fit in the given width.
@@ -418,6 +423,7 @@ def shorten(text, width, **kwargs):
 
 _whitespace_only_re = re.compile('^[ \t]+$', re.MULTILINE)
 _leading_whitespace_re = re.compile('(^[ \t]*)(?:[^ \t\n])', re.MULTILINE)
+
 
 def dedent(text):
     """Remove any common leading whitespace from every line in `text`.
@@ -479,12 +485,14 @@ def indent(text, prefix, predicate=None):
     consist solely of whitespace characters.
     """
     if predicate is None:
+
         def predicate(line):
             return line.strip()
 
     def prefixed_lines():
         for line in text.splitlines(True):
             yield (prefix + line if predicate(line) else line)
+
     return ''.join(prefixed_lines())
 
 

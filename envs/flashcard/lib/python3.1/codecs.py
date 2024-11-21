@@ -17,20 +17,18 @@ try:
 except ImportError as why:
     raise SystemError('Failed to load the builtin codecs: %s' % why)
 
-__all__ = ["register", "lookup", "open", "EncodedFile", "BOM", "BOM_BE",
-           "BOM_LE", "BOM32_BE", "BOM32_LE", "BOM64_BE", "BOM64_LE",
-           "BOM_UTF8", "BOM_UTF16", "BOM_UTF16_LE", "BOM_UTF16_BE",
-           "BOM_UTF32", "BOM_UTF32_LE", "BOM_UTF32_BE",
-           "CodecInfo", "Codec", "IncrementalEncoder", "IncrementalDecoder",
-           "StreamReader", "StreamWriter",
-           "StreamReaderWriter", "StreamRecoder",
-           "getencoder", "getdecoder", "getincrementalencoder",
-           "getincrementaldecoder", "getreader", "getwriter",
-           "encode", "decode", "iterencode", "iterdecode",
-           "strict_errors", "ignore_errors", "replace_errors",
-           "xmlcharrefreplace_errors",
-           "backslashreplace_errors", "namereplace_errors",
-           "register_error", "lookup_error"]
+__all__ = [
+    "register", "lookup", "open", "EncodedFile", "BOM", "BOM_BE", "BOM_LE",
+    "BOM32_BE", "BOM32_LE", "BOM64_BE", "BOM64_LE", "BOM_UTF8", "BOM_UTF16",
+    "BOM_UTF16_LE", "BOM_UTF16_BE", "BOM_UTF32", "BOM_UTF32_LE",
+    "BOM_UTF32_BE", "CodecInfo", "Codec", "IncrementalEncoder",
+    "IncrementalDecoder", "StreamReader", "StreamWriter", "StreamReaderWriter",
+    "StreamRecoder", "getencoder", "getdecoder", "getincrementalencoder",
+    "getincrementaldecoder", "getreader", "getwriter", "encode", "decode",
+    "iterencode", "iterdecode", "strict_errors", "ignore_errors",
+    "replace_errors", "xmlcharrefreplace_errors", "backslashreplace_errors",
+    "namereplace_errors", "register_error", "lookup_error"
+]
 
 ### Constants
 
@@ -77,8 +75,8 @@ BOM32_BE = BOM_UTF16_BE
 BOM64_LE = BOM_UTF32_LE
 BOM64_BE = BOM_UTF32_BE
 
-
 ### Codec base classes (defining the API)
+
 
 class CodecInfo(tuple):
     """Codec details when looking up the codec registry"""
@@ -89,11 +87,18 @@ class CodecInfo(tuple):
     # be defined for Python 3.5
     #
     # See http://bugs.python.org/issue19619
-    _is_text_encoding = True # Assume codecs are text encodings by default
+    _is_text_encoding = True  # Assume codecs are text encodings by default
 
-    def __new__(cls, encode, decode, streamreader=None, streamwriter=None,
-        incrementalencoder=None, incrementaldecoder=None, name=None,
-        *, _is_text_encoding=None):
+    def __new__(cls,
+                encode,
+                decode,
+                streamreader=None,
+                streamwriter=None,
+                incrementalencoder=None,
+                incrementaldecoder=None,
+                name=None,
+                *,
+                _is_text_encoding=None):
         self = tuple.__new__(cls, (encode, decode, streamreader, streamwriter))
         self.name = name
         self.encode = encode
@@ -111,8 +116,8 @@ class CodecInfo(tuple):
                 (self.__class__.__module__, self.__class__.__qualname__,
                  self.name, id(self))
 
-class Codec:
 
+class Codec:
     """ Defines the interface for stateless encoders/decoders.
 
         The .encode()/.decode() methods may use different error
@@ -135,8 +140,8 @@ class Codec:
         The set of allowed values can be extended via register_error.
 
     """
-    def encode(self, input, errors='strict'):
 
+    def encode(self, input, errors='strict'):
         """ Encodes the object input and returns a tuple (output
             object, length consumed).
 
@@ -155,7 +160,6 @@ class Codec:
         raise NotImplementedError
 
     def decode(self, input, errors='strict'):
-
         """ Decodes the object input and returns a tuple (output
             object, length consumed).
 
@@ -177,12 +181,14 @@ class Codec:
         """
         raise NotImplementedError
 
+
 class IncrementalEncoder(object):
     """
     An IncrementalEncoder encodes an input in multiple steps. The input can
     be passed piece by piece to the encode() method. The IncrementalEncoder
     remembers the state of the encoding process between calls to encode().
     """
+
     def __init__(self, errors='strict'):
         """
         Creates an IncrementalEncoder instance.
@@ -217,12 +223,14 @@ class IncrementalEncoder(object):
         returned by getstate().
         """
 
+
 class BufferedIncrementalEncoder(IncrementalEncoder):
     """
     This subclass of IncrementalEncoder can be used as the baseclass for an
     incremental encoder if the encoder must keep some of the output in a
     buffer between calls to encode().
     """
+
     def __init__(self, errors='strict'):
         IncrementalEncoder.__init__(self, errors)
         # unencoded input that is kept between calls to encode()
@@ -251,12 +259,14 @@ class BufferedIncrementalEncoder(IncrementalEncoder):
     def setstate(self, state):
         self.buffer = state or ""
 
+
 class IncrementalDecoder(object):
     """
     An IncrementalDecoder decodes an input in multiple steps. The input can
     be passed piece by piece to the decode() method. The IncrementalDecoder
     remembers the state of the decoding process between calls to decode().
     """
+
     def __init__(self, errors='strict'):
         """
         Create an IncrementalDecoder instance.
@@ -300,12 +310,14 @@ class IncrementalDecoder(object):
         setstate((b"", 0)) must be equivalent to reset().
         """
 
+
 class BufferedIncrementalDecoder(IncrementalDecoder):
     """
     This subclass of IncrementalDecoder can be used as the baseclass for an
     incremental decoder if the decoder must be able to handle incomplete
     byte sequences.
     """
+
     def __init__(self, errors='strict'):
         IncrementalDecoder.__init__(self, errors)
         # undecoded input that is kept between calls to decode()
@@ -336,6 +348,7 @@ class BufferedIncrementalDecoder(IncrementalDecoder):
         # ignore additional state info
         self.buffer = state[0]
 
+
 #
 # The StreamWriter and StreamReader class provide generic working
 # interfaces which can be used to implement new encoding submodules
@@ -343,10 +356,10 @@ class BufferedIncrementalDecoder(IncrementalDecoder):
 # done.
 #
 
+
 class StreamWriter(Codec):
 
     def __init__(self, stream, errors='strict'):
-
         """ Creates a StreamWriter instance.
 
             stream must be a file-like object open for writing.
@@ -371,21 +384,18 @@ class StreamWriter(Codec):
         self.errors = errors
 
     def write(self, object):
-
         """ Writes the object's contents encoded to self.stream.
         """
         data, consumed = self.encode(object, self.errors)
         self.stream.write(data)
 
     def writelines(self, list):
-
         """ Writes the concatenated list of strings to the stream
             using .write().
         """
         self.write(''.join(list))
 
     def reset(self):
-
         """ Resets the codec buffers used for keeping internal state.
 
             Calling this method should ensure that the data on the
@@ -401,9 +411,7 @@ class StreamWriter(Codec):
         if whence == 0 and offset == 0:
             self.reset()
 
-    def __getattr__(self, name,
-                    getattr=getattr):
-
+    def __getattr__(self, name, getattr=getattr):
         """ Inherit all other methods from the underlying stream.
         """
         return getattr(self.stream, name)
@@ -414,14 +422,15 @@ class StreamWriter(Codec):
     def __exit__(self, type, value, tb):
         self.stream.close()
 
+
 ###
+
 
 class StreamReader(Codec):
 
     charbuffertype = str
 
     def __init__(self, stream, errors='strict'):
-
         """ Creates a StreamReader instance.
 
             stream must be a file-like object open for reading.
@@ -449,7 +458,6 @@ class StreamReader(Codec):
         raise NotImplementedError
 
     def read(self, size=-1, chars=-1, firstline=False):
-
         """ Decodes data from the stream self.stream and returns the
             resulting object.
 
@@ -507,7 +515,7 @@ class StreamReader(Codec):
                     newchars, decodedbytes = \
                         self.decode(data[:exc.start], self.errors)
                     lines = newchars.splitlines(keepends=True)
-                    if len(lines)<=1:
+                    if len(lines) <= 1:
                         raise
                 else:
                     raise
@@ -529,7 +537,6 @@ class StreamReader(Codec):
         return result
 
     def readline(self, size=None, keepends=True):
-
         """ Read one line from the input stream and return the
             decoded data.
 
@@ -585,7 +592,7 @@ class StreamReader(Codec):
                     break
                 line0withend = lines[0]
                 line0withoutend = lines[0].splitlines(keepends=False)[0]
-                if line0withend != line0withoutend: # We really have a line end
+                if line0withend != line0withoutend:  # We really have a line end
                     # Put the rest back together and keep it until the next call
                     self.charbuffer = self._empty_charbuffer.join(lines[1:]) + \
                                       self.charbuffer
@@ -604,7 +611,6 @@ class StreamReader(Codec):
         return line
 
     def readlines(self, sizehint=None, keepends=True):
-
         """ Read all lines available on the input stream
             and return them as a list.
 
@@ -619,7 +625,6 @@ class StreamReader(Codec):
         return data.splitlines(keepends)
 
     def reset(self):
-
         """ Resets the codec buffers used for keeping internal state.
 
             Note that no stream repositioning should take place.
@@ -640,7 +645,6 @@ class StreamReader(Codec):
         self.reset()
 
     def __next__(self):
-
         """ Return the next decoded line from the input stream."""
         line = self.readline()
         if line:
@@ -650,9 +654,7 @@ class StreamReader(Codec):
     def __iter__(self):
         return self
 
-    def __getattr__(self, name,
-                    getattr=getattr):
-
+    def __getattr__(self, name, getattr=getattr):
         """ Inherit all other methods from the underlying stream.
         """
         return getattr(self.stream, name)
@@ -663,10 +665,11 @@ class StreamReader(Codec):
     def __exit__(self, type, value, tb):
         self.stream.close()
 
+
 ###
 
-class StreamReaderWriter:
 
+class StreamReaderWriter:
     """ StreamReaderWriter instances allow wrapping streams which
         work in both read and write modes.
 
@@ -679,7 +682,6 @@ class StreamReaderWriter:
     encoding = 'unknown'
 
     def __init__(self, stream, Reader, Writer, errors='strict'):
-
         """ Creates a StreamReaderWriter instance.
 
             stream must be a Stream-like object.
@@ -709,7 +711,6 @@ class StreamReaderWriter:
         return self.reader.readlines(sizehint)
 
     def __next__(self):
-
         """ Return the next decoded line from the input stream."""
         return next(self.reader)
 
@@ -735,9 +736,7 @@ class StreamReaderWriter:
         if whence == 0 and offset == 0:
             self.writer.reset()
 
-    def __getattr__(self, name,
-                    getattr=getattr):
-
+    def __getattr__(self, name, getattr=getattr):
         """ Inherit all other methods from the underlying stream.
         """
         return getattr(self.stream, name)
@@ -750,10 +749,11 @@ class StreamReaderWriter:
     def __exit__(self, type, value, tb):
         self.stream.close()
 
+
 ###
 
-class StreamRecoder:
 
+class StreamRecoder:
     """ StreamRecoder instances translate data from one encoding to another.
 
         They use the complete set of APIs returned by the
@@ -772,9 +772,13 @@ class StreamRecoder:
     data_encoding = 'unknown'
     file_encoding = 'unknown'
 
-    def __init__(self, stream, encode, decode, Reader, Writer,
+    def __init__(self,
+                 stream,
+                 encode,
+                 decode,
+                 Reader,
+                 Writer,
                  errors='strict'):
-
         """ Creates a StreamRecoder instance which implements a two-way
             conversion: encode and decode work on the frontend (the
             data visible to .read() and .write()) while Reader and Writer
@@ -822,7 +826,6 @@ class StreamRecoder:
         return data.splitlines(keepends=True)
 
     def __next__(self):
-
         """ Return the next decoded line from the input stream."""
         data = next(self.reader)
         data, bytesencoded = self.encode(data, self.errors)
@@ -853,9 +856,7 @@ class StreamRecoder:
         self.reader.seek(offset, whence)
         self.writer.seek(offset, whence)
 
-    def __getattr__(self, name,
-                    getattr=getattr):
-
+    def __getattr__(self, name, getattr=getattr):
         """ Inherit all other methods from the underlying stream.
         """
         return getattr(self.stream, name)
@@ -866,10 +867,11 @@ class StreamRecoder:
     def __exit__(self, type, value, tb):
         self.stream.close()
 
+
 ### Shortcuts
 
-def open(filename, mode='r', encoding=None, errors='strict', buffering=-1):
 
+def open(filename, mode='r', encoding=None, errors='strict', buffering=-1):
     """ Open an encoded file using the given mode and return
         a wrapped version providing transparent encoding/decoding.
 
@@ -908,7 +910,8 @@ def open(filename, mode='r', encoding=None, errors='strict', buffering=-1):
 
     try:
         info = lookup(encoding)
-        srw = StreamReaderWriter(file, info.streamreader, info.streamwriter, errors)
+        srw = StreamReaderWriter(file, info.streamreader, info.streamwriter,
+                                 errors)
         # Add attributes to simplify introspection
         srw.encoding = encoding
         return srw
@@ -916,8 +919,8 @@ def open(filename, mode='r', encoding=None, errors='strict', buffering=-1):
         file.close()
         raise
 
-def EncodedFile(file, data_encoding, file_encoding=None, errors='strict'):
 
+def EncodedFile(file, data_encoding, file_encoding=None, errors='strict'):
     """ Return a wrapped version of file which provides transparent
         encoding translation.
 
@@ -952,10 +955,11 @@ def EncodedFile(file, data_encoding, file_encoding=None, errors='strict'):
     sr.file_encoding = file_encoding
     return sr
 
+
 ### Helpers for codec lookup
 
-def getencoder(encoding):
 
+def getencoder(encoding):
     """ Lookup up the codec for the given encoding and return
         its encoder function.
 
@@ -964,8 +968,8 @@ def getencoder(encoding):
     """
     return lookup(encoding).encode
 
-def getdecoder(encoding):
 
+def getdecoder(encoding):
     """ Lookup up the codec for the given encoding and return
         its decoder function.
 
@@ -974,8 +978,8 @@ def getdecoder(encoding):
     """
     return lookup(encoding).decode
 
-def getincrementalencoder(encoding):
 
+def getincrementalencoder(encoding):
     """ Lookup up the codec for the given encoding and return
         its IncrementalEncoder class or factory function.
 
@@ -988,8 +992,8 @@ def getincrementalencoder(encoding):
         raise LookupError(encoding)
     return encoder
 
-def getincrementaldecoder(encoding):
 
+def getincrementaldecoder(encoding):
     """ Lookup up the codec for the given encoding and return
         its IncrementalDecoder class or factory function.
 
@@ -1002,8 +1006,8 @@ def getincrementaldecoder(encoding):
         raise LookupError(encoding)
     return decoder
 
-def getreader(encoding):
 
+def getreader(encoding):
     """ Lookup up the codec for the given encoding and return
         its StreamReader class or factory function.
 
@@ -1012,8 +1016,8 @@ def getreader(encoding):
     """
     return lookup(encoding).streamreader
 
-def getwriter(encoding):
 
+def getwriter(encoding):
     """ Lookup up the codec for the given encoding and return
         its StreamWriter class or factory function.
 
@@ -1021,6 +1025,7 @@ def getwriter(encoding):
 
     """
     return lookup(encoding).streamwriter
+
 
 def iterencode(iterator, encoding, errors='strict', **kwargs):
     """
@@ -1040,6 +1045,7 @@ def iterencode(iterator, encoding, errors='strict', **kwargs):
     if output:
         yield output
 
+
 def iterdecode(iterator, encoding, errors='strict', **kwargs):
     """
     Decoding iterator.
@@ -1058,20 +1064,21 @@ def iterdecode(iterator, encoding, errors='strict', **kwargs):
     if output:
         yield output
 
+
 ### Helpers for charmap-based codecs
 
-def make_identity_dict(rng):
 
+def make_identity_dict(rng):
     """ make_identity_dict(rng) -> dict
 
         Return a dictionary where elements of the rng sequence are
         mapped to themselves.
 
     """
-    return {i:i for i in rng}
+    return {i: i for i in rng}
+
 
 def make_encoding_map(decoding_map):
-
     """ Creates an encoding map from a decoding map.
 
         If a target mapping in the decoding map occurs multiple
@@ -1084,12 +1091,13 @@ def make_encoding_map(decoding_map):
 
     """
     m = {}
-    for k,v in decoding_map.items():
+    for k, v in decoding_map.items():
         if not v in m:
             m[v] = k
         else:
             m[v] = None
     return m
+
 
 ### error handlers
 

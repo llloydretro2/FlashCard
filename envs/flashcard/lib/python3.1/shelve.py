@@ -63,11 +63,13 @@ import collections.abc
 
 __all__ = ["Shelf", "BsdDbShelf", "DbfilenameShelf", "open"]
 
+
 class _ClosedDict(collections.abc.MutableMapping):
     'Marker for a closed dict.  Access attempts raise a ValueError.'
 
     def closed(self, *args):
         raise ValueError('invalid operation on closed shelf')
+
     __iter__ = __len__ = __getitem__ = __setitem__ = __delitem__ = keys = closed
 
     def __repr__(self):
@@ -81,7 +83,10 @@ class Shelf(collections.abc.MutableMapping):
     See the module's __doc__ string for an overview of the interface.
     """
 
-    def __init__(self, dict, protocol=None, writeback=False,
+    def __init__(self,
+                 dict,
+                 protocol=None,
+                 writeback=False,
                  keyencoding="utf-8"):
         self.dict = dict
         if protocol is None:
@@ -185,7 +190,10 @@ class BsdDbShelf(Shelf):
     See the module's __doc__ string for an overview of the interface.
     """
 
-    def __init__(self, dict, protocol=None, writeback=False,
+    def __init__(self,
+                 dict,
+                 protocol=None,
+                 writeback=False,
                  keyencoding="utf-8"):
         Shelf.__init__(self, dict, protocol, writeback, keyencoding)
 

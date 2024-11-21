@@ -6,6 +6,7 @@ import builtins
 from itertools import islice
 from _thread import get_ident
 
+
 def recursive_repr(fillvalue='...'):
     'Decorator to make a repr function return fillvalue for a recursive call'
 
@@ -32,6 +33,7 @@ def recursive_repr(fillvalue='...'):
         return wrapper
 
     return decorating_function
+
 
 class Repr:
 
@@ -69,9 +71,9 @@ class Repr:
             newlevel = level - 1
             repr1 = self.repr1
             pieces = [repr1(elem, newlevel) for elem in islice(x, maxiter)]
-            if n > maxiter:  pieces.append('...')
+            if n > maxiter: pieces.append('...')
             s = ', '.join(pieces)
-            if n == 1 and trail:  right = trail + right
+            if n == 1 and trail: right = trail + right
         return '%s%s%s' % (left, s, right)
 
     def repr_tuple(self, x, level):
@@ -115,23 +117,23 @@ class Repr:
             pieces.append('%s: %s' % (keyrepr, valrepr))
         if n > self.maxdict: pieces.append('...')
         s = ', '.join(pieces)
-        return '{%s}' % (s,)
+        return '{%s}' % (s, )
 
     def repr_str(self, x, level):
         s = builtins.repr(x[:self.maxstring])
         if len(s) > self.maxstring:
-            i = max(0, (self.maxstring-3)//2)
-            j = max(0, self.maxstring-3-i)
-            s = builtins.repr(x[:i] + x[len(x)-j:])
-            s = s[:i] + '...' + s[len(s)-j:]
+            i = max(0, (self.maxstring - 3) // 2)
+            j = max(0, self.maxstring - 3 - i)
+            s = builtins.repr(x[:i] + x[len(x) - j:])
+            s = s[:i] + '...' + s[len(s) - j:]
         return s
 
     def repr_int(self, x, level):
-        s = builtins.repr(x) # XXX Hope this isn't too slow...
+        s = builtins.repr(x)  # XXX Hope this isn't too slow...
         if len(s) > self.maxlong:
-            i = max(0, (self.maxlong-3)//2)
-            j = max(0, self.maxlong-3-i)
-            s = s[:i] + '...' + s[len(s)-j:]
+            i = max(0, (self.maxlong - 3) // 2)
+            j = max(0, self.maxlong - 3 - i)
+            s = s[:i] + '...' + s[len(s) - j:]
         return s
 
     def repr_instance(self, x, level):
@@ -142,9 +144,9 @@ class Repr:
         except Exception:
             return '<%s instance at %#x>' % (x.__class__.__name__, id(x))
         if len(s) > self.maxother:
-            i = max(0, (self.maxother-3)//2)
-            j = max(0, self.maxother-3-i)
-            s = s[:i] + '...' + s[len(s)-j:]
+            i = max(0, (self.maxother - 3) // 2)
+            j = max(0, self.maxother - 3 - i)
+            s = s[:i] + '...' + s[len(s) - j:]
         return s
 
 
@@ -156,6 +158,7 @@ def _possibly_sorted(x):
         return sorted(x)
     except Exception:
         return list(x)
+
 
 aRepr = Repr()
 repr = aRepr.repr

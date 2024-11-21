@@ -12,7 +12,6 @@ import tokenize
 
 __all__ = ["getline", "clearcache", "checkcache", "lazycache"]
 
-
 # The cache. Maps filenames to either a thunk which will provide source code,
 # or a tuple (size, mtime, lines, fullname) once loaded.
 cache = {}
@@ -67,7 +66,7 @@ def checkcache(filename=None):
             continue
         size, mtime, lines, fullname = entry
         if mtime is None:
-            continue   # no-op for files loaded via a __loader__
+            continue  # no-op for files loaded via a __loader__
         try:
             stat = os.stat(fullname)
         except OSError:
@@ -106,12 +105,9 @@ def updatecache(filename, module_globals=None):
                     # No luck, the PEP302 loader cannot find the source
                     # for this module.
                     return []
-                cache[filename] = (
-                    len(data),
-                    None,
-                    [line + '\n' for line in data.splitlines()],
-                    fullname
-                )
+                cache[filename] = (len(data), None,
+                                   [line + '\n'
+                                    for line in data.splitlines()], fullname)
                 return cache[filename][2]
 
         # Try looking through the module search path, which is only useful
@@ -177,6 +173,6 @@ def lazycache(filename, module_globals):
 
         if name and get_source:
             get_lines = functools.partial(get_source, name)
-            cache[filename] = (get_lines,)
+            cache[filename] = (get_lines, )
             return True
     return False

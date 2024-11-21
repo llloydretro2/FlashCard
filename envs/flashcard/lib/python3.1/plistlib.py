@@ -46,7 +46,8 @@ Parse Plist example:
     print(pl["aKey"])
 """
 __all__ = [
-    "InvalidFileException", "FMT_XML", "FMT_BINARY", "load", "dump", "loads", "dumps", "UID"
+    "InvalidFileException", "FMT_XML", "FMT_BINARY", "load", "dump", "loads",
+    "dumps", "UID"
 ]
 
 import binascii
@@ -60,12 +61,12 @@ import re
 import struct
 from xml.parsers.expat import ParserCreate
 
-
 PlistFormat = enum.Enum('PlistFormat', 'FMT_XML FMT_BINARY', module=__name__)
 globals().update(PlistFormat.__members__)
 
 
 class UID:
+
     def __init__(self, data):
         if not isinstance(data, int):
             raise TypeError("data must be an int")
@@ -82,7 +83,7 @@ class UID:
         return "%s(%s)" % (self.__class__.__name__, repr(self.data))
 
     def __reduce__(self):
-        return self.__class__, (self.data,)
+        return self.__class__, (self.data, )
 
     def __eq__(self, other):
         if not isinstance(other, UID):
@@ -92,10 +93,10 @@ class UID:
     def __hash__(self):
         return hash(self.data)
 
+
 #
 # XML support
 #
-
 
 # XML 'header'
 PLISTHEADER = b"""\
@@ -103,20 +104,21 @@ PLISTHEADER = b"""\
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 """
 
-
 # Regex to find any control chars, except for \t \n and \r
 _controlCharPat = re.compile(
     r"[\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f"
     r"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f]")
 
+
 def _encode_base64(s, maxlinelength=76):
     # copied from base64.encodebytes(), with added maxlinelength argument
-    maxbinsize = (maxlinelength//4)*3
+    maxbinsize = (maxlinelength // 4) * 3
     pieces = []
     for i in range(0, len(s), maxbinsize):
-        chunk = s[i : i + maxbinsize]
+        chunk = s[i:i + maxbinsize]
         pieces.append(binascii.b2a_base64(chunk))
     return b''.join(pieces)
+
 
 def _decode_base64(s):
     if isinstance(s, str):
@@ -125,10 +127,13 @@ def _decode_base64(s):
     else:
         return binascii.a2b_base64(s)
 
+
 # Contents should conform to a subset of ISO 8601
 # (in particular, YYYY '-' MM '-' DD 'T' HH ':' MM ':' SS 'Z'.  Smaller units
 # may be omitted with #  a loss of precision)
-_dateParser = re.compile(r"(?P<year>\d\d\d\d)(?:-(?P<month>\d\d)(?:-(?P<day>\d\d)(?:T(?P<hour>\d\d)(?::(?P<minute>\d\d)(?::(?P<second>\d\d))?)?)?)?)?Z", re.ASCII)
+_dateParser = re.compile(
+    r"(?P<year>\d\d\d\d)(?:-(?P<month>\d\d)(?:-(?P<day>\d\d)(?:T(?P<hour>\d\d)(?::(?P<minute>\d\d)(?::(?P<second>\d\d))?)?)?)?)?Z",
+    re.ASCII)
 
 
 def _date_from_string(s):
@@ -144,24 +149,25 @@ def _date_from_string(s):
 
 
 def _date_to_string(d):
-    return '%04d-%02d-%02dT%02d:%02d:%02dZ' % (
-        d.year, d.month, d.day,
-        d.hour, d.minute, d.second
-    )
+    return '%04d-%02d-%02dT%02d:%02d:%02dZ' % (d.year, d.month, d.day, d.hour,
+                                               d.minute, d.second)
+
 
 def _escape(text):
     m = _controlCharPat.search(text)
     if m is not None:
         raise ValueError("strings can't contains control characters; "
                          "use bytes instead")
-    text = text.replace("\r\n", "\n")       # convert DOS line endings
-    text = text.replace("\r", "\n")         # convert Mac line endings
-    text = text.replace("&", "&amp;")       # escape '&'
-    text = text.replace("<", "&lt;")        # escape '<'
-    text = text.replace(">", "&gt;")        # escape '>'
+    text = text.replace("\r\n", "\n")  # convert DOS line endings
+    text = text.replace("\r", "\n")  # convert Mac line endings
+    text = text.replace("&", "&amp;")  # escape '&'
+    text = text.replace("<", "&lt;")  # escape '<'
+    text = text.replace(">", "&gt;")  # escape '>'
     return text
 
+
 class _PlistParser:
+
     def __init__(self, dict_type):
         self.stack = []
         self.current_key = None
@@ -177,11 +183,13 @@ class _PlistParser:
         self.parser.ParseFile(fileobj)
         return self.root
 
-    def handle_entity_decl(self, entity_name, is_parameter_entity, value, base, system_id, public_id, notation_name):
+    def handle_entity_decl(self, entity_name, is_parameter_entity, value, base,
+                           system_id, public_id, notation_name):
         # Reject plist files with entity declarations to avoid XML vulnerabilies in expat.
         # Regular plist files don't contain those declerations, and Apple's plutil tool does not
         # accept them either.
-        raise InvalidFileException("XML entity declarations are not supported in plist files")
+        raise InvalidFileException(
+            "XML entity declarations are not supported in plist files")
 
     def handle_begin_element(self, element, attrs):
         self.data = []
@@ -228,7 +236,7 @@ class _PlistParser:
     def end_dict(self):
         if self.current_key:
             raise ValueError("missing value for key '%s' at line %d" %
-                             (self.current_key,self.parser.CurrentLineNumber))
+                             (self.current_key, self.parser.CurrentLineNumber))
         self.stack.pop()
 
     def end_key(self):
@@ -272,6 +280,7 @@ class _PlistParser:
 
 
 class _DumbXMLWriter:
+
     def __init__(self, file, indent_level=0, indent="\t"):
         self.file = file
         self.stack = []
@@ -310,9 +319,14 @@ class _DumbXMLWriter:
 
 
 class _PlistWriter(_DumbXMLWriter):
-    def __init__(
-            self, file, indent_level=0, indent=b"\t", writeHeader=1,
-            sort_keys=True, skipkeys=False):
+
+    def __init__(self,
+                 file,
+                 indent_level=0,
+                 indent=b"\t",
+                 writeHeader=1,
+                 sort_keys=True,
+                 skipkeys=False):
 
         if writeHeader:
             file.write(PLISTHEADER)
@@ -363,8 +377,8 @@ class _PlistWriter(_DumbXMLWriter):
         self.begin_element("data")
         self._indent_level -= 1
         maxlinelength = max(
-            16,
-            76 - len(self.indent.replace(b"\t", b" " * 8) * self._indent_level))
+            16, 76 -
+            len(self.indent.replace(b"\t", b" " * 8) * self._indent_level))
 
         for line in _encode_base64(data, maxlinelength).split(b"\n"):
             if line:
@@ -414,13 +428,13 @@ def _is_fmt_xml(header):
     # overkill because the Apple tools (and plistlib) will not
     # generate files with these encodings.
     for bom, encoding in (
-                (codecs.BOM_UTF8, "utf-8"),
-                (codecs.BOM_UTF16_BE, "utf-16-be"),
-                (codecs.BOM_UTF16_LE, "utf-16-le"),
-                # expat does not support utf-32
-                #(codecs.BOM_UTF32_BE, "utf-32-be"),
-                #(codecs.BOM_UTF32_LE, "utf-32-le"),
-            ):
+        (codecs.BOM_UTF8, "utf-8"),
+        (codecs.BOM_UTF16_BE, "utf-16-be"),
+        (codecs.BOM_UTF16_LE, "utf-16-le"),
+            # expat does not support utf-32
+            #(codecs.BOM_UTF32_BE, "utf-32-be"),
+            #(codecs.BOM_UTF32_LE, "utf-32-le"),
+    ):
         if not header.startswith(bom):
             continue
 
@@ -431,18 +445,22 @@ def _is_fmt_xml(header):
 
     return False
 
+
 #
 # Binary Plist
 #
 
 
-class InvalidFileException (ValueError):
+class InvalidFileException(ValueError):
+
     def __init__(self, message="Invalid file"):
         ValueError.__init__(self, message)
+
 
 _BINARY_FORMAT = {1: 'B', 2: 'H', 4: 'L', 8: 'Q'}
 
 _undefined = object()
+
 
 class _BinaryPlistParser:
     """
@@ -452,6 +470,7 @@ class _BinaryPlistParser:
 
     see also: http://opensource.apple.com/source/CF/CF-744.18/CFBinaryPList.c
     """
+
     def __init__(self, dict_type):
         self._dict_type = dict_type
 
@@ -467,17 +486,14 @@ class _BinaryPlistParser:
             trailer = self._fp.read(32)
             if len(trailer) != 32:
                 raise InvalidFileException()
-            (
-                offset_size, self._ref_size, num_objects, top_object,
-                offset_table_offset
-            ) = struct.unpack('>6xBBQQQ', trailer)
+            (offset_size, self._ref_size, num_objects, top_object,
+             offset_table_offset) = struct.unpack('>6xBBQQQ', trailer)
             self._fp.seek(offset_table_offset)
             self._object_offsets = self._read_ints(num_objects, offset_size)
             self._objects = [_undefined] * num_objects
             return self._read_object(top_object)
 
-        except (OSError, IndexError, struct.error, OverflowError,
-                ValueError):
+        except (OSError, IndexError, struct.error, OverflowError, ValueError):
             raise InvalidFileException()
 
     def _get_size(self, tokenL):
@@ -497,8 +513,9 @@ class _BinaryPlistParser:
         else:
             if not size or len(data) != size * n:
                 raise InvalidFileException()
-            return tuple(int.from_bytes(data[i: i + size], 'big')
-                         for i in range(0, size * n, size))
+            return tuple(
+                int.from_bytes(data[i:i + size], 'big')
+                for i in range(0, size * n, size))
 
     def _read_refs(self, n):
         return self._read_ints(n, self._ref_size)
@@ -535,12 +552,13 @@ class _BinaryPlistParser:
 
         elif tokenH == 0x10:  # int
             result = int.from_bytes(self._fp.read(1 << tokenL),
-                                    'big', signed=tokenL >= 3)
+                                    'big',
+                                    signed=tokenL >= 3)
 
-        elif token == 0x22: # real
+        elif token == 0x22:  # real
             result = struct.unpack('>f', self._fp.read(4))[0]
 
-        elif token == 0x23: # real
+        elif token == 0x23:  # real
             result = struct.unpack('>d', self._fp.read(8))[0]
 
         elif token == 0x33:  # date
@@ -604,6 +622,7 @@ class _BinaryPlistParser:
         self._objects[ref] = result
         return result
 
+
 def _count_to_size(count):
     if count < 1 << 8:
         return 1
@@ -617,9 +636,12 @@ def _count_to_size(count):
     else:
         return 8
 
+
 _scalars = (str, int, float, datetime.datetime, bytes)
 
-class _BinaryPlistWriter (object):
+
+class _BinaryPlistWriter(object):
+
     def __init__(self, fp, sort_keys, skipkeys):
         self._fp = fp
         self._sort_keys = sort_keys
@@ -643,7 +665,7 @@ class _BinaryPlistWriter (object):
         # Size of object references in serialized containers
         # depends on the number of objects in the plist.
         num_objects = len(self._objlist)
-        self._object_offsets = [0]*num_objects
+        self._object_offsets = [0] * num_objects
         self._ref_size = _count_to_size(num_objects)
 
         self._ref_format = _BINARY_FORMAT[self._ref_size]
@@ -664,10 +686,8 @@ class _BinaryPlistWriter (object):
 
         # Write trailer
         sort_version = 0
-        trailer = (
-            sort_version, offset_size, self._ref_size, num_objects,
-            top_object, offset_table_offset
-        )
+        trailer = (sort_version, offset_size, self._ref_size, num_objects,
+                   top_object, offset_table_offset)
         self._fp.write(struct.pack('>5xBBBQQQ', *trailer))
 
     def _flatten(self, value):
@@ -761,7 +781,8 @@ class _BinaryPlistWriter (object):
             elif value < 1 << 63:
                 self._fp.write(struct.pack('>BQ', 0x13, value))
             elif value < 1 << 64:
-                self._fp.write(b'\x14' + value.to_bytes(16, 'big', signed=True))
+                self._fp.write(b'\x14' +
+                               value.to_bytes(16, 'big', signed=True))
             else:
                 raise OverflowError(value)
 
@@ -839,13 +860,15 @@ def _is_fmt_binary(header):
 # Generic bits
 #
 
-_FORMATS={
-    FMT_XML: dict(
+_FORMATS = {
+    FMT_XML:
+    dict(
         detect=_is_fmt_xml,
         parser=_PlistParser,
         writer=_PlistWriter,
     ),
-    FMT_BINARY: dict(
+    FMT_BINARY:
+    dict(
         detect=_is_fmt_binary,
         parser=_BinaryPlistParser,
         writer=_BinaryPlistWriter,
@@ -888,9 +911,11 @@ def dump(value, fp, *, fmt=FMT_XML, sort_keys=True, skipkeys=False):
     binary file object.
     """
     if fmt not in _FORMATS:
-        raise ValueError("Unsupported format: %r"%(fmt,))
+        raise ValueError("Unsupported format: %r" % (fmt, ))
 
-    writer = _FORMATS[fmt]["writer"](fp, sort_keys=sort_keys, skipkeys=skipkeys)
+    writer = _FORMATS[fmt]["writer"](fp,
+                                     sort_keys=sort_keys,
+                                     skipkeys=skipkeys)
     writer.write(value)
 
 

@@ -28,14 +28,16 @@ import os
 import struct
 import warnings
 
-warnings.warn('the binhex module is deprecated', DeprecationWarning,
+warnings.warn('the binhex module is deprecated',
+              DeprecationWarning,
               stacklevel=2)
 
+__all__ = ["binhex", "hexbin", "Error"]
 
-__all__ = ["binhex","hexbin","Error"]
 
 class Error(Exception):
     pass
+
 
 # States (what have we written)
 _DID_HEADER = 0
@@ -51,10 +53,12 @@ RUNCHAR = b"\x90"
 
 
 class FInfo:
+
     def __init__(self):
         self.Type = '????'
         self.Creator = '????'
         self.Flags = 0
+
 
 def getfileinfo(name):
     finfo = FInfo()
@@ -69,7 +73,9 @@ def getfileinfo(name):
     file = file.replace(':', '-', 1)
     return file, finfo, dsize, 0
 
+
 class openrsrc:
+
     def __init__(self, *args):
         pass
 
@@ -132,6 +138,7 @@ class _Hqxcoderengine:
         self.ofp.close()
         del self.ofp
 
+
 class _Rlecoderengine:
     """Write data to the RLE-coder in suitably large chunks"""
 
@@ -156,7 +163,9 @@ class _Rlecoderengine:
         self.ofp.close()
         del self.ofp
 
+
 class BinHex:
+
     def __init__(self, name_finfo_dlen_rlen, ofp):
         name, finfo, dlen, rlen = name_finfo_dlen_rlen
         close_on_error = False
@@ -221,7 +230,7 @@ class BinHex:
 
     def close_data(self):
         if self.dlen != 0:
-            raise Error('Incorrect data size, diff=%r' % (self.rlen,))
+            raise Error('Incorrect data size, diff=%r' % (self.rlen, ))
         self._writecrc()
         self.state = _DID_DATA
 
@@ -242,13 +251,15 @@ class BinHex:
             if self.state != _DID_DATA:
                 raise Error('Close at the wrong time')
             if self.rlen != 0:
-                raise Error("Incorrect resource-datasize, diff=%r" % (self.rlen,))
+                raise Error("Incorrect resource-datasize, diff=%r" %
+                            (self.rlen, ))
             self._writecrc()
         finally:
             self.state = None
             ofp = self.ofp
             del self.ofp
             ofp.close()
+
 
 def binhex(inp, out):
     """binhex(infilename, outfilename): create binhex-encoded copy of a file"""
@@ -270,6 +281,7 @@ def binhex(inp, out):
         ofp.write_rsrc(d)
     ofp.close()
     ifp.close()
+
 
 class _Hqxdecoderengine:
     """Read data via the decoder in 4-byte chunks"""
@@ -313,6 +325,7 @@ class _Hqxdecoderengine:
 
     def close(self):
         self.ifp.close()
+
 
 class _Rledecoderengine:
     """Read data via the RLE-coder"""
@@ -358,7 +371,7 @@ class _Rledecoderengine:
         elif self.pre_buffer[-2:] == RUNCHAR + b'\0':
             mark = mark - 2
         elif self.pre_buffer[-2:-1] == RUNCHAR:
-            pass # Decode all
+            pass  # Decode all
         else:
             mark = mark - 1
 
@@ -370,7 +383,9 @@ class _Rledecoderengine:
     def close(self):
         self.ifp.close()
 
+
 class HexBin:
+
     def __init__(self, ifp):
         if isinstance(ifp, str):
             ifp = io.open(ifp, 'rb')
@@ -404,8 +419,8 @@ class HexBin:
         # XXXX Is this needed??
         self.crc = self.crc & 0xffff
         if filecrc != self.crc:
-            raise Error('CRC error, computed %x, read %x'
-                        % (self.crc, filecrc))
+            raise Error('CRC error, computed %x, read %x' %
+                        (self.crc, filecrc))
         self.crc = 0
 
     def _readheader(self):
@@ -438,7 +453,7 @@ class HexBin:
             n = self.dlen
         rv = b''
         while len(rv) < n:
-            rv = rv + self._read(n-len(rv))
+            rv = rv + self._read(n - len(rv))
         self.dlen = self.dlen - n
         return rv
 
@@ -473,6 +488,7 @@ class HexBin:
         finally:
             self.state = None
             self.ifp.close()
+
 
 def hexbin(inp, out):
     """hexbin(infilename, outfilename) - Decode binhexed file"""

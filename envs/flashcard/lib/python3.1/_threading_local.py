@@ -143,6 +143,7 @@ __all__ = ["local"]
 # then, so problems introduced by fiddling the order of imports here won't
 # manifest.
 
+
 class _localimpl:
     """A class managing thread-local dicts"""
     __slots__ = 'key', 'dicts', 'localargs', 'locallock', '__weakref__'
@@ -167,11 +168,13 @@ class _localimpl:
         key = self.key
         thread = current_thread()
         idt = id(thread)
+
         def local_deleted(_, key=key):
             # When the localimpl is deleted, remove the thread attribute.
             thread = wrthread()
             if thread is not None:
                 del thread.__dict__[key]
+
         def thread_deleted(_, idt=idt):
             # When the thread is deleted, remove the local dict.
             # Note that this is suboptimal if the thread object gets
@@ -180,6 +183,7 @@ class _localimpl:
             local = wrlocal()
             if local is not None:
                 dct = local.dicts.pop(idt)
+
         wrlocal = ref(self, local_deleted)
         wrthread = ref(thread, thread_deleted)
         thread.__dict__[key] = wrlocal
@@ -225,16 +229,16 @@ class local:
     def __setattr__(self, name, value):
         if name == '__dict__':
             raise AttributeError(
-                "%r object attribute '__dict__' is read-only"
-                % self.__class__.__name__)
+                "%r object attribute '__dict__' is read-only" %
+                self.__class__.__name__)
         with _patch(self):
             return object.__setattr__(self, name, value)
 
     def __delattr__(self, name):
         if name == '__dict__':
             raise AttributeError(
-                "%r object attribute '__dict__' is read-only"
-                % self.__class__.__name__)
+                "%r object attribute '__dict__' is read-only" %
+                self.__class__.__name__)
         with _patch(self):
             return object.__delattr__(self, name)
 

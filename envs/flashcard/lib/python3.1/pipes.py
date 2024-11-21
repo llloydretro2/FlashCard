@@ -56,7 +56,6 @@ To create a new template object initialized to a given one:
    t2 = t.clone()
 """                                     # '
 
-
 import re
 import os
 import tempfile
@@ -68,12 +67,12 @@ __all__ = ["Template"]
 
 # Conversion step kinds
 
-FILEIN_FILEOUT = 'ff'                   # Must read & write real files
-STDIN_FILEOUT  = '-f'                   # Must write a real file
-FILEIN_STDOUT  = 'f-'                   # Must read a real file
-STDIN_STDOUT   = '--'                   # Normal pipeline element
-SOURCE         = '.-'                   # Must be first, writes stdout
-SINK           = '-.'                   # Must be last, reads stdin
+FILEIN_FILEOUT = 'ff'  # Must read & write real files
+STDIN_FILEOUT = '-f'  # Must write a real file
+FILEIN_STDOUT = 'f-'  # Must read a real file
+STDIN_STDOUT = '--'  # Normal pipeline element
+SOURCE = '.-'  # Must be first, writes stdout
+SINK = '-.'  # Must be last, reads stdin
 
 stepkinds = [FILEIN_FILEOUT, STDIN_FILEOUT, FILEIN_STDOUT, STDIN_STDOUT, \
              SOURCE, SINK]
@@ -89,7 +88,7 @@ class Template:
 
     def __repr__(self):
         """t.__repr__() implements repr(t)."""
-        return '<Template instance, steps=%r>' % (self.steps,)
+        return '<Template instance, steps=%r>' % (self.steps, )
 
     def reset(self):
         """t.reset() restores a pipeline template to its initial state."""
@@ -112,7 +111,7 @@ class Template:
         if not isinstance(cmd, str):
             raise TypeError('Template.append: cmd must be a string')
         if kind not in stepkinds:
-            raise ValueError('Template.append: bad kind %r' % (kind,))
+            raise ValueError('Template.append: bad kind %r' % (kind, ))
         if kind == SOURCE:
             raise ValueError('Template.append: SOURCE can only be prepended')
         if self.steps and self.steps[-1][1] == SINK:
@@ -128,7 +127,7 @@ class Template:
         if not isinstance(cmd, str):
             raise TypeError('Template.prepend: cmd must be a string')
         if kind not in stepkinds:
-            raise ValueError('Template.prepend: bad kind %r' % (kind,))
+            raise ValueError('Template.prepend: bad kind %r' % (kind, ))
         if kind == SINK:
             raise ValueError('Template.prepend: SINK can only be appended')
         if self.steps and self.steps[0][1] == SOURCE:
@@ -146,8 +145,8 @@ class Template:
             return self.open_r(file)
         if rw == 'w':
             return self.open_w(file)
-        raise ValueError('Template.open: rw must be \'r\' or \'w\', not %r'
-                         % (rw,))
+        raise ValueError('Template.open: rw must be \'r\' or \'w\', not %r' %
+                         (rw, ))
 
     def open_r(self, file):
         """t.open_r(file) and t.open_w(file) implement
@@ -207,13 +206,13 @@ def makepipeline(infile, steps, outfile):
     #
     garbage = []
     for i in range(1, len(list)):
-        lkind = list[i-1][2]
+        lkind = list[i - 1][2]
         rkind = list[i][2]
         if lkind[1] == 'f' or rkind[0] == 'f':
             (fd, temp) = tempfile.mkstemp()
             os.close(fd)
             garbage.append(temp)
-            list[i-1][-1] = list[i][0] = temp
+            list[i - 1][-1] = list[i][0] = temp
     #
     for item in list:
         [inf, cmd, kind, outf] = item

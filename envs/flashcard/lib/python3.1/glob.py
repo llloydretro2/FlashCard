@@ -10,6 +10,7 @@ import sys
 
 __all__ = ["glob", "iglob", "escape"]
 
+
 def glob(pathname, *, root_dir=None, dir_fd=None, recursive=False):
     """Return a list of paths matching a pathname pattern.
 
@@ -21,7 +22,9 @@ def glob(pathname, *, root_dir=None, dir_fd=None, recursive=False):
     If recursive is true, the pattern '**' will match any files and
     zero or more directories and subdirectories.
     """
-    return list(iglob(pathname, root_dir=root_dir, dir_fd=dir_fd, recursive=recursive))
+    return list(
+        iglob(pathname, root_dir=root_dir, dir_fd=dir_fd, recursive=recursive))
+
 
 def iglob(pathname, *, root_dir=None, dir_fd=None, recursive=False):
     """Return an iterator which yields the paths matching a pathname pattern.
@@ -45,10 +48,11 @@ def iglob(pathname, *, root_dir=None, dir_fd=None, recursive=False):
         try:
             s = next(it)  # skip empty string
             if s:
-                it = itertools.chain((s,), it)
+                it = itertools.chain((s, ), it)
         except StopIteration:
             pass
     return it
+
 
 def _iglob(pathname, root_dir, dir_fd, recursive, dironly):
     dirname, basename = os.path.split(pathname)
@@ -83,18 +87,22 @@ def _iglob(pathname, root_dir, dir_fd, recursive, dironly):
     else:
         glob_in_dir = _glob0
     for dirname in dirs:
-        for name in glob_in_dir(_join(root_dir, dirname), basename, dir_fd, dironly):
+        for name in glob_in_dir(_join(root_dir, dirname), basename, dir_fd,
+                                dironly):
             yield os.path.join(dirname, name)
+
 
 # These 2 helper functions non-recursively glob inside a literal directory.
 # They return a list of basenames.  _glob1 accepts a pattern while _glob0
 # takes a literal basename (so it only has to check for its existence).
+
 
 def _glob1(dirname, pattern, dir_fd, dironly):
     names = _listdir(dirname, dir_fd, dironly)
     if not _ishidden(pattern):
         names = (x for x in names if not _ishidden(x))
     return fnmatch.filter(names, pattern)
+
 
 def _glob0(dirname, basename, dir_fd, dironly):
     if basename:
@@ -107,21 +115,27 @@ def _glob0(dirname, basename, dir_fd, dironly):
             return [basename]
     return []
 
+
 # Following functions are not public but can be used by third-party code.
+
 
 def glob0(dirname, pattern):
     return _glob0(dirname, pattern, None, False)
 
+
 def glob1(dirname, pattern):
     return _glob1(dirname, pattern, None, False)
 
+
 # This helper function recursively yields relative pathnames inside a literal
 # directory.
+
 
 def _glob2(dirname, pattern, dir_fd, dironly):
     assert _isrecursive(pattern)
     yield pattern[:0]
     yield from _rlistdir(dirname, dir_fd, dironly)
+
 
 # If dironly is false, yields all file names inside a directory.
 # If dironly is true, yields only directory names.
@@ -159,9 +173,11 @@ def _iterdir(dirname, dir_fd, dironly):
     except OSError:
         return
 
+
 def _listdir(dirname, dir_fd, dironly):
     with contextlib.closing(_iterdir(dirname, dir_fd, dironly)) as it:
         return list(it)
+
 
 # Recursively yields relative pathnames inside a literal directory.
 def _rlistdir(dirname, dir_fd, dironly):
@@ -185,6 +201,7 @@ def _lexists(pathname, dir_fd):
     else:
         return True
 
+
 def _isdir(pathname, dir_fd):
     # Same as os.path.isdir(), but with dir_fd
     if dir_fd is None:
@@ -196,14 +213,17 @@ def _isdir(pathname, dir_fd):
     else:
         return stat.S_ISDIR(st.st_mode)
 
+
 def _join(dirname, basename):
     # It is common if dirname or basename is empty
     if not dirname or not basename:
         return dirname or basename
     return os.path.join(dirname, basename)
 
+
 magic_check = re.compile('([*?[])')
 magic_check_bytes = re.compile(b'([*?[])')
+
 
 def has_magic(s):
     if isinstance(s, bytes):
@@ -212,14 +232,17 @@ def has_magic(s):
         match = magic_check.search(s)
     return match is not None
 
+
 def _ishidden(path):
     return path[0] in ('.', b'.'[0])
+
 
 def _isrecursive(pattern):
     if isinstance(pattern, bytes):
         return pattern == b'**'
     else:
         return pattern == '**'
+
 
 def escape(pathname):
     """Escape all special characters.

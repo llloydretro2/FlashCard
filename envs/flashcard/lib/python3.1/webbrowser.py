@@ -11,13 +11,16 @@ import threading
 
 __all__ = ["Error", "open", "open_new", "open_new_tab", "get", "register"]
 
+
 class Error(Exception):
     pass
 
+
 _lock = threading.RLock()
-_browsers = {}                  # Dictionary of available browser controllers
-_tryorder = None                # Preference order of available browsers
-_os_preferred_browser = None    # The preferred browser
+_browsers = {}  # Dictionary of available browser controllers
+_tryorder = None  # Preference order of available browsers
+_os_preferred_browser = None  # The preferred browser
+
 
 def register(name, klass, instance=None, *, preferred=False):
     """Register a browser connector."""
@@ -29,10 +32,12 @@ def register(name, klass, instance=None, *, preferred=False):
         # Preferred browsers go to the front of the list.
         # Need to match to the default browser returned by xdg-settings, which
         # may be of the form e.g. "firefox.desktop".
-        if preferred or (_os_preferred_browser and name in _os_preferred_browser):
+        if preferred or (_os_preferred_browser
+                         and name in _os_preferred_browser):
             _tryorder.insert(0, name)
         else:
             _tryorder.append(name)
+
 
 def get(using=None):
     """Return a browser launcher instance appropriate for the environment."""
@@ -64,9 +69,11 @@ def get(using=None):
                 return command[0]()
     raise Error("could not locate runnable browser")
 
+
 # Please note: the following definition hides a builtin function.
 # It is recommended one does "import webbrowser" and uses webbrowser.open(url)
 # instead of "from webbrowser import *".
+
 
 def open(url, new=0, autoraise=True):
     """Display url using the default browser.
@@ -87,12 +94,14 @@ def open(url, new=0, autoraise=True):
             return True
     return False
 
+
 def open_new(url):
     """Open url in a new window of the default browser.
 
     If not possible, then open url in the only browser window.
     """
     return open(url, 1)
+
 
 def open_new_tab(url):
     """Open url in a new page ("tab") of the default browser.
@@ -136,6 +145,7 @@ def _synthesize(browser, *, preferred=False):
 
 # General parent classes
 
+
 class BaseBrowser(object):
     """Parent class for all browsers. Do not use directly."""
 
@@ -171,8 +181,7 @@ class GenericBrowser(BaseBrowser):
 
     def open(self, url, new=0, autoraise=True):
         sys.audit("webbrowser.open", url)
-        cmdline = [self.name] + [arg.replace("%s", url)
-                                 for arg in self.args]
+        cmdline = [self.name] + [arg.replace("%s", url) for arg in self.args]
         try:
             if sys.platform[:3] == 'win':
                 p = subprocess.Popen(cmdline)
@@ -188,14 +197,14 @@ class BackgroundBrowser(GenericBrowser):
        background."""
 
     def open(self, url, new=0, autoraise=True):
-        cmdline = [self.name] + [arg.replace("%s", url)
-                                 for arg in self.args]
+        cmdline = [self.name] + [arg.replace("%s", url) for arg in self.args]
         sys.audit("webbrowser.open", url)
         try:
             if sys.platform[:3] == 'win':
                 p = subprocess.Popen(cmdline)
             else:
-                p = subprocess.Popen(cmdline, close_fds=True,
+                p = subprocess.Popen(cmdline,
+                                     close_fds=True,
                                      start_new_session=True)
             return (p.poll() is None)
         except OSError:
@@ -234,9 +243,12 @@ class UnixBrowser(BaseBrowser):
         else:
             # for TTY browsers, we need stdin/out
             inout = None
-        p = subprocess.Popen(cmdline, close_fds=True, stdin=inout,
+        p = subprocess.Popen(cmdline,
+                             close_fds=True,
+                             stdin=inout,
                              stdout=(self.redirect_stdout and inout or None),
-                             stderr=inout, start_new_session=True)
+                             stderr=inout,
+                             start_new_session=True)
         if remote:
             # wait at most five seconds. If the subprocess is not finished, the
             # remote invocation has (hopefully) started a new instance.
@@ -269,8 +281,10 @@ class UnixBrowser(BaseBrowser):
             raise Error("Bad 'new' parameter to open(); " +
                         "expected 0, 1, or 2, got %s" % new)
 
-        args = [arg.replace("%s", url).replace("%action", action)
-                for arg in self.remote_args]
+        args = [
+            arg.replace("%s", url).replace("%action", action)
+            for arg in self.remote_args
+        ]
         args = [arg for arg in args if arg]
         success = self._invoke(args, True, autoraise, url)
         if not success:
@@ -321,6 +335,7 @@ class Chrome(UnixBrowser):
     remote_action_newtab = ""
     background = True
 
+
 Chromium = Chrome
 
 
@@ -367,8 +382,10 @@ class Konqueror(BaseBrowser):
 
         try:
             p = subprocess.Popen(["kfmclient", action, url],
-                                 close_fds=True, stdin=devnull,
-                                 stdout=devnull, stderr=devnull)
+                                 close_fds=True,
+                                 stdin=devnull,
+                                 stdout=devnull,
+                                 stderr=devnull)
         except OSError:
             # fall through to next variant
             pass
@@ -379,8 +396,10 @@ class Konqueror(BaseBrowser):
 
         try:
             p = subprocess.Popen(["konqueror", "--silent", url],
-                                 close_fds=True, stdin=devnull,
-                                 stdout=devnull, stderr=devnull,
+                                 close_fds=True,
+                                 stdin=devnull,
+                                 stdout=devnull,
+                                 stderr=devnull,
                                  start_new_session=True)
         except OSError:
             # fall through to next variant
@@ -392,8 +411,10 @@ class Konqueror(BaseBrowser):
 
         try:
             p = subprocess.Popen(["kfm", "-d", url],
-                                 close_fds=True, stdin=devnull,
-                                 stdout=devnull, stderr=devnull,
+                                 close_fds=True,
+                                 stdin=devnull,
+                                 stdout=devnull,
+                                 stderr=devnull,
                                  start_new_session=True)
         except OSError:
             return False
@@ -410,8 +431,7 @@ class Grail(BaseBrowser):
         import pwd
         import socket
         import tempfile
-        tempdir = os.path.join(tempfile.gettempdir(),
-                               ".grail-unix")
+        tempdir = os.path.join(tempfile.gettempdir(), ".grail-unix")
         user = pwd.getpwuid(os.getuid())[0]
         filename = os.path.join(glob.escape(tempdir), glob.escape(user) + "-*")
         maybes = glob.glob(filename)
@@ -455,6 +475,7 @@ class Grail(BaseBrowser):
 # These are the right tests because all these Unix browsers require either
 # a console terminal or an X display to run.
 
+
 def register_X_browsers():
 
     # use xdg-open if around
@@ -482,8 +503,7 @@ def register_X_browsers():
             register(browser, None, Mozilla(browser))
 
     # The Netscape and old Mozilla browsers
-    for browser in ("mozilla-firefox",
-                    "mozilla-firebird", "firebird",
+    for browser in ("mozilla-firefox", "mozilla-firebird", "firebird",
                     "mozilla", "netscape"):
         if shutil.which(browser):
             register(browser, None, Netscape(browser))
@@ -520,6 +540,7 @@ def register_X_browsers():
     if shutil.which("grail"):
         register("grail", Grail, None)
 
+
 def register_standard_browsers():
     global _tryorder
     _tryorder = []
@@ -541,8 +562,9 @@ def register_standard_browsers():
         register("windows-default", WindowsDefault)
 
         # Detect some common Windows browsers, fallback to IE
-        iexplore = os.path.join(os.environ.get("PROGRAMFILES", "C:\\Program Files"),
-                                "Internet Explorer\\IEXPLORE.EXE")
+        iexplore = os.path.join(
+            os.environ.get("PROGRAMFILES", "C:\\Program Files"),
+            "Internet Explorer\\IEXPLORE.EXE")
         for browser in ("firefox", "firebird", "seamonkey", "mozilla",
                         "netscape", "opera", iexplore):
             if shutil.which(browser):
@@ -552,9 +574,11 @@ def register_standard_browsers():
         if os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"):
             try:
                 cmd = "xdg-settings get default-web-browser".split()
-                raw_result = subprocess.check_output(cmd, stderr=subprocess.DEVNULL)
+                raw_result = subprocess.check_output(cmd,
+                                                     stderr=subprocess.DEVNULL)
                 result = raw_result.decode().strip()
-            except (FileNotFoundError, subprocess.CalledProcessError, PermissionError, NotADirectoryError) :
+            except (FileNotFoundError, subprocess.CalledProcessError,
+                    PermissionError, NotADirectoryError):
                 pass
             else:
                 global _os_preferred_browser
@@ -590,7 +614,10 @@ def register_standard_browsers():
             if cmdline != '':
                 cmd = _synthesize(cmdline, preferred=True)
                 if cmd[1] is None:
-                    register(cmdline, None, GenericBrowser(cmdline), preferred=True)
+                    register(cmdline,
+                             None,
+                             GenericBrowser(cmdline),
+                             preferred=True)
 
     # what to do if _tryorder is now empty?
 
@@ -600,7 +627,9 @@ def register_standard_browsers():
 #
 
 if sys.platform[:3] == "win":
+
     class WindowsDefault(BaseBrowser):
+
         def open(self, url, new=0, autoraise=True):
             sys.audit("webbrowser.open", url)
             try:
@@ -611,6 +640,7 @@ if sys.platform[:3] == "win":
                 return False
             else:
                 return True
+
 
 #
 # Platform support for MacOS
@@ -628,6 +658,7 @@ if sys.platform == 'darwin':
         If no browser is specified, the default browser, as specified in the
         Internet System Preferences panel, will be used.
         """
+
         def __init__(self, name):
             self.name = name
 
@@ -636,13 +667,14 @@ if sys.platform == 'darwin':
             assert "'" not in url
             # hack for local urls
             if not ':' in url:
-                url = 'file:'+url
+                url = 'file:' + url
 
             # new must be 0 or 1
             new = int(bool(new))
             if self.name == "default":
                 # User called open, open_new or get without a browser parameter
-                script = 'open location "%s"' % url.replace('"', '%22') # opens in default browser
+                script = 'open location "%s"' % url.replace(
+                    '"', '%22')  # opens in default browser
             else:
                 # User called get and chose a browser
                 if self.name == "OmniWeb":
@@ -666,19 +698,21 @@ if sys.platform == 'darwin':
             return not rc
 
     class MacOSXOSAScript(BaseBrowser):
+
         def __init__(self, name):
             self._name = name
 
         def open(self, url, new=0, autoraise=True):
             if self._name == 'default':
-                script = 'open location "%s"' % url.replace('"', '%22') # opens in default browser
+                script = 'open location "%s"' % url.replace(
+                    '"', '%22')  # opens in default browser
             else:
                 script = '''
                    tell application "%s"
                        activate
                        open location "%s"
                    end
-                   '''%(self._name, url.replace('"', '%22'))
+                   ''' % (self._name, url.replace('"', '%22'))
 
             osapipe = os.popen("osascript", "w")
             if osapipe is None:
@@ -712,6 +746,7 @@ def main():
     open(url, new_win)
 
     print("\a")
+
 
 if __name__ == "__main__":
     main()
