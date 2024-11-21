@@ -1,0 +1,13 @@
+prefix=/Users/amon/anaconda3/envs/flashcard
+exec_prefix=/Users/amon/anaconda3/envs/flashcard
+libdir=/Users/amon/anaconda3/envs/flashcard/lib
+sharedlibdir=/Users/amon/anaconda3/envs/flashcard/lib
+includedir=/Users/amon/anaconda3/envs/flashcard/include
+
+Name: zlib
+Description: zlib compression library
+Version: 1.2.13
+
+Requires:
+Libs: -L${libdir} -L${sharedlibdir} -lz
+Cflags: -I${includedir}
