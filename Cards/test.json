@@ -1,0 +1,8 @@
+{
+    "cards": 
+    [
+        {"Question": "What is the capital of France?", "Answer": "Paris"},
+        {"Question": "What is hamburger made of?", "Answer": "Beef"},
+        {"Question": "What is the capital of USA?", "Answer": "Washington, D.C."}
+    ]
+}
