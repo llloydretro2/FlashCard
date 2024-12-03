@@ -6,7 +6,7 @@ import Server
 import FileManage
 
 args = Arguments.parse_args()
-df_id = DataframeOps.initialize_dataframe_id()
+df_init = DataframeOps.initialize_dataframe_id()
 
 with gr.Blocks() as demo:
 
@@ -22,7 +22,7 @@ with gr.Blocks() as demo:
                 with gr.Row():
                     file_dropdown_EDIT = gr.Dropdown(
                         label="卡组列表",
-                        choices=FileManage.get_files(args.card_path),
+                        choices=FileManage.get_files(),
                         interactive=True,
                         scale=1)
                     btn_load_file_EDIT = gr.Button("加载", scale=0)
@@ -39,32 +39,75 @@ with gr.Blocks() as demo:
 
                 gr.Markdown("# 卡组预览")
                 with gr.Row():
-                    dataframe_view_EDIT = gr.DataFrame(value=df_id,
+                    dataframe_view_EDIT = gr.DataFrame(value=df_init,
                                                        interactive=False,
                                                        scale=1)
                     with gr.Column(scale=0):
 
                         gr.Markdown("# 删除卡片")
-                        delete_choice_EDIT = gr.Dropdown(label="问题ID",
-                                                         choices=[],
-                                                         interactive=True,
-                                                         scale=1)
-                        btn_delete_card_EDIT = gr.Button("删除卡片")
+                        with gr.Row():
+                            delete_choice_EDIT = gr.Dropdown(label="问题ID",
+                                                             choices=[],
+                                                             interactive=True,
+                                                             scale=1)
+                            btn_delete_card_EDIT = gr.Button("删除卡片", scale=0)
 
                         gr.Markdown("# 保存卡组")
-                        save_file_name_EDIT = gr.Textbox(
-                            label="保存卡组名",
-                            interactive=True,
-                        )
-                        btn_save_df_EDIT = gr.Button("保存")
+                        with gr.Row():
+                            save_file_name_EDIT = gr.Textbox(label="保存卡组名",
+                                                             interactive=True,
+                                                             scale=1)
+                            btn_save_df_EDIT = gr.Button("保存", scale=0)
 
-        # 浏览卡片
-        with gr.TabItem("浏览卡片"):
-            msg_box_BC = gr.Textbox(label="信息", interactive=False, scale=1)
+                        gr.Markdown("# 删除卡组")
+                        with gr.Row():
+                            file_dropdown_DELETE = gr.Dropdown(
+                                label="卡组列表",
+                                choices=FileManage.get_files(),
+                                interactive=True,
+                                scale=1)
+                            btn_delete_file = gr.Button("删除", scale=0)
 
         # 复习卡片
         with gr.TabItem("复习卡片"):
-            msg_box_RC = gr.Textbox(label="信息", interactive=False, scale=1)
+
+            gr.Markdown("# 加载卡组")
+            with gr.Row():
+                file_dropdown_RC = gr.Dropdown(label="卡组列表",
+                                               choices=FileManage.get_files(),
+                                               interactive=True,
+                                               scale=1)
+                with gr.Column(scale=0):
+                    btn_review_all_RC = gr.Button("复习全部")
+                    btn_review_last_time_RC = gr.Button("复习上次错误项")
+                    btn_review_today_RC = gr.Button("复习今天未复习项")
+            deck_stats_RC = gr.Textbox(label="卡组统计", interactive=False)
+            btn_start_review_RC = gr.Button("开始复习")
+
+            gr.Markdown("---")  # 添加分割线
+
+            gr.Markdown("# 复习卡片")
+            with gr.Row():
+                question_box_RC = gr.Textbox(label="问题",
+                                             interactive=False,
+                                             lines=10,
+                                             scale=2)
+                with gr.Column(scale=0):
+                    gr.Markdown("<div style='height: 50px;'></div>")  # 添加空白区域
+                    progress_RC = gr.Markdown(
+                        value="<div style='text-align: center;'>进度: 0/0</div>")
+                    btn_show_answer_RC = gr.Button("显示答案")
+                answer_box_RC = gr.Textbox(label="答案",
+                                           interactive=False,
+                                           lines=10,
+                                           scale=2)
+
+            with gr.Row():
+                btn_right_RC = gr.Button("正确")
+                btn_wrong_RC = gr.Button("错误")
+
+            current_card_id_RC = gr.Textbox(label="当前卡片ID", interactive=False)
+            df_RC = gr.DataFrame(value=df_init, interactive=False)
 
         # 服务器管理
         with gr.TabItem("服务器管理"):
@@ -72,9 +115,8 @@ with gr.Blocks() as demo:
                 with gr.Row():
                     btn_reboot_local = gr.Button("重启本地服务器", scale=0)
                     btn_reboot_share = gr.Button("重启共享服务器", scale=0)
-        '''
-        Binding functions to keys: Edit Card
-        '''
+
+        # 编辑卡组
         btn_add_card_EDIT.click(fn=DataframeOps.add_card,
                                 inputs=[
                                     question_enter_EDIT, answer_enter_EDIT,
@@ -85,19 +127,45 @@ with gr.Blocks() as demo:
             fn=DataframeOps.load_dataframe_edit,
             inputs=[file_dropdown_EDIT],
             outputs=[dataframe_view_EDIT, delete_choice_EDIT])
-        btn_save_df_EDIT.click(fn=DataframeOps.save_dataframe,
-                               inputs=[
-                                   save_file_name_EDIT, file_dropdown_EDIT,
-                                   dataframe_view_EDIT
-                               ],
-                               outputs=[msg_box_EDIT, file_dropdown_EDIT])
+        btn_save_df_EDIT.click(
+            fn=DataframeOps.save_dataframe,
+            inputs=[
+                save_file_name_EDIT, file_dropdown_EDIT, dataframe_view_EDIT
+            ],
+            outputs=[msg_box_EDIT, file_dropdown_EDIT, file_dropdown_DELETE])
         btn_delete_card_EDIT.click(
             fn=DataframeOps.delete_card_id,
             inputs=[delete_choice_EDIT, dataframe_view_EDIT],
             outputs=[msg_box_EDIT, dataframe_view_EDIT, delete_choice_EDIT])
-        '''
-        Binding functions to keys: Server Management
-        '''
+        btn_delete_file.click(
+            fn=FileManage.delete_file,
+            inputs=[file_dropdown_DELETE],
+            outputs=[msg_box_EDIT, file_dropdown_EDIT, file_dropdown_DELETE])
+
+        # 复习卡片
+        btn_review_all_RC.click(fn=DataframeOps.review_all,
+                                inputs=[file_dropdown_RC],
+                                outputs=[df_RC, deck_stats_RC])
+        btn_start_review_RC.click(fn=DataframeOps.pick_card,
+                                  inputs=[df_RC],
+                                  outputs=[current_card_id_RC])
+        current_card_id_RC.change(fn=DataframeOps.show_question,
+                                  inputs=[df_RC, current_card_id_RC],
+                                  outputs=[question_box_RC])
+        btn_show_answer_RC.click(fn=DataframeOps.show_answer,
+                                 inputs=[df_RC, current_card_id_RC],
+                                 outputs=[answer_box_RC])
+        btn_right_RC.click(fn=DataframeOps.set_correct,
+                           inputs=[df_RC, current_card_id_RC],
+                           outputs=[current_card_id_RC, df_RC])
+        btn_wrong_RC.click(fn=DataframeOps.set_wrong,
+                           inputs=[df_RC, current_card_id_RC],
+                           outputs=[current_card_id_RC, df_RC])
+        df_RC.change(fn=DataframeOps.update_progress,
+                     inputs=[df_RC],
+                     outputs=[progress_RC])
+
+        # 服务器管理
         btn_reboot_local.click(fn=Server.restart_server_local,
                                inputs=None,
                                outputs=None)
