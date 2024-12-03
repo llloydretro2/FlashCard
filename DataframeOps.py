@@ -93,17 +93,12 @@ def add_card(question, answer, df_component):
     return gr.update(value=new_df), gr.update(value="卡片添加成功")
 
 
-def save_dataframe(save_file_name, load_file_name, df_component):
+def save_to_file(file, df_component):
 
-    if save_file_name == '':
-        save_file_name = load_file_name
-
-    file_path = os.path.join(args.card_path, f'{save_file_name}.json')
+    file_path = os.path.join(args.card_path, f'{file}.json')
 
     df_value = df_component.values
-
     new_json_data = {"cards": []}
-
     for i in df_value:
         if (i[1] == '' or i[2] == ''):
             continue
@@ -117,6 +112,16 @@ def save_dataframe(save_file_name, load_file_name, df_component):
 
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(new_json_data, f, ensure_ascii=False, indent=4)
+
+    return
+
+
+def save_dataframe(save_file_name, load_file_name, df_component):
+
+    if save_file_name == '':
+        save_file_name = load_file_name
+
+    save_to_file(save_file_name, df_component)
 
     return gr.update(value=f"保存成功至{save_file_name}"), gr.update(
         choices=FileManage.get_files()), gr.update(
@@ -212,7 +217,7 @@ def get_new_card_id(df):
             unreviewed_id_list.append(i)
 
     if len(unreviewed_id_list) == 0:
-        return gr.update(value=0)
+        return -1
 
     random_id = random.choice(unreviewed_id_list)
     return random_id
@@ -225,6 +230,10 @@ def pick_card(df):
 
 
 def show_question(df, card_id):
+
+    if int(card_id) == -1:
+        return gr.update()
+
     question_list, answer_list, record_list, status_list = df_to_list(df)
     question = question_list[int(card_id)]
     return gr.update(value=question)
@@ -232,12 +241,19 @@ def show_question(df, card_id):
 
 def show_answer(df, card_id):
 
+    if int(card_id) == -1:
+        return gr.update()
+
     question_list, answer_list, record_list, status_list = df_to_list(df)
     answer = answer_list[int(card_id)]
     return gr.update(value=answer)
 
 
 def set_correct(df, card_id):
+
+    if int(card_id) == -1:
+        return gr.update(), gr.update(), gr.update(value="")
+
     question_list, answer_list, record_list, status_list = df_to_list(df)
 
     time_stemp = datetime.now().strftime('%Y-%m-%d')
@@ -248,12 +264,17 @@ def set_correct(df, card_id):
     df.at[int(card_id), "Records"] = record_list[int(card_id)]
     df.at[int(card_id), "Status"] = status_list[int(card_id)]
 
+    # 如果已经复习完，则返回1退出
     random_id = get_new_card_id(df)
 
-    return gr.update(value=random_id), gr.update(value=df)
+    return gr.update(value=random_id), gr.update(value=df), gr.update(value="")
 
 
 def set_wrong(df, card_id):
+
+    if int(card_id) == -1:
+        return gr.update(), gr.update(), gr.update(value="")
+
     question_list, answer_list, record_list, status_list = df_to_list(df)
 
     time_stemp = datetime.now().strftime('%Y-%m-%d')
@@ -271,16 +292,21 @@ def set_wrong(df, card_id):
     while random_id == int(card_id) and len(unreviewed_id_list) > 1:
         random_id = get_new_card_id(df)
 
-    return gr.update(value=random_id), gr.update(value=df)
+    return gr.update(value=random_id), gr.update(value=df), gr.update(value="")
 
 
-def update_progress(df):
+def update_progress(df, file):
 
     try:
         question_list, answer_list, record_list, status_list = df_to_list(df)
-
         total = len(status_list)
         reviewed = status_list.count(1)
+
+        if total == reviewed:
+            save_to_file(file, df)
+            return gr.update(
+                value=
+                f"<div style='text-align: center;'>🎉已复习完成🎉<br>🤖结果已保存🤖</div>")
 
         return gr.update(
             value=

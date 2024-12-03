@@ -78,11 +78,17 @@ with gr.Blocks() as demo:
                                                interactive=True,
                                                scale=1)
                 with gr.Column(scale=0):
+                    gr.Markdown("<h2 style='text-align: center;'>选择模式</h2>")
                     btn_review_all_RC = gr.Button("复习全部")
                     btn_review_last_time_RC = gr.Button("复习上次错误项")
                     btn_review_today_RC = gr.Button("复习今天未复习项")
-            deck_stats_RC = gr.Textbox(label="卡组统计", interactive=False)
-            btn_start_review_RC = gr.Button("开始复习")
+            with gr.Row():
+                deck_stats_RC = gr.Textbox(label="卡组统计",
+                                           interactive=False,
+                                           scale=1)
+                btn_start_review_RC = gr.Button("开始复习",
+                                                scale=0,
+                                                elem_id="start-review-button")
 
             gr.Markdown("---")  # 添加分割线
 
@@ -103,8 +109,8 @@ with gr.Blocks() as demo:
                                            scale=2)
 
             with gr.Row():
-                btn_right_RC = gr.Button("正确")
-                btn_wrong_RC = gr.Button("错误")
+                btn_right_RC = gr.Button("正确", elem_id="right-button")
+                btn_wrong_RC = gr.Button("错误", elem_id="wrong-button")
 
             current_card_id_RC = gr.Textbox(label="当前卡片ID", interactive=False)
             df_RC = gr.DataFrame(value=df_init, interactive=False)
@@ -157,12 +163,12 @@ with gr.Blocks() as demo:
                                  outputs=[answer_box_RC])
         btn_right_RC.click(fn=DataframeOps.set_correct,
                            inputs=[df_RC, current_card_id_RC],
-                           outputs=[current_card_id_RC, df_RC])
+                           outputs=[current_card_id_RC, df_RC, answer_box_RC])
         btn_wrong_RC.click(fn=DataframeOps.set_wrong,
                            inputs=[df_RC, current_card_id_RC],
-                           outputs=[current_card_id_RC, df_RC])
+                           outputs=[current_card_id_RC, df_RC, answer_box_RC])
         df_RC.change(fn=DataframeOps.update_progress,
-                     inputs=[df_RC],
+                     inputs=[df_RC, file_dropdown_RC],
                      outputs=[progress_RC])
 
         # 服务器管理
@@ -174,6 +180,45 @@ with gr.Blocks() as demo:
                                outputs=None)
 
 if __name__ == "__main__":
+
+    demo.css = """
+    #review-all-button {
+        background-color: #4CAF50; /* 绿色 */
+        color: white;
+    }
+    #review-last-time-button {
+        background-color: #f44336; /* 红色 */
+        color: white;
+    }
+    #review-today-button {
+        background-color: #008CBA; /* 蓝色 */
+        color: white;
+    }
+    #start-review-button {
+        background-color: #e7e7e7; /* 灰色 */
+        color: black;
+    }
+    #show-answer-button {
+        background-color: #555555; /* 深灰色 */
+        color: white;
+    }
+    #right-button {
+        background-color: #4CAF50; /* 绿色 */
+        color: white;
+    }
+    #wrong-button {
+        background-color: #f44336; /* 红色 */
+        color: white;
+    }
+    #update-progress-button {
+        background-color: #008CBA; /* 蓝色 */
+        color: white;
+    }
+    #review-all-button, #review-last-time-button, #review-today-button, #start-review-button, #show-answer-button, #right-button, #wrong-button, #reboot-local-button, #reboot-share-button {
+        font-size: 15px; /* 字体大小 */
+        padding: 20px 60px; /* 内边距 */
+    }    """
+
     if args.share:
         print(demo.launch(share=True))
     else:
