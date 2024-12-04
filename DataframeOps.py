@@ -21,14 +21,26 @@ args = Arguments.parse_args()
 }
 '''
 
+
 def get_timestamp():
     return datetime.now().strftime('%Y-%m-%d')
 
+
 def initialize_dataframe_id():
 
-    df = pd.DataFrame({"ID": [], "Questions": [], "Answers": []})
+    df = pd.DataFrame({
+        "ID": [],
+        "Questions": [],
+        "Answers": [],
+        "Records": []
+    })
 
     return df
+
+
+def create_new_deck():
+    return gr.update(value=initialize_dataframe_id()), gr.update(
+        value="新卡组创建成功")
 
 
 def load_dataframe_edit(file):
@@ -132,32 +144,35 @@ def save_dataframe(save_file_name, load_file_name, df_component):
 
 def delete_card_id(id, df_component):
 
-    df_value = df_component.values
-    print("原数据:\n", df_value)
+    try:
+        df_value = df_component.values
+        print("原数据:\n", df_value)
 
-    question_list = []
-    answer_list = []
-    record_list = []
+        question_list = []
+        answer_list = []
+        record_list = []
 
-    for i in df_value:
-        if i[0] == id:
-            continue
-        question_list.append(i[1])
-        answer_list.append(i[2])
-        record_list.append(i[3])
-    id_list = list(range(1, len(question_list) + 1))
+        for i in df_value:
+            if i[0] == id:
+                continue
+            question_list.append(i[1])
+            answer_list.append(i[2])
+            record_list.append(i[3])
+        id_list = list(range(1, len(question_list) + 1))
 
-    new_df = pd.DataFrame({
-        "ID": id_list,
-        "Questions": question_list,
-        "Answers": answer_list,
-        "Records": record_list
-    })
+        new_df = pd.DataFrame({
+            "ID": id_list,
+            "Questions": question_list,
+            "Answers": answer_list,
+            "Records": record_list
+        })
 
-    print("处理后数据:\n", new_df)
+        print("处理后数据:\n", new_df)
 
-    return gr.update(value=f"已删除卡片{id}"), gr.update(value=new_df), gr.update(
-        choices=id_list)
+        return gr.update(value=f"已删除卡片{id}"), gr.update(
+            value=new_df), gr.update(choices=id_list)
+    except:
+        return gr.update(value="卡片不存在"), gr.update(), gr.update()
 
 
 def review_all(file):
@@ -207,21 +222,22 @@ def review_last_time(file):
         answer_list.append((item["Answer"]))
         record_list.append(item["Records"])
     id_list = list(range(1, len(question_list) + 1))
-    
+
     # 如果记录不存在或者记录的在最新的一个时间戳中有错误的记录
     status_list = [1] * len(id_list)
     for i in range(len(record_list)):
-        
+
         # 如果没有记录
         if len(record_list[i]) == 0:
             status_list[i] = 0
-            
+
         # 如果有记录且记录大于两条则检查最新的两条记录
         elif len(record_list[i]) > 1:
             last_time_stamp = record_list[i][-1][0]
-            if last_time_stamp == record_list[i][-2][0] and record_list[i][-2][1] == 0:
+            if last_time_stamp == record_list[i][-2][0] and record_list[i][-2][
+                    1] == 0:
                 status_list[i] = 0
-        
+
     df = pd.DataFrame({
         "ID": id_list,
         "Questions": question_list,
@@ -252,13 +268,15 @@ def review_today(file):
         answer_list.append((item["Answer"]))
         record_list.append(item["Records"])
     id_list = list(range(1, len(question_list) + 1))
-    
+
     # 查看今天的时间戳并找到没有今天记录的卡片
     status_list = [0] * len(id_list)
     for i in range(len(record_list)):
-        if record_list[i][-1][0] == get_timestamp():
+        if len(record_list[i]) == 0:
+            status_list[i] = 0
+        elif record_list[i][-1][0] == get_timestamp():
             status_list[i] = 1
-        
+
     df = pd.DataFrame({
         "ID": id_list,
         "Questions": question_list,
@@ -271,15 +289,6 @@ def review_today(file):
     deck_status_msg = f"卡组[{file}]加载成功🎉\n共{len(id_list)}张卡🃏\n本次需要复习{len(id_list)-sum(status_list)}张卡片"
 
     return gr.update(value=df), gr.update(value=deck_status_msg)
-
-
-
-
-
-
-
-
-
 
 
 def df_to_list(df):
@@ -408,3 +417,10 @@ def update_progress(df, file):
     except:
         return gr.update(
             value="<div style='text-align: center;'>进度: 0 / 0</div>")
+
+
+def save_progress(df, file):
+
+    save_to_file(file, df)
+
+    return gr.update(value="<div style='text-align: center;'>进度已保存</div>")

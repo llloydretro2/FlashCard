@@ -19,6 +19,10 @@ def get_files():
     return json_list
 
 
+def update_file_dropdown():
+    return gr.update(choices=get_files())
+
+
 def delete_file(file_name):
 
     directory = args.card_path

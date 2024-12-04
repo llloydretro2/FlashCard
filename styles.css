@@ -1,33 +1,51 @@
-/* styles.css */
-#review-all-button {
-    background-color: #4CAF50; /* 绿色 */
-    color: white;
-}
-#review-last-time-button {
-    background-color: #f44336; /* 红色 */
-    color: white;
-}
-#review-today-button {
-    background-color: #008CBA; /* 蓝色 */
-    color: white;
-}
-#start-review-button {
-    background-color: #e7e7e7; /* 灰色 */
-    color: black;
-}
 #show-answer-button {
     background-color: #555555; /* 深灰色 */
     color: white;
+    font-size: 15px;
+    padding: 20px 60px;
 }
+
 #right-button {
     background-color: #4CAF50; /* 绿色 */
     color: white;
 }
+
 #wrong-button {
     background-color: #f44336; /* 红色 */
     color: white;
 }
-#update-progress-button {
-    background-color: #008CBA; /* 蓝色 */
+
+#save-button {
+    background-color: #4CAF50; /* 绿色 */
     color: white;
+}
+
+#delete-button {
+    background-color: #f44336; /* 红色 */
+    color: white;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 2s ease-in-out;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(5px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.float {
+    animation: float 2s infinite;
 }
