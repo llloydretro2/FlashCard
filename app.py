@@ -8,7 +8,7 @@ import FileManage
 args = Arguments.parse_args()
 df_init = DataframeOps.initialize_dataframe_id()
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=gr.themes.Monochrome()) as demo:
 
     # 编辑卡片
     with gr.Tabs():
@@ -18,7 +18,7 @@ with gr.Blocks() as demo:
 
             with gr.Column():
 
-                gr.Markdown("# 加载卡组")
+                gr.Markdown("# 选择加载卡组")
                 with gr.Row():
                     file_dropdown_EDIT = gr.Dropdown(
                         label="卡组列表",
@@ -73,22 +73,22 @@ with gr.Blocks() as demo:
 
             gr.Markdown("# 加载卡组")
             with gr.Row():
-                file_dropdown_RC = gr.Dropdown(label="卡组列表",
+                with gr.Column(scale=1):
+                    gr.Markdown("## 1️⃣选择卡组")
+                    file_dropdown_RC = gr.Dropdown(label="卡组列表",
                                                choices=FileManage.get_files(),
                                                interactive=True,
                                                scale=1)
+                    deck_stats_RC = gr.Textbox(label="卡组统计",
+                                           interactive=False,
+                                           scale=1)
                 with gr.Column(scale=0):
-                    gr.Markdown("<h2 style='text-align: center;'>选择模式</h2>")
+                    gr.Markdown("<h2 style='text-align: center;'>2️⃣选择模式</h2>")
                     btn_review_all_RC = gr.Button("复习全部")
                     btn_review_last_time_RC = gr.Button("复习上次错误项")
                     btn_review_today_RC = gr.Button("复习今天未复习项")
-            with gr.Row():
-                deck_stats_RC = gr.Textbox(label="卡组统计",
-                                           interactive=False,
-                                           scale=1)
-                btn_start_review_RC = gr.Button("开始复习",
-                                                scale=0,
-                                                elem_id="start-review-button")
+            btn_start_review_RC = gr.Button("3️⃣确认开始")
+
 
             gr.Markdown("---")  # 添加分割线
 
@@ -97,16 +97,16 @@ with gr.Blocks() as demo:
                 question_box_RC = gr.Textbox(label="问题",
                                              interactive=False,
                                              lines=10,
-                                             scale=2)
+                                             scale=1)
                 with gr.Column(scale=0):
                     gr.Markdown("<div style='height: 50px;'></div>")  # 添加空白区域
                     progress_RC = gr.Markdown(
                         value="<div style='text-align: center;'>进度: 0/0</div>")
-                    btn_show_answer_RC = gr.Button("显示答案")
+                    btn_show_answer_RC = gr.Button("显示答案", elem_id="show-answer-button")
                 answer_box_RC = gr.Textbox(label="答案",
                                            interactive=False,
                                            lines=10,
-                                           scale=2)
+                                           scale=1)
 
             with gr.Row():
                 btn_right_RC = gr.Button("正确", elem_id="right-button")
@@ -152,6 +152,12 @@ with gr.Blocks() as demo:
         btn_review_all_RC.click(fn=DataframeOps.review_all,
                                 inputs=[file_dropdown_RC],
                                 outputs=[df_RC, deck_stats_RC])
+        btn_review_last_time_RC.click(fn=DataframeOps.review_last_time,
+                                        inputs=[file_dropdown_RC],
+                                        outputs=[df_RC, deck_stats_RC])
+        btn_review_today_RC.click(fn=DataframeOps.review_today,
+                                    inputs=[file_dropdown_RC],
+                                    outputs=[df_RC, deck_stats_RC])
         btn_start_review_RC.click(fn=DataframeOps.pick_card,
                                   inputs=[df_RC],
                                   outputs=[current_card_id_RC])
@@ -197,10 +203,14 @@ if __name__ == "__main__":
     #start-review-button {
         background-color: #e7e7e7; /* 灰色 */
         color: black;
+        font-size: 15px;
+        padding: 20px 60px;
     }
     #show-answer-button {
         background-color: #555555; /* 深灰色 */
         color: white;
+        font-size: 15px;
+        padding: 20px 60px;
     }
     #right-button {
         background-color: #4CAF50; /* 绿色 */
@@ -214,12 +224,9 @@ if __name__ == "__main__":
         background-color: #008CBA; /* 蓝色 */
         color: white;
     }
-    #review-all-button, #review-last-time-button, #review-today-button, #start-review-button, #show-answer-button, #right-button, #wrong-button, #reboot-local-button, #reboot-share-button {
-        font-size: 15px; /* 字体大小 */
-        padding: 20px 60px; /* 内边距 */
-    }    """
+    """
 
     if args.share:
-        print(demo.launch(share=True))
+        print(demo.launch(share=True, allowed_paths=["/"]))
     else:
-        demo.launch()
+        demo.launch(allowed_paths=["/"])

@@ -21,6 +21,8 @@ args = Arguments.parse_args()
 }
 '''
 
+def get_timestamp():
+    return datetime.now().strftime('%Y-%m-%d')
 
 def initialize_dataframe_id():
 
@@ -189,6 +191,97 @@ def review_all(file):
     return gr.update(value=df), gr.update(value=deck_status_msg)
 
 
+def review_last_time(file):
+
+    file_path = os.path.join(args.card_path, f'{file}.json')
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    card_data = data['cards']
+    print('卡片原数据:\n', card_data)
+
+    question_list = []
+    answer_list = []
+    record_list = []
+    for item in card_data:
+        question_list.append(item["Question"])
+        answer_list.append((item["Answer"]))
+        record_list.append(item["Records"])
+    id_list = list(range(1, len(question_list) + 1))
+    
+    # 如果记录不存在或者记录的在最新的一个时间戳中有错误的记录
+    status_list = [1] * len(id_list)
+    for i in range(len(record_list)):
+        
+        # 如果没有记录
+        if len(record_list[i]) == 0:
+            status_list[i] = 0
+            
+        # 如果有记录且记录大于两条则检查最新的两条记录
+        elif len(record_list[i]) > 1:
+            last_time_stamp = record_list[i][-1][0]
+            if last_time_stamp == record_list[i][-2][0] and record_list[i][-2][1] == 0:
+                status_list[i] = 0
+        
+    df = pd.DataFrame({
+        "ID": id_list,
+        "Questions": question_list,
+        "Answers": answer_list,
+        "Records": record_list,
+        "Status": status_list
+    })
+    print('处理后数据:', df)
+
+    deck_status_msg = f"卡组[{file}]加载成功🎉\n共{len(id_list)}张卡🃏\n本次需要复习{len(id_list)-sum(status_list)}张卡片"
+
+    return gr.update(value=df), gr.update(value=deck_status_msg)
+
+
+def review_today(file):
+
+    file_path = os.path.join(args.card_path, f'{file}.json')
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    card_data = data['cards']
+    print('卡片原数据:\n', card_data)
+
+    question_list = []
+    answer_list = []
+    record_list = []
+    for item in card_data:
+        question_list.append(item["Question"])
+        answer_list.append((item["Answer"]))
+        record_list.append(item["Records"])
+    id_list = list(range(1, len(question_list) + 1))
+    
+    # 查看今天的时间戳并找到没有今天记录的卡片
+    status_list = [0] * len(id_list)
+    for i in range(len(record_list)):
+        if record_list[i][-1][0] == get_timestamp():
+            status_list[i] = 1
+        
+    df = pd.DataFrame({
+        "ID": id_list,
+        "Questions": question_list,
+        "Answers": answer_list,
+        "Records": record_list,
+        "Status": status_list
+    })
+    print('处理后数据:', df)
+
+    deck_status_msg = f"卡组[{file}]加载成功🎉\n共{len(id_list)}张卡🃏\n本次需要复习{len(id_list)-sum(status_list)}张卡片"
+
+    return gr.update(value=df), gr.update(value=deck_status_msg)
+
+
+
+
+
+
+
+
+
+
+
 def df_to_list(df):
     df_value = df.values
     print("原数据:\n", df_value)
@@ -256,7 +349,7 @@ def set_correct(df, card_id):
 
     question_list, answer_list, record_list, status_list = df_to_list(df)
 
-    time_stemp = datetime.now().strftime('%Y-%m-%d')
+    time_stemp = get_timestamp()
     record_list[int(card_id)].append([time_stemp, 1])
     status_list[int(card_id)] = 1
 
@@ -277,7 +370,7 @@ def set_wrong(df, card_id):
 
     question_list, answer_list, record_list, status_list = df_to_list(df)
 
-    time_stemp = datetime.now().strftime('%Y-%m-%d')
+    time_stemp = get_timestamp()
     record_list[int(card_id)].append([time_stemp, 0])
 
     # 更新 DataFrame
