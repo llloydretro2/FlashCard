@@ -4,6 +4,7 @@ import gradio as gr
 import json
 import random
 from datetime import datetime
+from matplotlib import pyplot as plt
 
 import FileManage
 import Arguments
@@ -16,7 +17,9 @@ args = Arguments.parse_args()
     "Question": 问题,
     "Answer" : 答案,
     "Records":[
-        ["某一时间戳", 0/1], [“某一时间戳”, ...], ... (0为错误，1为正确)
+        ["某一时间戳", 0/1], 
+        [“某一时间戳”, ...], 
+        ... (0为错误，1为正确)
     ]
 }
 '''
@@ -84,20 +87,20 @@ def add_card(question, answer, df_component):
     record_list = []
 
     for i in df_value:
-        if (i[1] == '' or i[2] == ''):
+        if i[1] == '' or i[2] == '':
             continue
         question_list.append(i[1])
         answer_list.append(i[2])
         record_list.append(i[3])
 
-    new_qestion_list = question_list + [question]
+    new_question_list = question_list + [question]
     new_answer_list = answer_list + [answer]
     new_record_list = record_list + [[]]
-    id_list = list(range(1, len(new_qestion_list) + 1))
+    id_list = list(range(1, len(new_question_list) + 1))
 
     new_df = pd.DataFrame({
         "ID": id_list,
-        "Questions": new_qestion_list,
+        "Questions": new_question_list,
         "Answers": new_answer_list,
         "Records": new_record_list
     })
@@ -114,7 +117,7 @@ def save_to_file(file, df_component):
     df_value = df_component.values
     new_json_data = {"cards": []}
     for i in df_value:
-        if (i[1] == '' or i[2] == ''):
+        if i[1] == '' or i[2] == '':
             continue
         temp_card = {
             "ID": i[0],
@@ -177,11 +180,7 @@ def delete_card_id(id, df_component):
 
 def review_all(file):
 
-    file_path = os.path.join(args.card_path, f'{file}.json')
-    with open(file_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    card_data = data['cards']
-    print('卡片原数据:\n', card_data)
+    card_data = get_file_data(file)
 
     question_list = []
     answer_list = []
@@ -208,11 +207,7 @@ def review_all(file):
 
 def review_last_time(file):
 
-    file_path = os.path.join(args.card_path, f'{file}.json')
-    with open(file_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    card_data = data['cards']
-    print('卡片原数据:\n', card_data)
+    card_data = get_file_data(file)
 
     question_list = []
     answer_list = []
@@ -252,13 +247,21 @@ def review_last_time(file):
     return gr.update(value=df), gr.update(value=deck_status_msg)
 
 
-def review_today(file):
+def get_file_data(file):
 
     file_path = os.path.join(args.card_path, f'{file}.json')
     with open(file_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     card_data = data['cards']
     print('卡片原数据:\n', card_data)
+
+    return card_data
+
+
+
+def review_today(file):
+
+    card_data = get_file_data(file)
 
     question_list = []
     answer_list = []
@@ -358,8 +361,8 @@ def set_correct(df, card_id):
 
     question_list, answer_list, record_list, status_list = df_to_list(df)
 
-    time_stemp = get_timestamp()
-    record_list[int(card_id)].append([time_stemp, 1])
+    time_stamp = get_timestamp()
+    record_list[int(card_id)].append([time_stamp, 1])
     status_list[int(card_id)] = 1
 
     # 更新 DataFrame
@@ -379,8 +382,8 @@ def set_wrong(df, card_id):
 
     question_list, answer_list, record_list, status_list = df_to_list(df)
 
-    time_stemp = get_timestamp()
-    record_list[int(card_id)].append([time_stemp, 0])
+    time_stamp = get_timestamp()
+    record_list[int(card_id)].append([time_stamp, 0])
 
     # 更新 DataFrame
     df.at[int(card_id), "Records"] = record_list[int(card_id)]
@@ -424,3 +427,69 @@ def save_progress(df, file):
     save_to_file(file, df)
 
     return gr.update(value="<div style='text-align: center;'>进度已保存</div>")
+
+
+def frequency_analysis(file):
+    card_data = get_file_data(file)
+
+    id_list = []
+    question_list = []
+    answer_list = []
+    record_list = []
+    for item in card_data:
+        id_list.append(item["ID"])
+        question_list.append(item["Question"])
+        answer_list.append(item["Answer"])
+        record_list.append(item["Records"])
+
+    # 统计总次数/正确次数/错误次数
+    review_times = []
+    correct_time = []
+    wrong_time = []
+    for item in record_list:
+        review_times.append(len(item))
+        correct_time.append(sum([i[1] for i in item]))
+        wrong_time.append(len(item) - sum([i[1] for i in item]))
+
+    # 转换为 DataFrame
+    df = pd.DataFrame({
+        "ID": id_list,
+        "Questions": question_list,
+        "Answers": answer_list,
+        "Records": record_list,
+        "ReviewTimes": review_times,
+        "CorrectTimes": correct_time,
+        "WrongTimes": wrong_time
+    })
+    print('处理后数据:\n', df)
+
+    df_wrong_time_sorted = df.sort_values(by='WrongTimes', ascending=False)
+    print('错误次数排序:\n', df_wrong_time_sorted)
+
+    # 绘制柱状图
+    plt.figure(figsize=(10, 6))
+    bars_correct = plt.bar(df['ID'], df['CorrectTimes'], color='#90EE90', label='Correct')
+    bars_wrong = plt.bar(df['ID'], df['WrongTimes'], color='#FF7F7F', label='Wrong', bottom=df['CorrectTimes'])
+    plt.legend()
+    plt.xlabel('ID')
+    plt.ylabel('Times')
+    plt.title('Review Times')
+
+
+    # Add count labels inside each bar
+    for bar_correct, bar_wrong, correct, wrong, total in zip(bars_correct, bars_wrong, df['CorrectTimes'], df['WrongTimes'], df['ReviewTimes']):
+        if correct != 0:
+            plt.text(bar_correct.get_x() + bar_correct.get_width() / 2, bar_correct.get_height() / 2, f'{correct}', ha='center', va='center', color='black')
+        if wrong != 0:
+            plt.text(bar_wrong.get_x() + bar_wrong.get_width() / 2, bar_correct.get_height() + bar_wrong.get_height() / 2, f'{wrong}', ha='center', va='center', color='black')
+        plt.text(bar_correct.get_x() + bar_correct.get_width() / 2, bar_correct.get_height() + bar_wrong.get_height(), f'{total}', ha='center', va='bottom', color='black')
+
+
+    plt.xticks(df['ID'], rotation=45, ha='center')
+
+    img = 'stats/frequency_analysis.png'
+    plt.savefig(img)
+
+    return_msg = f"卡片错误频率分析成功🎉\n以下是最常错误的卡片排行📊\n右侧为可视化结果📈"
+
+    return gr.update(value=return_msg), gr.update(value=df_wrong_time_sorted), gr.update(value=img)

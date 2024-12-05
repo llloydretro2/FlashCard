@@ -7,29 +7,27 @@ import FileManage
 args = Arguments.parse_args()
 df_init = DataframeOps.initialize_dataframe_id()
 
+divider = "<hr style='border: 1px solid #000; margin: 20px 0;'>"
+
 with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
                                           radius_size="none"),
                css_paths="styles.css") as demo:
-
     # 编辑卡片
     with gr.Tabs():
         with gr.TabItem("编辑卡片"):
-
             with gr.Column():
-
                 gr.Markdown("<h1 style='text-align: center;'>选择卡组</h1>")
                 with gr.Row():
-                    file_dropdown_EDIT = gr.Dropdown(
-                        label="卡组列表",
-                        choices=FileManage.get_files(),
-                        interactive=True,
-                        scale=1)
-                    with gr.Column(scale=0):
+                    with gr.Column(scale=1):
+                        file_dropdown_EDIT = gr.Dropdown(
+                            label="卡组列表",
+                            choices=FileManage.get_files(),
+                            interactive=True)
                         btn_refresh_EDIT = gr.Button("刷新")
+                    with gr.Column(scale=0):
                         btn_load_file_EDIT = gr.Button("加载")
                         btn_new_deck_EDIT = gr.Button("新建卡组")
-                gr.Markdown(
-                    "<hr style='border: 1px solid #000; margin: 20px 0;'>")
+                gr.Markdown(divider)
 
                 gr.Markdown("<h1 style='text-align: center;'>添加卡片</h1>")
                 with gr.Row():
@@ -41,8 +39,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
                                                    scale=1)
                     btn_add_card_EDIT = gr.Button("将卡片加入到卡组", scale=0)
 
-                gr.Markdown(
-                    "<hr style='border: 1px solid #000; margin: 20px 0;'>")
+                gr.Markdown(divider)
 
                 gr.Markdown("<h1 style='text-align: center;'>卡组预览</h1>")
                 msg_box_EDIT = gr.Textbox(label="信息",
@@ -53,7 +50,6 @@ with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
                                                        interactive=False,
                                                        scale=2)
                     with gr.Column(scale=1):
-
                         gr.Markdown(
                             "<h1 style='text-align: center;'>删除卡片</h1>")
                         delete_choice_DELETE = gr.Dropdown(label="问题ID",
@@ -83,7 +79,6 @@ with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
 
         # 复习卡片
         with gr.TabItem("复习卡片"):
-
             gr.Markdown("<h1 style='text-align: center;'>加载卡组</h1>")
             with gr.Row():
                 with gr.Column(scale=1):
@@ -104,7 +99,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
                     btn_review_today_RC = gr.Button("复习今天未复习项")
             btn_start_review_RC = gr.Button("3️⃣确认开始")
 
-            gr.Markdown("<hr style='border: 1px solid #000; margin: 20px 0;'>")
+            gr.Markdown(divider)
 
             gr.Markdown("<h1 style='text-align: center;'>复习卡片</h1>")
             with gr.Row():
@@ -135,6 +130,40 @@ with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
             df_RC = gr.DataFrame(value=df_init,
                                  interactive=False,
                                  visible=False)
+
+        # 统计页面
+        with gr.TabItem("统计"):
+            with gr.Row():
+                with gr.Column(scale=1):
+                    gr.Markdown("## 1️⃣选择卡组")
+                    file_dropdown_STATS = gr.Dropdown(
+                        label="卡组列表",
+                        choices=FileManage.get_files(),
+                        interactive=True,
+                        scale=1)
+                    btn_refresh_STATS = gr.Button("刷新")
+                with gr.Column(scale=0):
+                    gr.Markdown("<h2 style='text-align: center;'>2️⃣查看统计</h2>")
+                    btn_show_high_freq_STATS = gr.Button("查看错误频率统计")
+                    # TODO 需要别的统计功能
+
+            gr.Markdown(divider)
+
+            with gr.Row():
+                with gr.Column():
+                    stats_box_STATS = gr.Textbox(label="统计结果",
+                                                 interactive=False)
+                    df_STATS = gr.DataFrame(interactive=False)
+                visual_box_STATS = gr.Image(label="可视化",
+                                            value="imgs/glasses.jpg",
+                                            interactive=False)
+
+
+
+
+
+
+
 
         # 编辑卡组
         btn_add_card_EDIT.click(fn=DataframeOps.add_card,
@@ -201,6 +230,15 @@ with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
                                    outputs=[progress_RC])
         btn_refresh_RC.click(fn=FileManage.update_file_dropdown,
                              outputs=[file_dropdown_RC])
+
+        # 统计页面
+        btn_show_high_freq_STATS.click(fn=DataframeOps.frequency_analysis,
+                                   inputs=[file_dropdown_STATS],
+                                   outputs=[stats_box_STATS, df_STATS, visual_box_STATS])
+        btn_refresh_STATS.click(fn=FileManage.update_file_dropdown,
+                                 outputs=[file_dropdown_STATS])
+
+        
 
 if __name__ == "__main__":
 
