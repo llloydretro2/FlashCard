@@ -71,7 +71,7 @@ def load_dataframe_edit(file):
     })
     print('处理后数据:', df)
 
-    return gr.update(value=df), gr.update(choices=id_list)
+    return gr.update(value=df)
 
 
 def add_card(question, answer, df_component):
@@ -148,6 +148,7 @@ def save_dataframe(save_file_name, load_file_name, df_component):
 def delete_card_id(id, df_component):
 
     try:
+        print(type(id))
         df_value = df_component.values
         print("原数据:\n", df_value)
 
@@ -156,7 +157,7 @@ def delete_card_id(id, df_component):
         record_list = []
 
         for i in df_value:
-            if i[0] == id:
+            if i[0] == int(id):
                 continue
             question_list.append(i[1])
             answer_list.append(i[2])
@@ -173,9 +174,9 @@ def delete_card_id(id, df_component):
         print("处理后数据:\n", new_df)
 
         return gr.update(value=f"已删除卡片{id}"), gr.update(
-            value=new_df), gr.update(choices=id_list)
+            value=new_df)
     except:
-        return gr.update(value="卡片不存在"), gr.update(), gr.update()
+        return gr.update(value="卡片不存在"), gr.update()
 
 
 def review_all(file):

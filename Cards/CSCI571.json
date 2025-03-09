@@ -1,0 +1,64 @@
+{
+    "cards": [
+        {
+            "ID": 1,
+            "Question": "What is solution for medium size website?",
+            "Answer": "Cloudflare CDN hosting, DNS, SSL/TLS certs",
+            "Records": []
+        },
+        {
+            "ID": 2,
+            "Question": "What is solution for large size website?",
+            "Answer": "AWS hosting\nIBM 90 xSeries running Linux/Citrix Netscaler, Apache and Tomcat web servers, AWS Route 53 (DNS)",
+            "Records": []
+        },
+        {
+            "ID": 3,
+            "Question": "What are the issues address by web server farms?",
+            "Answer": "- Redundancy eliminates single point of failure; backup and failover strategy is required\n– Security, secure areas are placed behind firewalls which monitor web traffic, network address translation, port translation, SSL",
+            "Records": []
+        },
+        {
+            "ID": 4,
+            "Question": "What is Web Server Farms?",
+            "Answer": "– A group of computers acting as servers and housed in a single location;\n– Internet Service Providers (ISP’s) provide web hosting services using a web server farm",
+            "Records": []
+        },
+        {
+            "ID": 5,
+            "Question": "What is cloud computing?",
+            "Answer": "Cloud computing is Internet-based computing, whereby shared resources, software, and information are provided to computers and other devices on demand, like the electricity grid.",
+            "Records": []
+        },
+        {
+            "ID": 6,
+            "Question": "What is WebKit?",
+            "Answer": "WebKit is a software component used to render web pages; it is open source. \n–   It is used by Apple’s Safari web browsers, and previously by Google’s Chrome\n–   WebKit is also the name of the macOS system framework version of the engine that's used by Safari, Dashboard, Mail, and many other macOS applications",
+            "Records": []
+        },
+        {
+            "ID": 7,
+            "Question": "What is GeeKo?",
+            "Answer": "Gecko is a layout engine developed by Mozilla Corporation, known as the layout engine of the Firefox web browser. \n– It is used to display web pages and, in some cases, an application's user interface. \n– It offers a rich programming API that makes it suitable for a wide variety of roles \nin Internet-enabled applications, such as web browsers \n–   Its development originated with Netscape",
+            "Records": []
+        },
+        {
+            "ID": 8,
+            "Question": "What is Chromium?",
+            "Answer": "Chromium is a web browser project, developed by Google.\n–   Engine originally based on Blink, a fork of Apple WebKit\n–   Used in Chrome, Microsoft Edge, Opera, Samsung Internet and many others",
+            "Records": []
+        },
+        {
+            "ID": 9,
+            "Question": "What is Capabilities of a Browser",
+            "Answer": "- A mouse-driven graphical user interface\n- Display of \n• Hypertext documents conforming to latest HTML standard\n• Text with fonts, styles, and varying point sizes\n• Foreign-language character sets conforming to ISO-8859\n• Forms composed of edit boxes, check boxes, radio boxes, lists, text areas, etc.\n• Graphics in different formats (GIF, JPEG, MPEG, PNG, XBM) including monochrome, color",
+            "Records": []
+        },
+        {
+            "ID": 10,
+            "Question": "What conclusions we could get from The Browser Wars?",
+            "Answer": "- Chrome is the clear winner\n- Edge comes second, with Chrome engine\n- Firefox next, but losing ground \n- Safari and Opera having small percentages\n- WebKit-related total over 90%",
+            "Records": []
+        }
+    ]
+}

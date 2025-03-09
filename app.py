@@ -52,11 +52,9 @@ with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
                     with gr.Column(scale=1):
                         gr.Markdown(
                             "<h1 style='text-align: center;'>删除卡片</h1>")
-                        delete_choice_DELETE = gr.Dropdown(label="问题ID",
-                                                           choices=[],
+                        delete_choice_DELETE = gr.Textbox(label="问题ID",
                                                            interactive=True)
                         with gr.Row():
-                            btn_refresh_DELETE = gr.Button("刷新")
                             btn_delete_card_DELETE = gr.Button("删除卡片")
 
                         gr.Markdown(
@@ -177,7 +175,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
         btn_load_file_EDIT.click(
             fn=DataframeOps.load_dataframe_edit,
             inputs=[file_dropdown_EDIT],
-            outputs=[dataframe_view_EDIT, delete_choice_DELETE])
+            outputs=[dataframe_view_EDIT])
         btn_new_deck_EDIT.click(fn=DataframeOps.create_new_deck,
                                 outputs=[dataframe_view_EDIT, msg_box_EDIT])
         btn_save_df_EDIT.click(
@@ -189,9 +187,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(spacing_size="sm",
         btn_delete_card_DELETE.click(
             fn=DataframeOps.delete_card_id,
             inputs=[delete_choice_DELETE, dataframe_view_EDIT],
-            outputs=[msg_box_EDIT, dataframe_view_EDIT, delete_choice_DELETE])
-        btn_refresh_DELETE.click(fn=FileManage.update_file_dropdown,
-                                 outputs=[delete_choice_DELETE])
+            outputs=[msg_box_EDIT, dataframe_view_EDIT])
         btn_delete_file.click(
             fn=FileManage.delete_file,
             inputs=[file_dropdown_DELETE],
